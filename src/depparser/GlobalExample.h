@@ -9,6 +9,7 @@
 #define DEPPARSER_GLOBALEXAMPLE_H_
 
 #include "DepTree.h"
+#include "Example.h"
 
 class GlobalExample {
 public:
@@ -22,7 +23,7 @@ public:
 		examples = es;
 		goldActs = acts;
 	}
-	virtual ~GlobalExample();
+	~GlobalExample(){};
 
 	inline void setParas(std::vector<Example> & es, std::vector<int>& acts,
 			std::vector<int> & wIdx, std::vector<int> & tIdx){

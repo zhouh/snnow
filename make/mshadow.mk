@@ -9,7 +9,7 @@
 #----------------------------------------------------------------------------------------
 
 MSHADOW_CFLAGS = -msse3 -funroll-loops -Wno-unused-parameter -Wno-unknown-pragmas
-MSHADOW_LDFLAGS = -lm
+MSHADOW_LDFLAGS = -lm 
 MSHADOW_NVCCFLAGS =
 MKLROOT =
 ifeq ($(USE_CUDA), 0)

@@ -8,15 +8,17 @@
 #ifndef DEPPARSER_ARC_STANDARD_STATE_H
 #define DEPPARSER_ARC_STANDARD_STATE_H
 
-#define MAX_SENTENCE_SIZE 400;
+const int MAX_SENTENCE_SIZE = 400;
 
 #include <algorithm>
+#include <iostream>
 
 #include "assert.h"
 #include "DepAction.h"
+#include "DepTree.h"
 
 class State {
-private:
+public:
 	//! stack of words that are currently processed
 	std::vector<int> m_Stack;
 
@@ -38,20 +40,12 @@ private:
 	//! the second-rightmost dependency for each word
 	int m_lDepsR2[MAX_SENTENCE_SIZE];
 
-	//! the set of left tags
-	CSetOfTags<int> m_lDepTagL[MAX_SENTENCE_SIZE];
-
-	//! the set of right tags
-	CSetOfTags<int> m_lDepTagR[MAX_SENTENCE_SIZE];
-
 	//! the label of each dependency arc
 	int m_lLabels[MAX_SENTENCE_SIZE];
 
 public:
 
 	int beamIdx = 0;
-
-	static std::string rootLabel = "root";
 
 	//! score of stack
 	double score;
@@ -60,7 +54,7 @@ public:
 	int len_;
 
 	//! Previous state of the current state
-	const State * previous_;
+	State * previous_;
 
 	//! the last stack action
 	int last_action;
@@ -124,7 +118,7 @@ public:
 	}
 
 	inline bool equal(const State &item) const {
-		return !((*this) == item);
+		return ((this) == &item);
 	}
 
 	inline int stacksize() const {
@@ -162,7 +156,7 @@ public:
 	}
 
 	inline int stackitem(const int & id) const {
-		assert(id < m_Stack.size());
+		assert( (unsigned)id < m_Stack.size());
 		return m_Stack[id];
 	}
 
@@ -392,7 +386,7 @@ struct CScoredTransition {
 		score = sc;
 	}
 //! The pointer to the source state;
-	const State* source;
+	State* source;
 //! The compile action applied to the source state;
 	int action;
 //! The resulted in score.

@@ -33,7 +33,6 @@ public:
 	static bool ReadConfig(const char *pszPath);
 	static bool SaveConfig(const char *pszPath);
 	static bool LoadConfig(const char *pszPath);
-	static string BuildPath();
 };
 
 

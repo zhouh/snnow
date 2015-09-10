@@ -18,7 +18,7 @@ public:
 	Dict(std::vector<std::string> wordlist){
 		words = wordlist;
 		int index = 0;
-		for(int i = 0; i < wordlist.size(); ++i)
+		for(unsigned i = 0; i < wordlist.size(); ++i)
 			map[wordlist[i]] = index++;
 	}
 
@@ -29,22 +29,22 @@ public:
 	/*
 	 *   load the word list and fill the para member
 	 */
-	void load(vector<string> wordlist){
+	void load(std::vector<std::string> wordlist){
 		words = wordlist;
 		int index = 0;
 		map.clear();
-		for(int i = 0; i < wordlist.size(); ++i)
+		for(unsigned i = 0; i < wordlist.size(); ++i)
 			map[wordlist[i]] = index++;
 	}
 
 
-	inline int getIndex(string word){
+	inline int getIndex(std::string word){
 		auto got = map.find(word);
 		return got == map.end() ? -1 : got->second;
 	}
 	
-	inline string getWord(int index){
-		if(index >= 0 && index < words.size())
+	inline std::string getWord(int index){
+		if( (unsigned)index >= 0 && index < words.size())
 			return words[index];
 		else
 			return nullptr;
@@ -54,8 +54,8 @@ public:
 	}
 
 private:
-	vector<string> words;
-	unordered_map<string, int> map;
+    std::vector<std::string> words;
+    std::unordered_map<std::string, int> map;
 
 };
 

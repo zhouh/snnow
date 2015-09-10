@@ -12,11 +12,12 @@
 #include "assert.h"
 
 // SH [AL+LABEL] [AR+LABEL]
+const int labelNum = CConfig::nLabelNum;
 enum StackActions {
   kShift = 0,
   kArcLeftFirst = 1,
-  kArcRightFirst = CConfig::nLabelNum + 2,
-  kActNum = CConfig::nLabelNum * 2 + 1,
+  kArcRightFirst = 13 + 2,
+  kActNum = 13 * 2 + 1,
 };
 
 const int empty_arc = -1;
