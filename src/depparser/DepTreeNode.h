@@ -12,6 +12,8 @@
 #include <assert.h>
 #include <sstream>
 
+#include "DepAction.h"
+
 
 class DepTreeNode {
 public:
@@ -22,12 +24,10 @@ public:
 		word = w;
 		tag = t;
 		head = -1;
+        label = root;
 	}
 
-
-
 	virtual ~DepTreeNode(){}
-
 
 public:
 	std::string word;
@@ -38,6 +38,7 @@ public:
 };
 	inline std::istream & operator >> (std::istream &is, DepTreeNode &node) {
 	   std::string line;
+
 //	   //0
 //	   getline(is, line, '\t');
 //	   assert(is && !line.empty());
@@ -63,6 +64,7 @@ public:
 	//   assert(is && !line.empty());
 	   std::istringstream iss_id(line);
 	   iss_id >> node.head;
+       node.head++; // to gap root index == -1
 	   //7 label
 	   getline(is, line, '\t');
 //	   assert(is && !line.empty());

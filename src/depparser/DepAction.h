@@ -16,7 +16,7 @@ const int labelNum = CConfig::nLabelNum;
 enum StackActions {
   kShift = 0,
   kArcLeftFirst = 1,
-  kArcRightFirst = 13 + 2,
+  kArcRightFirst = 13 + kArcLeftFirst,
   kActNum = 13 * 2 + 1,
 };
 

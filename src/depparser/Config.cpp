@@ -8,9 +8,9 @@
 
 /* static members of class config */
 string CConfig::strEmbeddingPath("./data/english.em");
-string CConfig::strTrainPath("./data/train.txt");
-string CConfig::strTestPath("./data/test.txt");
-string CConfig::strdevPath("./data/dev.txt");
+string CConfig::strTrainPath("./data/testr.txt");
+string CConfig::strTestPath("./data/testr.txt");
+string CConfig::strdevPath("./data/devr.txt");
 
 int	CConfig::nRound		 = 10000;
 int	CConfig::nBatchSize = 100;

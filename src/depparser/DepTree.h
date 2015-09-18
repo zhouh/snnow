@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <iostream>
 
 #include "DepTreeNode.h"
 #include "DepAction.h"
@@ -24,11 +25,6 @@ public:
 
 	// construct the test DepTree, only includes words and tags, but heads, labels
 	DepTree(DepParseInput input){
-		size = input.size() + 1;
-
-		//add root node
-		DepTreeNode node(root, root);
-		nodes.push_back(node);
 
 		//add other sentences
         for(auto iter = input.begin(); iter != input.end(); iter++){
@@ -36,16 +32,30 @@ public:
 			nodes.push_back(node);
         }
 	}
+
+    // empty tree, for reading data
 	DepTree(){
 		size = 0;
 	}
 	~DepTree(){}
 
+    void extractInput(DepParseInput& input){
+        if(size == 0) {
+            std::cerr<<" the input dependency tree null!";
+            exit(0);
+        }
+
+        input.resize(size);
+
+        for(int i = 1; i < size; ++i){
+            input[i].first = nodes[i].word;
+            input[i].second = nodes[i].tag;
+        }
+    }
+
 	inline void setHead(int child, int head){ nodes[child].head = head; }
 	inline void setLabel(int child, std::string label){ nodes[child].label = label; }
-
 	
-
 public:
 	//para member
 	std::vector<DepTreeNode> nodes;
@@ -59,12 +69,15 @@ public:
 		DepTreeNode rootnode(root, root);
 		tree.nodes.push_back(rootnode);
 
-		DepTreeNode node;
-		is >> node;
+        std::string line;
+        std::getline(is, line);
 
-		while(node.head != -1){  //not empty line
-			tree.nodes.push_back(node);
-			is >> node;
+		while( is && !line.empty() ){  //not empty line
+            DepTreeNode node;
+            std::istringstream iss(line);
+            iss >> node;
+			tree.nodes.push_back( node );
+            std::getline( is, line );
 		}
 
 		tree.size = tree.nodes.size();
@@ -73,8 +86,8 @@ public:
 
 	inline std::ostream & operator << (std::ostream &os, const DepTree &tree) {
 
-
-		for(unsigned i = 0; i < tree.nodes.size(); i++)
+        // output from node 1, skip root node 
+		for(unsigned i = 1; i < tree.nodes.size(); i++)
 			os << tree.nodes[i];
 		os << std::endl;
 

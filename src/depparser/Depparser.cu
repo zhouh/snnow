@@ -21,8 +21,8 @@ using namespace mshadow;
 using namespace mshadow::expr;
 
 Depparser::Depparser(bool bTrain) {
-	/*beamSize = CConfig::nBeamSize;*/
-	/*m_bTrain = bTrain;*/
+    beamSize = CConfig::nBeamSize;
+    m_bTrain = bTrain;
 }
 
 Depparser::~Depparser() {
@@ -36,7 +36,10 @@ void Depparser::train(std::vector<DepParseInput> inputs, std::vector<DepTree> go
 
     /*Prepare the feature extractor*/
     featExtractor.getDictionaries(goldTrees);
+    featExtractor.displayDict();
     featExtractor.generateTrainingExamples(inputs, goldTrees, gExamples);
+
+    std::cout << "Constructing dictionary and training examples done!"<<std::endl;
 
     // prepare for the neural networks, every parsing step maintains a specific net
     // because each parsing step has different updating gradients.
@@ -46,8 +49,9 @@ void Depparser::train(std::vector<DepParseInput> inputs, std::vector<DepTree> go
     const int beamSize = CConfig::nBeamSize;
     omp_set_num_threads(CConfig::nThread);  //set the threads for mini-batch learning
     srand(0);
-    NNet<gpu>::init(beamSize, num_in, num_hidden, num_out);	//init the static member in the neural net
     FeatureEmbedding<cpu> fEmb(CConfig::nFeatureNum, CConfig::nEmbeddingDim, beamSize);
+    std::vector<NNet<gpu>*> nets;
+    NNetPara<gpu> netsParas(beamSize, num_in, num_hidden, num_out);
 
     // for every iteration
     for(int iter = 0; iter < CConfig::nRound; iter++){
@@ -72,6 +76,7 @@ void Depparser::train(std::vector<DepParseInput> inputs, std::vector<DepTree> go
             multiThread_miniBtach_data.push_back(threadExamples);
         }
 
+        std::cout<<"begin to create cuda!";
         //set up mshadow tensor
         InitTensorEngine<gpu>();
 
@@ -79,6 +84,7 @@ void Depparser::train(std::vector<DepParseInput> inputs, std::vector<DepTree> go
 #pragma omp parallel
         {
             auto currentThreadData = multiThread_miniBtach_data[omp_get_thread_num()];
+            UpdateGrads<gpu> cumulatedGrads(netsParas.stream);
 
             // temp input layer
             TensorContainer<cpu, 2> input;
@@ -93,7 +99,7 @@ void Depparser::train(std::vector<DepParseInput> inputs, std::vector<DepTree> go
                 GlobalExample * example =  currentThreadData[inst];
                 const int sentLen = example->wordIdx.size();
                 const int maxRound = sentLen * 2 + 1;
-                const int max_lattice_size =  (beamSize + 1) * maxRound;
+                const int max_lattice_size = (beamSize + 1) * maxRound;
 //				int num_results = 0;
                 int round = 0;
                 int currentBeamSize = 1; // initially, the beam only have one empty state
@@ -102,10 +108,8 @@ void Depparser::train(std::vector<DepParseInput> inputs, std::vector<DepTree> go
                 double maxScore = 0;
                 Beam beam(beamSize);
 
-                std::vector<NNet<gpu>*> nets;
-
-                if(inst % 1000 == 0)
-                    std::cout<<"Processing sentence "<<inst<<std::endl;
+                /*if(inst % 1000 == 0)*/
+                std::cout<<"Process: "<<omp_get_thread_num()<<" sentence "<<inst<<std::endl;
                 // beam search decoding
                 State * lattice = new State[max_lattice_size];
                 State * lattice_index[maxRound];
@@ -124,7 +128,7 @@ void Depparser::train(std::vector<DepParseInput> inputs, std::vector<DepTree> go
 //				int beamIdx = 0;
                 for(round = 1; round < maxRound; round++){
 
-                    NNet<gpu> *net = new NNet<gpu>(beamSize, num_in, num_hidden, num_out);
+                    NNet<gpu> *net = new NNet<gpu>(beamSize, num_in, num_hidden, num_out, &netsParas);
                     nets.push_back(net);
                     // new round, set beam gold false
                     bBeamContainGold = false;
@@ -164,7 +168,8 @@ void Depparser::train(std::vector<DepParseInput> inputs, std::vector<DepTree> go
                             target->setBeamIdx(i);
                             target->score = transition.score;
                             target->previous_ = transition.source;
-                            target->bGold = target->previous_->bGold & target->last_action == example->goldActs[round - 1]; // beam states contain gold state ?  bBeamContainGold |= target->bGold;
+                            target->bGold = target->previous_->bGold 
+                                            && target->last_action == example->goldActs[round - 1]; // beam states contain gold state ?  bBeamContainGold |= target->bGold;
 
                             if(target->bGold == true){
                                 correctState = target;
@@ -189,6 +194,7 @@ void Depparser::train(std::vector<DepParseInput> inputs, std::vector<DepTree> go
                     for(int bi = 0; bi < currentBeamSize; ++bi){
                         trainingStates.push_back( beam.beam[bi].source );
                     }
+
                     /* With early update, now the gold state fall out beam,*/
                     /* we need to expand the gold state one more step.*/
                     if( bEarlyUpdate & !bBeamContainGold ){
@@ -201,7 +207,10 @@ void Depparser::train(std::vector<DepParseInput> inputs, std::vector<DepTree> go
                         correctStateIdx = currentBeamSize;
                         trainingStates.emplace_back(correctState);
                     }
-                    /*computes the gradients of beam contrastive learning*/
+
+                    /*
+                     * computes the gradients of beam contrastive learning
+                     */
                     int trainingDataSize = trainingStates.size();
                     std::vector<float> updateParas(trainingDataSize, 0); // updating parameter vector
                     // softmax
@@ -227,9 +236,9 @@ void Depparser::train(std::vector<DepParseInput> inputs, std::vector<DepTree> go
                             *iter = ( *iter )->previous_;
                         }
                         nets[backRound - 1]->Backprop(grads);
+                        nets[backRound - 1]->SubsideGrads(cumulatedGrads);
+                        delete nets[backRound - 1];
                     }
-
-                    NNet<gpu>::Update();
 
                 } // updating end
                 else{ // in testing
@@ -242,13 +251,19 @@ void Depparser::train(std::vector<DepParseInput> inputs, std::vector<DepTree> go
                     }
                 } // testing end
 
+                delete[] lattice;
             } // instance #for end
+
+            if(m_bTrain){
+                std::cout<<"Begin to train!"<<std::endl;
+#pragma omp barrier
+#pragma omp critical
+                NNet<gpu>::UpdateCumulateGrads(cumulatedGrads, &netsParas);
+            }
 
         } // end multi-processor
         ShutdownTensorEngine<gpu>();
-
     } // iteration #for end
-
 }
 
 void Depparser::parse(std::vector<DepParseInput> inputs) {

@@ -43,8 +43,6 @@ public:
 	//! the label of each dependency arc
 	int m_lLabels[MAX_SENTENCE_SIZE];
 
-public:
-
 	int beamIdx = 0;
 
 	//! score of stack
@@ -65,6 +63,7 @@ public:
 public:
 	// constructors and destructor
 	State() {
+        //initially, only push root (0) into the stack
 		clear();
 	}
 
@@ -89,7 +88,6 @@ public:
 	~State() {
 	}
 
-public:
 	void copy(const State &item) {
 				m_Stack = item.m_Stack;
 				m_nNextWord = item.m_nNextWord;
@@ -166,12 +164,22 @@ public:
 	}
 
 	inline int leftdep(const int & id) const {
+        
+
+#ifdef DEBUG
+        std::cout<<"id\t"<<id<<"\tnNextWord:"<<m_nNextWord<<"\t"<<m_lDepsL[id]<<std::endl;
+#endif
 		assert(id < m_nNextWord);
 		return m_lDepsL[id];
 	}
 
 	inline int rightdep(const int & id) const {
+        
+#ifdef DEBUG
+        std::cout<<"id\t"<<id<<"\tnNextWord:"<<m_nNextWord<<"\t"<<m_lDepsR[id]<<std::endl;
+#endif
 		assert(id < m_nNextWord);
+
 		return m_lDepsR[id];
 	}
 
@@ -201,24 +209,25 @@ public:
 	void clear() {
 		m_nNextWord = 0;
 		m_Stack.clear();
-		m_Stack.push_back(0); //push the root onto stack
 		score = 0;
 		previous_ = 0;
 		last_action = -1;
 		ClearNext();
+        m_Stack.push_back(0); //push the root onto stack
+        m_nNextWord = 1;
+		ClearNext();
 	}
 
-
-
 	bool hasChildOnQueue(int head, DepTree tree){
+
+#ifdef DEBUG
+        std::cout<<"nextWord\t"<<m_nNextWord<<"\tLen\t"<<len_<<std::endl;
+#endif
 		for(int i = m_nNextWord; i < len_; ++i)
 			if(tree.nodes[i].head == head)
 				return true;
 		return false;
 	}
-
-//-----------------------------------------------------------------------------
-public:
 
 	// Perform Arc-Left operation in the arc-standard algorithm
 	void ArcLeft(int label) {
@@ -231,7 +240,10 @@ public:
 
 		m_Stack.pop_back();
 		m_Stack.back() = top0;
-
+        
+#ifdef DEBUG
+        std::cout<<"left\t"<<top1<<"\tright\t"<<top0<<std::endl;
+#endif
 		m_lHeads[top1] = top0;
 		m_lLabels[top1] = label;
 
@@ -258,6 +270,10 @@ public:
 
 		m_Stack.pop_back();
 		m_lHeads[top0] = top1;
+
+#ifdef DEBUG
+        std::cout<<"left\t"<<top1<<"\tright\t"<<top0<<std::endl;
+#endif
 
 		m_lLabels[top0] = label;
 
@@ -315,7 +331,6 @@ public:
 	}
 
 //-----------------------------------------------------------------------------
-public:
 	std::vector<int> getValidActs(std::vector<int> & retval) {
 		retval.resize(kActNum, 0);
 		retval[kArcLeftFirst + rootLabelIndex] = -1; //left-root is unvalid
@@ -330,7 +345,7 @@ public:
 		//reduce
 		if (stack_size > 2) {
 			int stack_left = stack2top();
-			if (stack_left != 0) //is root word
+			if (stack_left == 0) //is root word, we could not do leftArc
 				retval[kArcRightFirst + rootLabelIndex] = -1;
 			return retval;
 		}
@@ -352,12 +367,20 @@ public:
 		int w2 = stacktop();
 		int w1 = stack2top();
 
-		if(tree.nodes[w1].head == w2)
+
+#ifdef DEBUG
+        std::cout<<"w1: "<<w1<<"    w2:  "<<w2<<"   w1 head: "<<tree.nodes[w1].head<<"  stacksize:    "<<stacksize()<<std::endl;
+        if(w1 != -1 && w2 != -1){
+            std::cout<<"w1 head\t"<<tree.nodes[w1].label<<"\tw2 head\t"<<tree.nodes[w2].label<<std::endl;
+            std::cout<<"w1 head\t"<<labelIndexs[w1]<<"\tw2 head\t"<<labelIndexs[w2]<<std::endl;
+            std::cout<<"arcRF "<<kArcRightFirst<<std::endl;
+        }
+#endif
+		if( stacksize() >= 2 && tree.nodes[w1].head == w2)
 			return kArcLeftFirst + labelIndexs[w1];
-		if(tree.nodes[w2].head == w1 && !hasChildOnQueue(w2, tree))
+		if( stacksize() >= 2 && tree.nodes[w2].head == w1 && !hasChildOnQueue(w2, tree) )
 			return kArcRightFirst + labelIndexs[w2];
 		return kShift;
-
 	}
 
 	void StandardMoveStep(const DepTree & tree, const std::vector<int> & labelIndexs) {

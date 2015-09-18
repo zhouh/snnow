@@ -36,6 +36,12 @@ private:
 	const static int featureNum = 48;
     FeatureExtractor(){}
 
+    inline void displayDict(){
+        std::cout<< "knowLabels Size:" << knowLabels.size() << std::endl;
+        std::cout<< "knowWords Size:" << knowWords.size() << std::endl;
+        std::cout<< "knowTags Size:" << knowTags.size() << std::endl;
+    }
+
     inline int getWord(std::string s) {
 		auto got = wordMap.find(s);
 		return got == wordMap.end() ? -1 : got->second;

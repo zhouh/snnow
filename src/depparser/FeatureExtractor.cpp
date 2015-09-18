@@ -109,13 +109,17 @@ void FeatureExtractor::featureExtract(State* state, std::vector<int>& wordIndexC
 
 	// s0l s0r s0l2 s0r2 s0ll s0rr
 	int s0l, s0r, s0l2, s0r2, s0ll, s0rr;
-	s0l = state->leftdep(s0);
-	s0r = state->rightdep(s0);
-	s0l2 = state->left2dep(s0);
-	s0r2 = state->left2dep(s0);
+
+#ifdef DEBUG
+    std::cout<<"s0:"<<s0<<std::endl;
+#endif
+	s0l = s0 == -1 ? -1 : state->leftdep(s0);
+	s0r = s0 == -1 ? -1 : state->rightdep(s0);
+	s0l2 = s0 == -1 ? -1 : state->left2dep(s0);
+	s0r2 = s0 == -1 ? -1 : state->left2dep(s0);
 	s0ll = s0l == -1 ? -1 : state->leftdep(s0l);
 	s0rr = s0r == -1 ? -1 : state->rightdep(s0r);
-
+    
 	features[IDIdx++] = getWordIndex(s0l, wordIndexCache);
 	features[IDIdx++] = getWordIndex(s0r, wordIndexCache);
 	features[IDIdx++] = getWordIndex(s0l2, wordIndexCache);
@@ -139,10 +143,10 @@ void FeatureExtractor::featureExtract(State* state, std::vector<int>& wordIndexC
 
 	// s1l s1r s1l2 s1r2 s1ll s1rr
 	int s1l, s1r, s1l2, s1r2, s1ll, s1rr;
-	s1l = state->leftdep(s1);
-	s1r = state->rightdep(s1);
-	s1l2 = state->left2dep(s1);
-	s1r2 = state->left2dep(s1);
+	s1l = s1 == -1 ? -1 : state->leftdep(s1);
+	s1r = s1 == -1 ? -1 : state->rightdep(s1);
+	s1l2 = s1 == -1 ? -1 : state->left2dep(s1);
+	s1r2 = s1 == -1 ? -1 : state->left2dep(s1);
 	s1ll = s1l == -1 ? -1 : state->leftdep(s1l);
 	s1rr = s1r == -1 ? -1 : state->rightdep(s1r);
 
@@ -175,17 +179,15 @@ void FeatureExtractor::featureExtract(State* state, std::vector<int>& wordIndexC
  */
 void FeatureExtractor::generateTrainingExamples(std::vector<DepParseInput> inputs,
 		std::vector<DepTree> goldTrees, std::vector<GlobalExample>& gExamples) {
-	/*
-	 * get training examples
-	 */
-	gExamples.resize(inputs.size());  //resize vector global examples
 
-	//for every sentence
+	gExamples.resize(inputs.size());  //resize global examples
+
+	//for every sentence, cache the word and tag hash index
 	for (unsigned i = 0; i < inputs.size(); i++) {
 		auto input = inputs[i];
 		auto gTree = goldTrees[i];
 		int actNum = input.size() * 2; // n shift and n reduce
-									   // one more reduce action for reduce root
+									   // one more reduce action for root
 
 		//get gold tree label, word, tag index
 		//of a sentence string->int
@@ -217,6 +219,7 @@ void FeatureExtractor::generateTrainingExamples(std::vector<DepParseInput> input
 						<< std::endl;
 				exit(1);
 			}
+
 			labelIndexCache[index] = labelIdx->second;
 			wordIndexCache[index] = wordIdx->second;
 			tagIndexCache[index] = labelIdx->second;
@@ -228,6 +231,7 @@ void FeatureExtractor::generateTrainingExamples(std::vector<DepParseInput> input
 		std::vector<Example> examples; //features and labels
 
 		State* state = new State();
+        state->len_ = inputs[i].size();
 
 		//for every state of a sentence
 		for (int j = 0; !state->complete(); j++) {
@@ -243,6 +247,11 @@ void FeatureExtractor::generateTrainingExamples(std::vector<DepParseInput> input
 			//find gold action and move to next
 			int goldAct = state->StandardMove(gTree, labelIndexCache);
 			acts[j] = goldAct;
+
+#ifdef DEBUG
+            std::cout << "move action:  "<< goldAct;
+            std::cout << DecodeUnlabeledAction(goldAct)<<std::endl;
+#endif
 			state->Move(goldAct);
 
 			labels[goldAct] = 1;
@@ -250,6 +259,9 @@ void FeatureExtractor::generateTrainingExamples(std::vector<DepParseInput> input
 			examples.push_back(example);
 		}
 
+#ifdef DEBUG
+        std::cout << "========================================"<< std::endl;
+#endif
 		gExamples[i].setParas(examples, acts, wordIndexCache, tagIndexCache);
 
 		delete state;
