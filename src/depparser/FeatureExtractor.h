@@ -86,8 +86,38 @@ void featureExtract(State* state, std::vector<int>& wordIndexCache,
  *   generate training examples for global learning
  *   assign the global example to gExamples, which is a member of class Depparser
  */
-void generateTrainingExamples(std::vector<DepParseInput> inputs,
-		std::vector<DepTree> goldTrees, std::vector<GlobalExample>& gExamples);
+void generateTrainingExamples(std::vector<DepParseInput> inputs, std::vector<DepTree> goldTrees, 
+                              std::vector<GlobalExample> & gExamples);
+
+void getCache(Instance & inst){
+
+    inst.input.wordIndexCache.resize(input.size());
+    inst.input.tagIndexCache.resize(input.size());
+
+	int index = 0;
+	for (auto iter = inst.input.begin(); iter != inst.input.end(); iter++) {
+
+        int wordIdx = getWord(iter->first);
+        int tagIdx = getTag(iter->second);
+
+
+		if ( wordIdx == -1 ) {
+			std::cerr << "Dep word " << iter->first << " is not in wordMap!"
+					<< std::endl;
+			exit(1);
+		}
+
+		if ( tagIdx == -1 ) {
+			std::cerr << "Dep tag " << iter->second << " is not in tagMap!"
+					<< std::endl;
+			exit(1);
+		}
+
+		inst.input.wordCache[index] = wordIdx;
+		inst.input.tagCache[index] = tagIdx;
+		index++;
+    }
+ }
 
 };
 

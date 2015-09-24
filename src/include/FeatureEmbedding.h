@@ -25,13 +25,17 @@ public:
 	virtual ~FeatureEmbedding(){
 	}
 
+    /*
+     * construct the input by x = beamIndex, y = featureLayerIndex
+     */
 	void returnInput(std::vector< std::vector<int> >& featVecs, TensorContainer<xpu, 2>& input){
 		// initialize the input
 		input.Resize( Shape2( beamSize, inputSize ) );
-		for(unsigned i = 0; i < featVecs.size(); i++){
+		for(unsigned beamIndex = 0; beamIndex < featVecs.size(); beamIndex++){
 			int inputIndex = 0;
-			for(unsigned j = 0; j < featVecs[i].size(); j++){
-				input[i][inputIndex++] = featEmbeddings[ featVecs[i][j] ][j];
+			for(unsigned featureIndex = 0; featureIndex < featVecs[i].size(); featureIndex++){
+                for(unsigned embIndex = 0; embIndex < embeddingSize; embIndex++)
+				    input[beamIndex][inputIndex++] = featEmbeddings[ featVecs[beamIndex][featureIndex] ][ embIndex ];
 			}
 		}
 	}

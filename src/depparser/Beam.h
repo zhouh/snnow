@@ -39,9 +39,8 @@ class Beam{
         delete beam; 
     }
 
- /*  Insert one transition into beam,
-     *  if beam is full, pop and push, return 0;
-     *  if beam is not full, push directly, return 1.
+    /* Insert one transition into beam,
+     *  if insert successfully, return 1, else return o
      */
    inline int insert(const CScoredTransition& transition){
         //beam is full
@@ -52,9 +51,11 @@ class Beam{
               beam[currentBeamSize - 1] = transition;
               std::push_heap(beam, beam + currentBeamSize,
                   ScoredTransitionMore);
+              return 1;
             }
-            return 0;
-          }
+            else
+                return 0;
+        }
 
         //beam not full, insert directly
         beam[currentBeamSize] = transition;
@@ -62,6 +63,17 @@ class Beam{
                        ScoredTransitionMore);
         ++ currentBeamSize;
         return 1;
+    }
+    
+    /*
+     * return the max score in the beam
+     */
+    inline float getMaxScoreInBeam(){
+        float maxScore = 0;
+        for( int i = 0; i < currentBeamSize; i++ )
+            if( i == 0 || beam[i].score > maxScore )
+               maxScore = beam[i].score;
+        return maxScore;
     }
     
 };

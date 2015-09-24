@@ -1,3 +1,7 @@
+#ifndef SNNOW_NNET_H
+#define SNNOW_NNET_H
+
+
 // this implements a simple two layer neural net
 #include <vector>
 #include <cmath>
@@ -80,6 +84,26 @@ class NNet{
     nout.Resize(Shape2(batch_size, num_out));
   }
 
+  NNet(NNet* net){
+    this->paras = net->paras;
+    ninput.set_stream(paras->stream);
+    nhidden.set_stream(paras->stream);
+    nhiddenbak.set_stream(paras->stream);
+    nout.set_stream(paras->stream);
+    g_hbias.set_stream(paras->stream);
+    g_Wi2h.set_stream(paras->stream);
+    g_Wh2o.set_stream(paras->stream);
+
+    g_Wh2o.Resize(paras->Wh2o.shape_);
+    g_Wi2h.Resize(paras->Wi2h.shape_);
+    g_hbias.Resize(paras->hbias.shape_);
+    // setup nodes
+    ninput.Resize(net->ninput.shape_);
+    nhidden.Resize(Shape2(net->nhidden.shape_);
+    nhiddenbak.Resize(net->nhiddenbak.shape_);
+    nout.Resize(net->nout.shape_); 
+  }
+
  ~NNet() {}
   // forward propagation
  void Forward(const Tensor<cpu, 2, real_t>& inbatch,
@@ -157,3 +181,4 @@ class NNet{
   TensorContainer<xpu, 2, real_t> g_Wi2h, g_Wh2o;
 };
 
+#endif

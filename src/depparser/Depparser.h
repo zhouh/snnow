@@ -12,7 +12,6 @@
 
 #include "DepTree.h"
 #include "State.h"
-#include "GlobalExample.h"
 #include "Example.h"
 #include "FeatureExtractor.h"
 #include "Beam.h"
@@ -33,21 +32,11 @@ public:
 	Depparser();
 	~Depparser();
 
-    void init(std::vector<DepParseInput> inputs,
-            std::vector<DepTree> goldTrees);
-	
     // train the input sentences with mini-batch adaGrad
     void train(std::vector<DepParseInput> inputs, std::vector<DepTree> goldTrees,
             std::vector<DepParseInput> devInputs, std::vector<DepTree> devTrees);
 
     void parse(std::vector<DepParseInput> inputs);
-
-private:
-    void generateTrainingExamples(std::vector<DepParseInput> inputs,
-            std::vector<DepTree> goldTrees);
-
-    void getInputBatch(State* state, std::vector<int>& wordIndexCache,
-            std::vector<int>& tagIndexCache, std::vector< std::vector<int> >& features);
 };
 
 #endif /* DEPPARSER_DEPPARSER_H_ */

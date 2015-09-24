@@ -10,29 +10,25 @@
 
 #include "DepTree.h"
 #include "Example.h"
+#include "Instance.h"
 
 class GlobalExample {
 public:
 	std::vector<Example> examples;
 	std::vector<int> goldActs;
-	std::vector<int> wordIdx;
-	std::vector<int> tagIdx;
+    Instance * instance;
+    
 
 	GlobalExample(){}
-	GlobalExample(std::vector<Example>& es, std::vector<int>& acts){
+	GlobalExample(std::vector<Example>& es, std::vector<int>& acts,
+                  DepParseInput input) {
 		examples = es;
 		goldActs = acts;
+        instance = new Instance( input );
 	}
-	~GlobalExample(){};
-
-	inline void setParas(std::vector<Example> & es, std::vector<int>& acts,
-			std::vector<int> & wIdx, std::vector<int> & tIdx){
-		examples = es;
-		goldActs = acts;
-		wordIdx = wIdx;
-		tagIdx = tIdx;
-
-	}
+    ~GlobalExample(){
+        delete instance;
+    };
 };
 
 #endif /* DEPPARSER_GLOBALEXAMPLE_H_ */

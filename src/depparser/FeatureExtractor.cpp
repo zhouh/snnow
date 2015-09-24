@@ -8,7 +8,6 @@
 
 #include "FeatureExtractor.h"
 
-
 /**
  *   get the dictionary
  */
@@ -180,7 +179,7 @@ void FeatureExtractor::featureExtract(State* state, std::vector<int>& wordIndexC
 void FeatureExtractor::generateTrainingExamples(std::vector<DepParseInput> inputs,
 		std::vector<DepTree> goldTrees, std::vector<GlobalExample>& gExamples) {
 
-	gExamples.resize(inputs.size());  //resize global examples
+    gExamples.clear();
 
 	//for every sentence, cache the word and tag hash index
 	for (unsigned i = 0; i < inputs.size(); i++) {
@@ -189,18 +188,14 @@ void FeatureExtractor::generateTrainingExamples(std::vector<DepParseInput> input
 		int actNum = input.size() * 2; // n shift and n reduce
 									   // one more reduce action for root
 
-		//get gold tree label, word, tag index
-		//of a sentence string->int
+        /*
+         * cache the dependency label in the training set
+         */
 		std::vector<int> labelIndexCache(gTree.size);
-		std::vector<int> wordIndexCache(gTree.size);
-		std::vector<int> tagIndexCache(gTree.size);
-
 		int index = 0;
 		for (auto iter = gTree.nodes.begin(); iter != gTree.nodes.end();
 				iter++) {
 			auto labelIdx = labelMap.find(iter->label);
-			auto wordIdx = wordMap.find(iter->word);
-			auto tagIdx = tagMap.find(iter->tag);
 
 			if (labelIdx == labelMap.end()) {
 				std::cerr << "Dep label " << iter->label
@@ -208,21 +203,7 @@ void FeatureExtractor::generateTrainingExamples(std::vector<DepParseInput> input
 				exit(1);
 			}
 
-			if (wordIdx == wordMap.end()) {
-				std::cerr << "Dep word " << iter->word << " is not in wordMap!"
-						<< std::endl;
-				exit(1);
-			}
-
-			if (tagIdx == tagMap.end()) {
-				std::cerr << "Dep tag " << iter->tag << " is not in tagMap!"
-						<< std::endl;
-				exit(1);
-			}
-
 			labelIndexCache[index] = labelIdx->second;
-			wordIndexCache[index] = wordIdx->second;
-			tagIndexCache[index] = labelIdx->second;
 			index++;
 		}
 
@@ -259,15 +240,16 @@ void FeatureExtractor::generateTrainingExamples(std::vector<DepParseInput> input
 			examples.push_back(example);
 		}
 
+        GlobalExample ge_i( examples, acts, input );
+        getCache(ge_i.instance);
+
 #ifdef DEBUG
         std::cout << "========================================"<< std::endl;
 #endif
-		gExamples[i].setParas(examples, acts, wordIndexCache, tagIndexCache);
 
+		gExamples.push_back(ge_i);
 		delete state;
-
 	}
-
 }
 
 

@@ -11,7 +11,7 @@
 class Classifier {
 public:
 	Classifier();
-	virtual ~Classifier();
+    ~Classifier();
 
 public:
 
