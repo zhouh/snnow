@@ -22,9 +22,14 @@ public:
 	static int nHiddenSize;
     static int nEmbeddingDim;
     static int nFeatureNum;
+    static int nEvaluatePerIters;
 
 	static double fBPRate;
 	static double fInitRange;
+    static double fRegularizationRate;
+    static double fDropoutProb;
+    static double fAdaEps;
+    
 
 	static bool	 bDropOut;
 

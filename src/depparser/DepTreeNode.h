@@ -12,19 +12,24 @@
 #include <assert.h>
 #include <sstream>
 
-#include "DepAction.h"
-
-
 class DepTreeNode {
 public:
 
 	DepTreeNode() {head = -1;}
 
-	DepTreeNode(std::string w, std::string t){
+	DepTreeNode(std::string w, std::string t, int h, std::string l){
 		word = w;
 		tag = t;
-		head = -1;
-        label = root;
+		head = h;
+        label = l;
+	}
+
+    /*
+     * used for construct testing instances
+     */
+	DepTreeNode(std::string w, std::string t){ 
+		word = w;
+		tag = t;
 	}
 
 	virtual ~DepTreeNode(){}

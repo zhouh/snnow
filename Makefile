@@ -9,14 +9,16 @@ export CXX = g++
 export NVCC =nvcc
 include $(BASE_DIR)/make/config.mk
 include $(BASE_DIR)/make/mshadow.mk
-export CFLAGS = -Wall -O3 -std=c++11 -I$(INCLUDE_DIR)/ -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
+
+export CFLAGS = -g -O0 -std=c++11 -I$(INCLUDE_DIR)/ -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
+#export CFLAGS = -Wall -O3 -std=c++11 -I$(INCLUDE_DIR)/ -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
 export LDFLAGS= -lm -L$(CUDA_HOME)/lib64 $(MSHADOW_LDFLAGS)
-export NVCCFLAGS = -O3 -std=c++11 --use_fast_math -ccbin $(CXX)  $(MSHADOW_NVCCFLAGS)
+export NVCCFLAGS =-g -G -O0 -std=c++11 --use_fast_math -ccbin $(CXX)  $(MSHADOW_NVCCFLAGS)
 
 # specify tensor path
-BIN = #$(BASE_DIR)/bin/parser
-OBJ = Config.o FeatureExtractor.o Beam.o
-CUOBJ = #Depparser.o 
+BIN = $(BASE_DIR)/bin/parser
+OBJ = Config.o FeatureExtractor.o Beam.o ArcStandardSystem.o
+CUOBJ = Depparser.o 
 CUBIN =
 .PHONY: clean all
 
@@ -29,9 +31,11 @@ Config.o : $(DEPPARSER_DIR)/Config.h $(DEPPARSER_DIR)/Config.cpp
 FeatureExtractor.o : $(DEPPARSER_DIR)/DepTree.h $(DEPPARSER_DIR)/FeatureExtractor.h $(DEPPARSER_DIR)/FeatureExtractor.cpp \
 	$(DEPPARSER_DIR)/DepAction.h $(DEPPARSER_DIR)/GlobalExample.h $(DEPPARSER_DIR)/Instance.h
 
-Depparser.o : $(DEPPARSER_DIR)/Depparser.cu $(DEPPARSER_DIR)/Depparser.h $(DEPPARSER_DIR)/State.h $(DEPPARSER_DIR)/Config.h $(INCLUDE_DIR)/mshadow/tensor.h $(INCLUDE_DIR)/NNet.h $(INCLUDE_DIR)/Dict.h $(DEPPARSER_DIR)/GlobalExample.h $(DEPPARSER_DIR)/Example.h $(INCLUDE_DIR)/mshadow/*.h $(INCLUDE_DIR)/mshadow/extension/*.h $(DEPPARSER_DIR)/Beam.h $(INCLUDE_DIR)/TNNets.h $(DEPPARSER_DIR)/BeamDecodor.h $(DEPPARSER_DIR)/Instance.h
+Depparser.o : $(DEPPARSER_DIR)/Depparser.cu $(DEPPARSER_DIR)/Depparser.h $(DEPPARSER_DIR)/State.h $(DEPPARSER_DIR)/Config.h $(INCLUDE_DIR)/mshadow/tensor.h $(INCLUDE_DIR)/NNet.h $(INCLUDE_DIR)/Dict.h $(DEPPARSER_DIR)/GlobalExample.h $(DEPPARSER_DIR)/Example.h $(INCLUDE_DIR)/mshadow/*.h $(INCLUDE_DIR)/mshadow/extension/*.h $(DEPPARSER_DIR)/Beam.h $(INCLUDE_DIR)/TNNets.h $(DEPPARSER_DIR)/BeamDecodor.h $(DEPPARSER_DIR)/Instance.h $(DEPPARSER_DIR)/Evalb.h
 
 Beam.o : $(DEPPARSER_DIR)/Beam.h $(DEPPARSER_DIR)/Beam.cpp
+
+ArcStandardSystem.o : $(DEPPARSER_DIR)/State.h $(DEPPARSER_DIR)/ArcStandardSystem.h $(DEPPARSER_DIR)/ArcStandardSystem.cpp
 
 #$(BASE_DIR)/bin/parser : $(CUOBJ) $(OBJ)
 

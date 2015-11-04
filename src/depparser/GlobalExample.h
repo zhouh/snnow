@@ -16,18 +16,15 @@ class GlobalExample {
 public:
 	std::vector<Example> examples;
 	std::vector<int> goldActs;
-    Instance * instance;
+    Instance instance;
     
 
-	GlobalExample(){}
-	GlobalExample(std::vector<Example>& es, std::vector<int>& acts,
-                  DepParseInput input) {
+    GlobalExample(std::vector<Example>& es, std::vector<int>& acts,
+                  Instance & inst) : instance( inst) {
 		examples = es;
 		goldActs = acts;
-        instance = new Instance( input );
 	}
     ~GlobalExample(){
-        delete instance;
     };
 };
 

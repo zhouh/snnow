@@ -35,8 +35,14 @@ class Beam{
         bBeamContainGoldState = false;
     }
 
+    void clear(){
+
+        currentBeamSize = 0;
+        bBeamContainGoldState = false;
+    }
+
     ~Beam(){
-        delete beam; 
+        delete[] beam; 
     }
 
     /* Insert one transition into beam,

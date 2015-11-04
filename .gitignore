@@ -2,4 +2,4 @@ data/*
 bin/*
 Debug/*
 Object/*
-*.O
+*.o

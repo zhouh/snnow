@@ -3,28 +3,29 @@
 #include "stdio.h"
 #include "stdlib.h"
     
-
-
-
 /* static members of class config */
-string CConfig::strEmbeddingPath("./data/english.em");
-string CConfig::strTrainPath("./data/testr.txt");
+string CConfig::strEmbeddingPath("./data/sen.emb");
+string CConfig::strTrainPath("./data/small.train");
 string CConfig::strTestPath("./data/testr.txt");
-string CConfig::strdevPath("./data/devr.txt");
+string CConfig::strdevPath("./data/small.train");
 
 int	CConfig::nRound		 = 10000;
-int	CConfig::nBatchSize = 100;
-int	CConfig::nThread = 3;
+int	CConfig::nBatchSize = 10;
+int	CConfig::nThread = 1;
 int CConfig::nEmbeddingDim = 50;
 int CConfig::nLabelNum = 28;
-int CConfig::nBeamSize = 64;
+int CConfig::nBeamSize = 16;
 int CConfig::nHiddenSize = 200;
 int CConfig::nFeatureNum = 48;
+int CConfig::nEvaluatePerIters = 10;
 
-bool CConfig::bDropOut = false;
+bool CConfig::bDropOut = true;
 
 double CConfig::fBPRate = 0.1;
-double CConfig::fInitRange = 0.5;
+double CConfig::CConfig::fInitRange = 0.1;
+double CConfig::fRegularizationRate = 1e-8;
+double CConfig::fDropoutProb = 0.5;
+double CConfig::fAdaEps = 1e-6;
 
 vector<int> CConfig::vHiddenSize;
 

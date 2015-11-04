@@ -1,70 +1,17 @@
-/*
- * DepAction.h
- *
- *  Created on: Jul 3, 2015
- *      Author: zhouh
- */
-
-#ifndef DEPPARSER_DEPACTION_H_
-#define DEPPARSER_DEPACTION_H_
-
-#include "Config.h"
-#include "assert.h"
-
-// SH [AL+LABEL] [AR+LABEL]
-const int labelNum = CConfig::nLabelNum;
-enum StackActions {
-  kShift = 0,
-  kArcLeftFirst = 1,
-  kArcRightFirst = 13 + kArcLeftFirst,
-  kActNum = 13 * 2 + 1,
-};
+/*************************************************************************
+  > File Name: depparser/DepAction.h
+  > Author: Hao Zhou
+  > Mail: haozhou0806@gmail.com 
+  > Created Time: 21/10/15 10:24:25
+ ************************************************************************/
+#ifndef DEPPARSER_ACTION_H
+#define DEPPARSER_ACTION_H
 
 const int empty_arc = -1;
 const int empty_label = -1;
+const std::string unknow = "-UNKNOW-";
+const std::string null = "-NULL-";
+const std::string root = "-ROOT-";
 
-static std::string unknow = "-UNKNOW-";
-static std::string null = "-NULL-";
-static std::string root = "-ROOT-";
+#endif
 
-static int rootLabelIndex = 1;
-
-/**
- *   return the action code
- */
-static unsigned
-EncodeAction(const StackActions & action,
-             const int & label = 0) {
-
-  if (action == kShift)
-	  return action;
-  else
-	  return action + label;
-}
-
-/**
- *   get the action type
- */
-static unsigned
-DecodeUnlabeledAction(const unsigned & action) {
-  assert(action < kActNum);
-
-  if (action < kArcLeftFirst)
-    return kShift;
-  else if (action < kArcRightFirst)
-    return kArcLeftFirst;
-  else
-    return kArcRightFirst;
-
-}
-
-/**
- *  get the dependency label ID
- */
-static unsigned
-DecodeLabel(const unsigned & action) {
-  assert(action < kActNum);
-  return action - DecodeUnlabeledAction(action);
-}
-
-#endif /* DEPPARSER_DEPACTION_H_ */

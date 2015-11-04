@@ -5,13 +5,17 @@
  ************************************************************************/
 
 #include<iostream>
+#include<algorithm>
+#include<cctype>
 
 #include "FeatureExtractor.h"
+
+//#define DEBUG
 
 /**
  *   get the dictionary
  */
-void FeatureExtractor::getDictionaries(std::vector<DepTree> goldTrees) {
+void FeatureExtractor::getDictionaries(std::vector<DepTree> & goldTrees) {
 
 	std::unordered_set<std::string> labelSet;
 	std::unordered_set<std::string> tagSet;
@@ -19,7 +23,7 @@ void FeatureExtractor::getDictionaries(std::vector<DepTree> goldTrees) {
 
 	// insert to the set
 	for (unsigned i = 0; i < goldTrees.size(); i++) {
-		for (int j = 0; j < goldTrees[i].size; j++) {
+		for (int j = 1; j < goldTrees[i].size; j++) { // the first node is -ROOT- node, skip
 			auto treeNode = goldTrees[i].nodes[j];
 			labelSet.insert(treeNode.label);
 			tagSet.insert(treeNode.tag);
@@ -31,13 +35,16 @@ void FeatureExtractor::getDictionaries(std::vector<DepTree> goldTrees) {
 	int index = 0;
 	//label
 	for (auto it = labelSet.begin(); it != labelSet.end(); ++it) {
+
 		labelMap[*it] = index++;
 		knowLabels.push_back(*it);
 	}
+
 	//knowLabels.push_back(null); we do not need null in knowLabel!
 	//the size of knowLabel will be used for shift-reduce actions
 	labelNullIdx = index;
 	labelMap[null] = index++;
+    labelMap[root] = index++;
 
 	//tag
 	tagUnkIdx = index;
@@ -91,20 +98,21 @@ void FeatureExtractor::featureExtract(State* state, std::vector<int>& wordIndexC
 			(state->m_nNextWord + 2) >= state->len_ ?
 					-1 : (state->m_nNextWord + 2);
 
-	// words
-	features[IDIdx++] = getWordIndex(s0, wordIndexCache);
-	features[IDIdx++] = getWordIndex(s1, wordIndexCache);
-	features[IDIdx++] = getWordIndex(s2, wordIndexCache);
-	features[IDIdx++] = getWordIndex(q0, wordIndexCache);
-	features[IDIdx++] = getWordIndex(q1, wordIndexCache);
-	features[IDIdx++] = getWordIndex(q2, wordIndexCache);
+	// words 
+    // 0 - 12
+	features[IDIdx++] = getWordIndex(s0, wordIndexCache); // 0
+	features[IDIdx++] = getWordIndex(s1, wordIndexCache); // 1
+	features[IDIdx++] = getWordIndex(s2, wordIndexCache); // 2
+	features[IDIdx++] = getWordIndex(q0, wordIndexCache); // 3
+	features[IDIdx++] = getWordIndex(q1, wordIndexCache); // 4
+	features[IDIdx++] = getWordIndex(q2, wordIndexCache); // 5
 
-	features[IDIdx++] = getTagIndex(s0, tagIndexCache);
-	features[IDIdx++] = getTagIndex(s1, tagIndexCache);
-	features[IDIdx++] = getTagIndex(s2, tagIndexCache);
-	features[IDIdx++] = getTagIndex(q0, tagIndexCache);
-	features[IDIdx++] = getTagIndex(q1, tagIndexCache);
-	features[IDIdx++] = getTagIndex(q2, tagIndexCache);
+	features[IDIdx++] = getTagIndex(s0, tagIndexCache);   // 6
+	features[IDIdx++] = getTagIndex(s1, tagIndexCache);   // 7
+	features[IDIdx++] = getTagIndex(s2, tagIndexCache);   // 8
+	features[IDIdx++] = getTagIndex(q0, tagIndexCache);   // 9
+	features[IDIdx++] = getTagIndex(q1, tagIndexCache);   // 10
+	features[IDIdx++] = getTagIndex(q2, tagIndexCache);   // 11
 
 	// s0l s0r s0l2 s0r2 s0ll s0rr
 	int s0l, s0r, s0l2, s0r2, s0ll, s0rr;
@@ -119,26 +127,28 @@ void FeatureExtractor::featureExtract(State* state, std::vector<int>& wordIndexC
 	s0ll = s0l == -1 ? -1 : state->leftdep(s0l);
 	s0rr = s0r == -1 ? -1 : state->rightdep(s0r);
     
-	features[IDIdx++] = getWordIndex(s0l, wordIndexCache);
-	features[IDIdx++] = getWordIndex(s0r, wordIndexCache);
-	features[IDIdx++] = getWordIndex(s0l2, wordIndexCache);
-	features[IDIdx++] = getWordIndex(s0r2, wordIndexCache);
-	features[IDIdx++] = getWordIndex(s0ll, wordIndexCache);
-	features[IDIdx++] = getWordIndex(s0rr, wordIndexCache);
+    //12 - 29
+	features[IDIdx++] = getWordIndex(s0l, wordIndexCache);   // 12
+	features[IDIdx++] = getWordIndex(s0r, wordIndexCache);   // 13
+	features[IDIdx++] = getWordIndex(s0l2, wordIndexCache);  // 14
+	features[IDIdx++] = getWordIndex(s0r2, wordIndexCache);  // 15
+	features[IDIdx++] = getWordIndex(s0ll, wordIndexCache);  // 16
+	features[IDIdx++] = getWordIndex(s0rr, wordIndexCache);  // 17
 
-	features[IDIdx++] = getTagIndex(s0l, tagIndexCache);
-	features[IDIdx++] = getTagIndex(s0r, tagIndexCache);
-	features[IDIdx++] = getTagIndex(s0l2, tagIndexCache);
-	features[IDIdx++] = getTagIndex(s0r2, tagIndexCache);
-	features[IDIdx++] = getTagIndex(s0ll, tagIndexCache);
-	features[IDIdx++] = getTagIndex(s0rr, tagIndexCache);
+	features[IDIdx++] = getTagIndex(s0l, tagIndexCache);     // 18   
+	features[IDIdx++] = getTagIndex(s0r, tagIndexCache);     // 19
+	features[IDIdx++] = getTagIndex(s0l2, tagIndexCache);    // 20
+	features[IDIdx++] = getTagIndex(s0r2, tagIndexCache);    // 21
+	features[IDIdx++] = getTagIndex(s0ll, tagIndexCache);    // 22
+	features[IDIdx++] = getTagIndex(s0rr, tagIndexCache);    // 23
+    //std::cout<<IDIdx<<" "<<s0rr<<" "<<getTagIndex(s0rr, tagIndexCache)<<std::endl;
 
-	features[IDIdx++] = getLabelIndex(s0l, state);
-	features[IDIdx++] = getLabelIndex(s0r, state);
-	features[IDIdx++] = getLabelIndex(s0l2, state);
-	features[IDIdx++] = getLabelIndex(s0r2, state);
-	features[IDIdx++] = getLabelIndex(s0ll, state);
-	features[IDIdx++] = getLabelIndex(s0rr, state);
+	features[IDIdx++] = getLabelIndex(s0l, state);  // 24
+	features[IDIdx++] = getLabelIndex(s0r, state);  // 25
+	features[IDIdx++] = getLabelIndex(s0l2, state); // 26
+	features[IDIdx++] = getLabelIndex(s0r2, state); // 27
+	features[IDIdx++] = getLabelIndex(s0ll, state); // 28
+	features[IDIdx++] = getLabelIndex(s0rr, state); // 29
 
 	// s1l s1r s1l2 s1r2 s1ll s1rr
 	int s1l, s1r, s1l2, s1r2, s1ll, s1rr;
@@ -149,6 +159,7 @@ void FeatureExtractor::featureExtract(State* state, std::vector<int>& wordIndexC
 	s1ll = s1l == -1 ? -1 : state->leftdep(s1l);
 	s1rr = s1r == -1 ? -1 : state->rightdep(s1r);
 
+    // 30 - 47
 	features[IDIdx++] = getWordIndex(s1l, wordIndexCache);
 	features[IDIdx++] = getWordIndex(s1r, wordIndexCache);
 	features[IDIdx++] = getWordIndex(s1l2, wordIndexCache);
@@ -176,16 +187,18 @@ void FeatureExtractor::featureExtract(State* state, std::vector<int>& wordIndexC
  *   generate training examples for global learning
  *   assign the global example to gExamples, which is a member of class Depparser
  */
-void FeatureExtractor::generateTrainingExamples(std::vector<DepParseInput> inputs,
-		std::vector<DepTree> goldTrees, std::vector<GlobalExample>& gExamples) {
+void FeatureExtractor::generateTrainingExamples( ArcStandardSystem * tranSystem, std::vector<Instance>& instances,
+		std::vector<DepTree>& goldTrees, std::vector<GlobalExample>& gExamples ) {
 
     gExamples.clear();
 
 	//for every sentence, cache the word and tag hash index
-	for (unsigned i = 0; i < inputs.size(); i++) {
-		auto input = inputs[i];
-		auto gTree = goldTrees[i];
-		int actNum = input.size() * 2; // n shift and n reduce
+	for (unsigned i = 0; i < instances.size(); i++) {
+
+        Instance & inst = instances[i];
+		auto & input = inst.input;
+		auto & gTree = goldTrees[i];
+		int actNum = ( input.size() - 1 ) * 2; // n shift and n reduce
 									   // one more reduce action for root
 
         /*
@@ -195,15 +208,15 @@ void FeatureExtractor::generateTrainingExamples(std::vector<DepParseInput> input
 		int index = 0;
 		for (auto iter = gTree.nodes.begin(); iter != gTree.nodes.end();
 				iter++) {
-			auto labelIdx = labelMap.find(iter->label);
+            int labelIndex = getLabel(iter->label);
 
-			if (labelIdx == labelMap.end()) {
+			if (labelIndex == -1) {
 				std::cerr << "Dep label " << iter->label
 						<< " is not in labelMap!" << std::endl;
 				exit(1);
 			}
 
-			labelIndexCache[index] = labelIdx->second;
+			labelIndexCache[index] = labelIndex;
 			index++;
 		}
 
@@ -212,44 +225,117 @@ void FeatureExtractor::generateTrainingExamples(std::vector<DepParseInput> input
 		std::vector<Example> examples; //features and labels
 
 		State* state = new State();
-        state->len_ = inputs[i].size();
-
+        state->len_ = input.size();
+        state->initCache();
+        getCache(inst);
+        
 		//for every state of a sentence
 		for (int j = 0; !state->complete(); j++) {
 			std::vector<int> features(featureNum);
-			std::vector<int> labels(kActNum, 0);
+			std::vector<int> labels(tranSystem->nActNum, 0);
 
 			//get current state features
-			featureExtract(state, wordIndexCache, tagIndexCache, features);
+			featureExtract(state, inst.wordCache, inst.tagCache, features);
 
 			//get current state valid actions
-			state->getValidActs(labels);
+			tranSystem->getValidActs(*state, labels);
+
+            /*
+             * display valid actions
+             */
+            /*for(int va = 0; va < labels.size(); va++){*/
+                //if( labels[va] < 0 )
+                    //continue;
+                //if( va == tranSystem->nLeftFirst || va == tranSystem->nRightFirst )
+                    //std::cout<<std::endl;
+
+                //std::cout<<tranSystem->DecodeUnlabeledAction(va)<<"+"<<tranSystem->DecodeLabel(va)<<" ";
+
+            //}
 
 			//find gold action and move to next
-			int goldAct = state->StandardMove(gTree, labelIndexCache);
+			int goldAct = tranSystem->StandardMove(*state, gTree, labelIndexCache);
 			acts[j] = goldAct;
 
-#ifdef DEBUG
-            std::cout << "move action:  "<< goldAct;
-            std::cout << DecodeUnlabeledAction(goldAct)<<std::endl;
-#endif
-			state->Move(goldAct);
+            //std::cout << "move action:  "<< goldAct<<":"<<tranSystem->DecodeUnlabeledAction(goldAct)<<"+"<<tranSystem->DecodeLabel(goldAct) << std::endl;
+			tranSystem->Move(*state, goldAct);
+/*            state->display();*/
+            //state->dispalyCache();
 
 			labels[goldAct] = 1;
 			Example example(features, labels);
 			examples.push_back(example);
 		}
 
-        GlobalExample ge_i( examples, acts, input );
-        getCache(ge_i.instance);
+        GlobalExample ge_i( examples, acts, inst );
+
+		gExamples.push_back(ge_i);
+
+		delete state;
 
 #ifdef DEBUG
         std::cout << "========================================"<< std::endl;
 #endif
 
-		gExamples.push_back(ge_i);
-		delete state;
 	}
 }
 
+/**
+ * read the pretrained embedding from the file,
+ * returns pretrained word numbers
+ */
+int FeatureExtractor::readPretrainEmbeddings( std::string pretrainFile, FeatureEmbedding & fe ){
+
+    /*
+     * used for pretraining
+     */
+    std::tr1::unordered_map<std::string, int> pretrainWords;
+    std::vector< std::vector<double> > pretrainEmbs;
+
+    std::string line;
+    std::ifstream in( pretrainFile );
+    getline( in, line );
+
+    int index = 0;
+    while( getline( in, line ) ){
+        std::istringstream iss(line);
+        std::string word;
+        double d;
+        std::vector< double > embedding;
+
+        iss >> word;
+        while( iss >> d )
+            embedding.push_back( d );
+
+        pretrainEmbs.push_back( embedding );
+        pretrainWords[ word ] = index++;
+    }
+    
+    /*
+     * fill the pretrain embedding
+     */
+/*    std::string s("year");*/
+    //int yearIndex = wordMap.find(s)->second;
+    //std::cout<<wordMap.find(s)->second<<std::endl;
+
+    //for(int i = 0; i < fe.featEmbeddings[yearIndex].size(); i++)
+        /*std::cout<< fe.featEmbeddings[yearIndex][i]<<" ";*/
+    //std::cout<<std::endl;
+    for(auto & wordPair : wordMap){
+        std::string lower( wordPair.first );
+        std::transform( lower.begin(), lower.end(), lower.begin(), ::tolower );
+
+        auto ret = pretrainWords.find( lower );
+
+        if( pretrainWords.end() != ret ) // find the word
+            fe.getPreTrain(wordPair.second, pretrainEmbs[ret->second]);
+/*            for( int i = 0; i < pretrainEmbs[ ret->second ].size(); i++ )*/
+                //fe.featEmbeddings[ wordPair.second ][ i ] = pretrainEmbs[ ret->second ][ i ];
+    }
+
+  /*  for(int i = 0; i < fe.featEmbeddings[yearIndex].size(); i++)*/
+        //std::cout<< fe.featEmbeddings[yearIndex][i]<<" ";
+    /*std::cout<<std::endl;*/
+    return pretrainWords.size();
+}
 

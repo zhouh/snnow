@@ -12,8 +12,8 @@
 #include <algorithm>
 #include <iostream>
 
-#include "DepTreeNode.h"
 #include "DepAction.h"
+#include "DepTreeNode.h"
 
 typedef std::vector<std::pair<std::string, std::string>> DepParseInput;
 
@@ -24,19 +24,30 @@ public:
 	int size;
 
 	// construct the test DepTree, only includes words and tags, but heads, labels
-	DepTree(DepParseInput input){
+	DepTree(DepParseInput & input){
 
 		//add other sentences
         for(auto iter = input.begin(); iter != input.end(); iter++){
             DepTreeNode node(iter->first, iter->second);
 			nodes.push_back(node);
         }
+
+        size = nodes.size();
 	}
 
     // empty tree, for reading data
 	DepTree(){
 		size = 0;
 	}
+
+    void init(DepParseInput & input){
+		//add other sentences
+        for(auto iter = input.begin(); iter != input.end(); iter++){
+            DepTreeNode node(iter->first, iter->second);
+			nodes.push_back(node);
+        }
+        size = nodes.size();
+    }
 	~DepTree(){}
 
     void extractInput(DepParseInput& input){
@@ -47,7 +58,7 @@ public:
 
         input.resize(size);
 
-        for(int i = 1; i < size; ++i){
+        for(int i = 0; i < size; ++i){
             input[i].first = nodes[i].word;
             input[i].second = nodes[i].tag;
         }
@@ -65,8 +76,7 @@ public:
 // input the gold DepTree
 	inline std::istream & operator >> (std::istream &is, DepTree &tree) {
 
-		// add root node
-		DepTreeNode rootnode(root, root);
+		DepTreeNode rootnode(root, root, -1, root); // add root node
 		tree.nodes.push_back(rootnode);
 
         std::string line;
@@ -87,7 +97,7 @@ public:
 	inline std::ostream & operator << (std::ostream &os, const DepTree &tree) {
 
         // output from node 1, skip root node 
-		for(unsigned i = 1; i < tree.nodes.size(); i++)
+		for(unsigned i = 0; i < tree.nodes.size(); i++)
 			os << tree.nodes[i];
 		os << std::endl;
 

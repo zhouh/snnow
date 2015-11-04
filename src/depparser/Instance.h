@@ -22,36 +22,47 @@ public :
         this->input = input;
     }
 
-    void getCache(FeatureExtractor& fe){
-
-	    wordCache.resize(input.size());
-	    tagCache.resize(input.size());
-
-		int index = 0;
-		for (auto iter = input.begin(); iter != input.end(); iter++) {
-
-            int wordIdx = fe.getWord(iter->first);
-            int tagIdx = fe.getTag(iter->second);
-
-
-			if ( wordIdx == -1 ) {
-				std::cerr << "Dep word " << iter->first << " is not in wordMap!"
-						<< std::endl;
-				exit(1);
-			}
-
-			if ( tagIdx == -1 ) {
-				std::cerr << "Dep tag " << iter->second << " is not in tagMap!"
-						<< std::endl;
-				exit(1);
-			}
-
-			wordCache[index] = wordIdx;
-			tagCache[index] = tagIdx;
-			index++;
-
-        }
+    inline int size(){
+        return input.size();
     }
+
+    void display(){
+        for( auto wordTag : input )
+            std::cout<< wordTag.first << "_" << wordTag.second << " ";
+
+        std::cout<< std::endl;
+    }
+
+/*    void getCache(FeatureExtractor& fe){*/
+
+		//wordCache.resize(input.size());
+		//tagCache.resize(input.size());
+
+		//int index = 0;
+		//for (auto iter = input.begin(); iter != input.end(); iter++) {
+
+            //int wordIdx = fe.getWord(iter->first);
+            //int tagIdx = fe.getTag(iter->second);
+
+
+			//if ( wordIdx == -1 ) {
+				//std::cerr << "Dep word " << iter->first << " is not in wordMap!"
+						//<< std::endl;
+				//exit(1);
+			//}
+
+			//if ( tagIdx == -1 ) {
+				//std::cerr << "Dep tag " << iter->second << " is not in tagMap!"
+						//<< std::endl;
+				//exit(1);
+			//}
+
+			//wordCache[index] = wordIdx;
+			//tagCache[index] = tagIdx;
+			//index++;
+
+        //}
+    /*}*/
 
     ~Instance(){
         

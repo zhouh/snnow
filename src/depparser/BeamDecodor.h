@@ -1,179 +1,220 @@
 /*************************************************************************
-	> File Name: src/depparser/BeamDecodor.h
-	> Author: Hao Zhou
-	> Mail: haozhou0806@gmail.com 
-	> Created Time: 18/09/15 17:03:00
+  > File Name: src/depparser/BeamDecodor.h
+  > Author: Hao Zhou
+  > Mail: haozhou0806@gmail.com 
+  > Created Time: 18/09/15 17:03:00
  ************************************************************************/
 
-#ifdef DEPPARSER_BEAMDECODER_H
+#ifndef DEPPARSER_BEAMDECODER_H
 #define DEPPARSER_BEAMDECODER_H
-
 
 #include "Beam.h"
 #include "State.h"
 #include "TNNets.h"
 #include "Instance.h"
+#include "ArcStandardSystem.h"
+
+#include "mshadow/tensor.h"
+#include "FeatureEmbedding.h"
 
 class BeamDecodor{
 
-public:
-    bool bTrain;
-    bool bEarlyUpdated;
-    Beam beam;
-    State * lattice;
-    State ** lattice_index;
-    CScoredTransition goldScoredTran;
-    int nGoldTransitIndex;
-    int nMaxLatticeSize;
-    int nRound;
-    int nMaxRound;
-    Instance * inst;
-   
-    BeamDecodor(Instance * inst, int beamSize, bool bTrain) : beam(beamSize) {
-        nMaxRound = 2 * ( input->size() -1 ); // remove the root in the input
-        nMaxLatticeSize =  (beamSize + 1) * nMaxRound;
-        nCorrectStateIndex = 0;
-        nRound = 0;
-        this->inst = inst;
+    public:
+        bool bTrain;
+        bool bEarlyUpdated;
+        Beam beam;
+        State * lattice;
+        State ** lattice_index;
+        CScoredTransition goldScoredTran;
+        int nGoldTransitIndex;
+        int nMaxLatticeSize;
+        int nRound;
+        int nMaxRound;
+        int nSentLen;
+        Instance * inst;
 
-        this->bTrain = bTrain;
-        bEarlyUpdated = false;
+        BeamDecodor(Instance * inst, int beamSize, bool bTrain) : beam(beamSize) {
+            nSentLen = inst->input.size();
+            nMaxRound = 2 * ( nSentLen - 1 ); // remove the root in the input
+            nMaxLatticeSize = (beamSize + 1) * nMaxRound;
+            nRound = 0;
+            this->inst = inst;
 
-        // construct the lattice
-        lattice = new State[mnMaxLatticeSize];
-        lattice_index = new State* [nMaxRound];
-        correctState = lattice;
-    }
+            this->bTrain = bTrain;
+            bEarlyUpdated = false;
 
-    ~BeamDecodor(){
-        delete[] lattice;
-        delete[] lattice_index;
-    }
-
-    /*
-     * beam search decoding
-     */
-    State * decoding( TNNet &tnnet, FeatureEmbedding<cpu> &fEmb,
-                   FeatureExtractor & featExtract, GlobalExample * example = nullptr){
-
-        State * retval;
-        float maxScore = 0;
-        bool bBeamContainGold;
-        /*
-         * initialize every lattice for decoding
-         */
-        for (int i = 0; i <= mnMaxLatticeSize; ++i)
-            lattice[i].len_ = sentLen;
-        lattice[0].clear();
-
-        if(bTrain){
-            lattice[0].setBeamIdx(0); // to know which neural net this state is generated from,
-                                      // used for batch updating in the end of traning
-            correctState = lattice; // the initial state is gold state
+            // construct the lattice
+            lattice = new State[nMaxLatticeSize];
+            lattice_index = new State* [nMaxRound + 2];
         }
-        
+
+        ~BeamDecodor(){
+            //std::cout<<"begin to free"<<std::endl;
+            delete[] lattice;
+            delete[] lattice_index;
+        }
+
         /*
-         * set lattice_index as point to states in lattice
-         * it's point to point
+         * beam search decoding
          */
-        lattice_index[0] = lattice;
-        lattice_index[1] = lattice_index[0] + 1;
+        State * decoding( ArcStandardSystem * tranSystem, TNNets &tnnet, FeatureExtractor & featExtract, 
+                FeatureEmbedding & fEmb, GlobalExample * example = nullptr){
 
-        //set up mshadow tensor
-        InitTensorEngine<gpu>();
+            State * retval = nullptr;
+            /*
+             * initialize every lattice for decoding
+             */
+            for (int i = 0; i < nMaxLatticeSize; ++i){
 
-        // for every round in training
-        for(nRound = 1; nRound < nMaxRound; nRound++){
-
-            // temp input layer
-            TensorContainer<cpu, 2> input;
-            input.Resize( Shape2( beam.beamFullSize, num_in ) );
-            // temp output layer
-            TensorContainer<cpu, 2> pred;
-            pred.Resize( Shape2( beam.beamFullSize, num_out ) );
-
-            tnnet.genNextStepNet();
-
-            std::vector<std::vector<int> > featureVectors( nRound == 1 ? 1 : beam.currentBeamSize); // extract feature vectors in batch
-            getInputBatch(lattice_index[ nRound - 1 ], inst->wordIdx,
-                          inst->tagIdx, featureVectors);
-            fEmb.returnInput(featureVectors, input);
-            net->Forward(input, pred);
-
-            // for every state in the last beam, expand and insert into next beam
-            int stateIdx = 0;
-            for (State * currentState = lattice_index[nRound - 1];
-                    currentState != lattice_index[nRound]; ++currentState, ++stateIdx) {
-                std::vector<int> validActs;
-                currentState->getValidActs(validActs);
-
-                //for every valid action
-                for(unsigned actID = 0; actID < validActs.size(); ++actID){
-                    //skip invalid action
-                    if(validActs[actID] == -1)
-                        continue;
-                    //construct scored transition, and insert into beam
-                    CScoredTransition trans(currentState, actID, currentState->score + pred[stateIdx][actID]);
-                    int insertd = beam.insert(trans);
-
-                    if( currentState->bGold == true && actID == example->goldActs[nRound - 1] ){ // if this is gold transition
-                        goldScoredTran = trans;
-                        bEarlyUpdate = inserted == 0; // if do not insert the gold into the beam, then early update
-                        nGoldTransitIndex = actID;
-                    }
-                } // valid action #for end
-
-            } // expand current step states and inset them into beam #for end
-
-            if ( bEarlyUpdate && bTrain)
-               break;
-
-            float dMaxScore = 0;
-            //lazy expand the states in the beam
-            for (int i = 0; i < beam.currentBeamSize; ++i) {
-                const CScoredTransition& transition = beam.beam[i];
-                State* target = lattice_index[nRound] + i;
-                target->copy( *(transition.source) );
-                // generate candidate state according to the states in beam
-                target->Move(transition.action);
-                target->setBeamIdx(i);
-                target->score = transition.score;
-                target->previous_ = transition.source;
-                
-                if( i == 0 || target->score > dMaxScore ){
-                    dMaxScore = target->score;
-                    retval = target;
-                }
+                lattice[i].len_ = nSentLen;
+                lattice[i].initCache();
             }
 
-            // prepare lattice for next parsing round
-            lattice_index[nRound + 1] = lattice_index[nRound] + beam.currentBeamSize;
-        } //round #for end
+            lattice[0].clear();
 
-        ShutdownTensorEngine<gpu>();
+            if(bTrain)
+                lattice[0].setBeamIdx(0); // to know which neural net this state is generated from,
+            // used for batch updating in the end of traning
 
-        return retval; // return without early updating
-    }
+            /*
+             * set lattice_index as point to states in lattice
+             * it's point to point
+             */
+            lattice_index[0] = lattice;
+            lattice_index[1] = lattice_index[0] + 1;
 
-    /*
-     * get the feature vector in all the beam states,
-     * and return the input layer of neural network in a batch.
-     */
-    void getInputBatch(State* state, std::vector<int>& wordIndexCache,
-                       std::vector<int>& tagIndexCache,
-                       std::vector<std::vector<int> >& featvecs) {
-  
-        for(unsigned i = 0; i < featvecs.size(); i++){
-            std::vector<int> featvec(CConfig::nFeatureNum);
-            featExtractor.featureExtract( state + i, wordIndexCache, tagIndexCache, featvec);
-            featvecs.push_back(featvec);
+            //set up mshadow tensor
+            InitTensorEngine<XPU>();
+
+            // for every round in training
+            for(nRound = 1; nRound <= nMaxRound; nRound++){
+
+                //std::cout<<"round\t"<<nRound << "of MaxRound"<< nMaxRound<<std::endl;
+
+                // temp input layer
+                TensorContainer<cpu, 2, real_t> input;
+                input.Resize( Shape2( beam.beamFullSize, tnnet.num_in ) );
+                // temp output layer
+                TensorContainer<cpu, 2, real_t> pred;
+                pred.Resize( Shape2( beam.beamFullSize, tnnet.num_out ) );
+
+                //std::cout<<"build next neural net"<<std::endl;
+                /*
+                 * In the training process, we need a new neural net to forward, 
+                 * with which, we can directly update parameters in the end other than forward and update!
+                 */
+                if( bTrain )
+                    tnnet.genNextStepNet();
+
+                /*
+                 * extract features and generate input embedding
+                 */
+                std::vector<std::vector<int> > featureVectors; // extract feature vectors in batch
+                featureVectors.resize(nRound == 1 ? 1 : beam.currentBeamSize);
+                getInputBatch(featExtract, lattice_index[ nRound - 1 ], inst->wordCache,
+                        inst->tagCache, featureVectors);
+                fEmb.returnInput(featureVectors, input);
+
+                //std::cout<<"begin forward"<<std::endl;
+                tnnet.Forward(input, pred);
+                //for(int i = 0; i < pred.size(0); i++){ 
+                    //for(int j = 0; j < pred.size(1); j++)
+                        //std::cout<<pred[i][j]<<" ";
+                    //std::cout<<std::endl;
+                //}
+
+                /*
+                 * clear the beam and prepare for the next beam expand
+                 */
+                beam.clear();
+
+                //std::cout<<"expand the states in the beam"<<std::endl;
+                // for every state in the last beam, expand and insert into next beam
+                int stateIdx = 0;
+                for (State * currentState = lattice_index[nRound - 1];
+                        currentState != lattice_index[nRound]; ++currentState, ++stateIdx) {
+                    std::vector<int> validActs;
+                    tranSystem->getValidActs(*currentState, validActs);
+
+                    bool noneValid = true;
+                    //for every valid action
+                    for(unsigned actID = 0; actID < validActs.size(); ++actID){
+                        //skip invalid action
+                        if(validActs[actID] == -1)
+                            continue;
+                        noneValid = false;
+                        //construct scored transition, and insert into beam
+                        CScoredTransition trans;
+                        trans(currentState, actID, currentState->score + pred[stateIdx][actID]);
+                        int inserted = beam.insert(trans);
+
+                        if( bTrain && currentState->bGold == true 
+                                && actID == example->goldActs[nRound - 1] ){ // if this is gold transition
+                            goldScoredTran = trans;
+                            bEarlyUpdated = inserted == 0; // if do not insert the gold into the beam, then early update
+                            nGoldTransitIndex = actID;
+                        }
+                    } // valid action #for end
+                    assert(noneValid == false);
+
+                } // expand current step states and inset them into beam #for end
+
+                if ( bEarlyUpdated && bTrain){
+                    std::cout<<"early update! round "<< nRound << " of maxRound "<< nMaxRound <<std::endl;
+                    break;
+                }
+
+                //std::cout<<"lazy update"<<std::endl;
+                float dMaxScore = 0;
+                //lazy expand the states in the beam
+                for (int i = 0; i < beam.currentBeamSize; ++i) {
+                    const CScoredTransition& transition = beam.beam[i];
+                    State* target = lattice_index[nRound] + i;
+                    target->copy( *(transition.source) );
+                    // generate candidate state according to the states in beam
+                    tranSystem->Move(*target, transition.action);
+                    if(bTrain){
+                        target->setBeamIdx(i);
+                        target->bGold = transition.source->bGold 
+                            && transition.action == example->goldActs[ nRound - 1 ];
+                    } 
+                    target->score = transition.score;
+                    target->previous_ = transition.source;
+
+                    if( i == 0 || target->score > dMaxScore ){
+                        dMaxScore = target->score;
+                        retval = target;
+                    }
+                }
+
+                // prepare lattice for next parsing round
+                lattice_index[nRound + 1] = lattice_index[nRound] + beam.currentBeamSize;
+                //std::cout<<"end of round";
+            } //round #for end
+
+            ShutdownTensorEngine<XPU>();
+
+            return retval; // return without early updating
         }
-    }
 
-    int getGoldAct( GlobalExample * ge ){
-        return ge->goldActs[ nRound - 1 ];
-    }
-    
+        /*
+         * get the feature vector in all the beam states,
+         * and return the input layer of neural network in a batch.
+         */
+        void getInputBatch(FeatureExtractor & featExtractor, State* state, std::vector<int>& wordIndexCache,
+                std::vector<int>& tagIndexCache,
+                std::vector<std::vector<int> >& featvecs) {
+
+            for(unsigned i = 0; i < featvecs.size(); i++){
+                //std::cout<<" feature vector:\t "<<featvecs.size()<<"\t"<<i<<std::endl;
+                featvecs[i].resize(CConfig::nFeatureNum);
+                featExtractor.featureExtract( state + i, wordIndexCache, tagIndexCache, featvecs[i]);
+            }
+        }
+
+        int getGoldAct( GlobalExample * ge ){
+            return ge->goldActs[ nRound - 1 ];
+        }
 };
 
 #endif
