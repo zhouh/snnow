@@ -15,6 +15,7 @@ public:
     int m_nLen;
     int beamIdx;
     double score;
+    bool bGold;
 
     State(){
         clear();
@@ -29,6 +30,7 @@ public:
         m_nLen = s.m_nLen;
         score = s.score;
         beamIdx = s.beamIdx;
+        bGold = s.bGold;
     }
 
     State& operator= (State &s) {
@@ -42,6 +44,7 @@ public:
         this->m_nLen = s.m_nLen;
         this->score = s.score;
         this->beamIdx = s.beamIdx;
+        this->bGold = s.bGold;
 
         return *this;
     }
@@ -61,6 +64,7 @@ public:
         last_action = -1;
         m_nLen = 0;
         beamIdx = 0;
+        bGold = false;
     }
 };
 

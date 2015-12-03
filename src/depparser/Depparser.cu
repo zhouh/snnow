@@ -5,6 +5,7 @@
  *      Author: zhouh
  */
 #include <ctime>
+#include <memory>
 #include "Depparser.h"
 
 using namespace mshadow;
@@ -55,6 +56,7 @@ void Depparser::train(std::vector<Instance> & trainInstances, std::vector<DepTre
     const int beamSize = CConfig::nBeamSize;
     omp_set_num_threads(CConfig::nThread);  //set the threads for mini-batch learning
     srand(0);
+    // std::shared_ptr< NNetPara<XPU> > ptrNetsParas(new NNetPara<XPU>(beamSize, num_in, num_hidden, num_out));
     NNetPara<XPU> netsParas(beamSize, num_in, num_hidden, num_out);
     double bestdevUAS = -1.0;
 
@@ -65,7 +67,7 @@ void Depparser::train(std::vector<Instance> & trainInstances, std::vector<DepTre
          * Evaluate per iterations
          */
         if( (iter % CConfig::nEvaluatePerIters) == 0 ){
-           double currentUAS = parse( devInstances, devTrees, netsParas );
+            double currentUAS = parse( devInstances, devTrees, netsParas );
             if( currentUAS > bestdevUAS )
                 bestdevUAS = currentUAS;
             std::cout<<"current iteration UAS: "<<currentUAS<<" new best UAS:\t"<< bestdevUAS<<std::endl;;
@@ -102,10 +104,14 @@ void Depparser::train(std::vector<Instance> & trainInstances, std::vector<DepTre
 
             //for every instance
             for(unsigned inst = 0; inst < currentThreadData.size(); inst++){
-                std::cout<<"instance\t"<<inst<<std::endl;
                 //get current training instance
                 GlobalExample * example =  currentThreadData[inst];
-                TNNets tnnets( beamSize, num_in, num_hidden, num_out, &netsParas );
+
+                TensorContainer<gpu,2, real_t> mask;
+                mask.set_stream(netsParas.stream);
+                netsParas.rnd.SampleUniform(&mask, 0.0f, 1.0f);
+
+                TNNets tnnets( beamSize, num_in, num_hidden, num_out, &netsParas);
                 /*
                  * decoding and updating
                  */

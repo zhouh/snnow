@@ -4,6 +4,9 @@
 // this implements a simple two layer neural net
 #include <vector>
 #include <cmath>
+
+#include <typeinfo>
+
 // header file to use mshadow
 #include "mshadow/tensor.h"
 
@@ -60,18 +63,17 @@ struct NNetPara{
   
 
   NNetPara(int batch_size, int num_in, int num_hidden, int num_out) : rnd(0) {
-
     Wi2h.set_stream(stream);
     Wh2o.set_stream(stream);
     hbias.set_stream(stream);
     Wi2h.Resize(Shape2(num_in, num_hidden));  
     Wh2o.Resize(Shape2(num_hidden, num_out)); 
     
-    rnd.SampleUniform(&Wi2h, -0.01, 0.01f);
-    rnd.SampleUniform(&Wh2o, -0.01, 0.01f);
+    rnd.SampleUniform(&Wi2h, -0.01, 0.01);
+    rnd.SampleUniform(&Wh2o, -0.01, 0.01);
 
     hbias.Resize(Shape1(num_hidden)); 
-    rnd.SampleUniform(&hbias, -0.01, 0.01f);
+    rnd.SampleUniform(&hbias, -0.01, 0.01);
     
     eg2Wi2h.set_stream(stream);
     eg2Wh2o.set_stream(stream);
@@ -198,9 +200,8 @@ template<typename xpu>
 class NNet{
  public:
   // initialize the network
-  NNet(int batch_size, int num_in, int num_hidden, int num_out, NNetPara<xpu>* paras) {
+  NNet(int batch_size, int num_in, int num_hidden, int num_out, NNetPara<xpu>* tparas): paras(tparas) {
     // setup stream
-    this->paras = paras;
     ninput.set_stream(paras->stream);
     nhidden.set_stream(paras->stream);
     nhiddenbak.set_stream(paras->stream);
@@ -240,6 +241,7 @@ class NNet{
   }
 
  ~NNet() {}
+
   // forward propagation
  void Forward(const Tensor<cpu, 2, real_t>& inbatch,
          Tensor<cpu, 2, real_t> &oubatch, bool bDropOut){
@@ -266,7 +268,7 @@ class NNet{
     //Copy(copytensor, paras->Wi2h, paras->Wi2h.stream_);
     //display2Tensor(copytensor);
 
-    nhidden+= repmat(paras->hbias, batch_size);
+    nhidden += repmat(paras->hbias, batch_size);
     // activation, sigmloid, backup activation in nhidden
 
     //std::cout<<"hidden after add base"<<std::endl;
@@ -277,12 +279,24 @@ class NNet{
 
     nhidden = F<cube>(nhidden);
 
+    std::cout << std::endl;
+    std::cout << std::endl;
+    std::cout << "In forword pars->rnd's type is " << typeid(paras->rnd).name() << std::endl;
+    std::cout << std::endl;
+    std::cout << std::endl;
+    
+    char my_ch;
+    std::cin >> my_ch;
+
+    using mshadow::Random;
+
+
     if(bDropOut){
         TensorContainer<xpu,2, real_t> mask;
         mask.set_stream(paras->stream);
         mask.Resize(nhidden.shape_);
         paras->rnd.SampleUniform(&mask, 0.0f, 1.0f);
-        F<threshold>(mask, CConfig::fDropoutProb);
+        //F<threshold>(mask, CConfig::fDropoutProb);
         nhidden = nhidden * mask;
     } //dropout
     //std::cout<<"hidden after sigmoid"<<std::endl;

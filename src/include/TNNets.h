@@ -27,12 +27,12 @@ public:
     bool bTrain;
 
 public:
-    TNNets( int batch_size, int num_in, int num_hidden, int num_out , NNetPara<XPU> *para, bool bTrain = true){
+    TNNets( int batch_size, int num_in, int num_hidden, int num_out , NNetPara<XPU> *para, bool bTrain = true): netPara(para){
         this->batch_size = batch_size;
         this->num_in = num_in;
         this->num_hidden = num_hidden;
         this->num_out = num_out;
-        netPara = para;
+        //netPara = para;
         this->bTrain = bTrain;
         if( !bTrain )
             genNextStepNet(); // in testing, we only need one neural net for forwarding
@@ -50,7 +50,7 @@ public:
     
     void Forward(const Tensor<cpu, 2, real_t>& inbatch,
                   Tensor<cpu, 2, real_t> &oubatch){
-       nets[nets.size() - 1]->Forward(inbatch, oubatch, bTrain && CConfig::bDropOut);
+        nets[nets.size() - 1]->Forward(inbatch, oubatch, bTrain && CConfig::bDropOut);
     }
 
     /*

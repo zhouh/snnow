@@ -212,6 +212,7 @@ class BeamDecodor{
             }
         }
 
+
         int getGoldAct( GlobalExample * ge ){
             return ge->goldActs[ nRound - 1 ];
         }

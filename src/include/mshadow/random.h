@@ -23,7 +23,7 @@ namespace mshadow {
  * \tparam DType the target data type of random number can be float for double
  */
 template<typename Device, typename DType MSHADOW_DEFAULT_DTYPE>
-class Random {};
+class Random { };
 
 /*! \brief CPU random number generator */
 template<typename DType>
@@ -222,7 +222,7 @@ class Random<cpu, DType> {
 /*! \brief GPU random number generator */
 template<typename DType>
 class Random<gpu, DType> {
- public:
+public:
   /*!
    * \brief constructor of random engine
    * \param seed random number seed

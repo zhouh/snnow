@@ -1,4 +1,5 @@
 BASE_DIR = ../..
+OBJ_DIR = $(BASE_DIR)/OBJ
 INCLUDE_DIR = $(BASE_DIR)/src/include
 CHUNKER_DIR = $(BASE_DIR)/src/chunker
 
@@ -13,8 +14,8 @@ export LDFLAGS = -lm -L$(CUDA_HOME)/lib64 $(MSHADOW_LDFLAGS)
 export NVCCFLAGS =-g -G -O0 -std=c++11 --use_fast_math -ccbin $(CXX)  $(MSHADOW_NVCCFLAGS)
 
 BIN = $(BASE_DIR)/bin/chunk
-OBJ =  Config.o FeatureExtractor.o Beam.o ActionStandardSystem.o
-CUOBJ = Chunker.o
+OBJ =  $(OBJ_DIR)/Config.o $(OBJ_DIR)/FeatureExtractor.o $(OBJ_DIR)/Beam.o $(OBJ_DIR)/ActionStandardSystem.o
+CUOBJ = $(OBJ_DIR)/Chunker.o
 CUBIN = 
 .PHONY: clean all
 
@@ -22,22 +23,22 @@ all: $(BIN) $(OBJ) $(CUBIN) $(CUOBJ)
 
 $(BIN) : $(CHUNKER_DIR)/chunk.cpp $(CUOBJ) $(OBJ)
 
-Config.o : $(CHUNKER_DIR)/Config.h $(CHUNKER_DIR)/Config.cpp
+$(OBJ_DIR)/Config.o : $(CHUNKER_DIR)/Config.h $(CHUNKER_DIR)/Config.cpp
 
-chunk.o : $(CHUNKER_DIR)/chunk.cpp $(CHUNKER_DIR)/Chunker.h $(CHUNKER_DIR)/State.h $(CHUNKER_DIR)/Instance.h $(CHUNKER_DIR)/ChunkedSentence.h 
+$(OBJ_DIR)/chunk.o : $(CHUNKER_DIR)/chunk.cpp $(CHUNKER_DIR)/Chunker.h $(CHUNKER_DIR)/State.h $(CHUNKER_DIR)/Instance.h $(CHUNKER_DIR)/ChunkedSentence.h 
 
-FeatureExtractor.o : $(CHUNKER_DIR)/FeatureExtractor.cpp $(CHUNKER_DIR)/FeatureExtractor.h $(CHUNKER_DIR)/ActionStandardSystem.h
+$(OBJ_DIR)/FeatureExtractor.o : $(CHUNKER_DIR)/FeatureExtractor.cpp $(CHUNKER_DIR)/FeatureExtractor.h $(CHUNKER_DIR)/ActionStandardSystem.h
 
-Chunker.o : $(CHUNKER_DIR)/Chunker.cu $(CHUNKER_DIR)/Chunker.h \
+$(OBJ_DIR)/Chunker.o : $(CHUNKER_DIR)/Chunker.cu $(CHUNKER_DIR)/Chunker.h \
 	$(CHUNKER_DIR)/State.h $(CHUNKER_DIR)/Instance.h $(CHUNKER_DIR)/ChunkedSentence.h \
-	$(CHUNKER_DIR)/FeatureExtractor.h $(CHUNKER_DIR)/Config.h $(CHUNKER_DIR)/Beam.h $(CHUNKER_DIR)/BeamDecodor.h \
+	$(CHUNKER_DIR)/FeatureExtractor.h $(CHUNKER_DIR)/Config.h $(CHUNKER_DIR)/Beam.h $(CHUNKER_DIR)/BeamDecoder.h \
 	$(CHUNKER_DIR)/Evalb.h \
 	$(INCLUDE_DIR)/FeatureEmbedding.h \
 	$(INCLUDE_DIR)/mshadow/tensor.h $(INCLUDE_DIR)/NNet.h $(INCLUDE_DIR)/Dict.h $(INCLUDE_DIR)/mshadow/*.h $(INCLUDE_DIR)/mshadow/extension/*.h
 
-Beam.o : $(CHUNKER_DIR)/Beam.cpp $(CHUNKER_DIR)/Beam.h $(CHUNKER_DIR)/State.h
+$(OBJ_DIR)/Beam.o : $(CHUNKER_DIR)/Beam.cpp $(CHUNKER_DIR)/Beam.h $(CHUNKER_DIR)/State.h
 
-ActionStandardSystem.o : $(CHUNKER_DIR)/ActionStandardSystem.h $(CHUNKER_DIR)/ActionStandardSystem.cpp $(CHUNKER_DIR)/State.h
+$(OBJ_DIR)/ActionStandardSystem.o : $(CHUNKER_DIR)/ActionStandardSystem.h $(CHUNKER_DIR)/ActionStandardSystem.cpp $(CHUNKER_DIR)/State.h
 
 $(BIN) :
 	$(CXX) $(CFLAGS) -o $@ $(filter %.cpp %.o %.c, $^) $(LDFLAGS)
