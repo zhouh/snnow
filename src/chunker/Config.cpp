@@ -22,7 +22,7 @@ int CConfig::nEmbeddingDim = 50;
 
 int CConfig::nHiddenSize = 200;
 
-int CConfig::nRound = 10000;
+int CConfig::nRound = 100;
 
 int CConfig::nBatchSize = 10;
 

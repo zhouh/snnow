@@ -7,15 +7,18 @@
 #ifndef _CHUNKER_BEAMDECODER_H_
 #define _CHUNKER_BEAMDECODER_H_
 
-#include <numeric_limits>
+#include <limits.h>
+#include <assert.h>
 
 #include "Beam.h"
 #include "State.h"
+#include "TNNets.h"
 #include "Instance.h"
 #include "ActionStandardSystem.h"
 
 #include "mshadow/tensor.h"
 #include "FeatureEmbedding.h"
+#include "FeatureExtractor.h"
 
 class BeamDecoder {
 public:
@@ -35,7 +38,7 @@ public:
     Instance * inst;
 
     BeamDecoder(Instance *inst, int beamSize, bool bTrain) : beam(beamSize) {
-        nSentLen = inst.input.size();
+        nSentLen = inst->input.size();
         nMaxRound = nSentLen;
 
         nMaxLatticeSize = (beamSize + 1) * nMaxRound;
@@ -83,8 +86,8 @@ public:
             input.Resize(Shape2(beam.beamFullSize, tnnet.num_in));
             
             // temporary output layer
-            TensorContainer<cput, 2, real_t> pred;
-            pre.Resize(Shape2(beam.beamFullSize, tnnet.num_out));
+            TensorContainer<cpu, 2, real_t> pred;
+            pred.Resize(Shape2(beam.beamFullSize, tnnet.num_out));
 
             // In the training process, we need a new neural net to forward, 
             // with which, we can directly update parameters in the end other
@@ -96,7 +99,7 @@ public:
             // extract features and generate input embeddings
             std::vector<std::vector<int>> featureVectors; // extracted feature vectors in batch
             featureVectors.resize(nRound == 1 ? 1 : beam.currentBeamSize);
-            generateIputBatch(featExtractor, lattice_index[nRound - 1], inst, featureVectors);
+            generateInputBatch(featExtractor, lattice_index[nRound - 1], *(inst), featureVectors);
             fEmb.returnInput(featureVectors, input);
 
             tnnet.Forward(input, pred);
@@ -118,14 +121,14 @@ public:
                         continue;
                     }
 
-                    noneValid = false;
+                    noValid = false;
                     // construct scored transition and insert it into beam
                     CScoredTransition trans;
                     trans(currentState, actId, currentState->score + pred[stateIdx][actId]); // TODO: ignore inValid scores ?
                     
                     int inserted = beam.insert(trans);
                     // if this is the gold transition
-                    if (bTrain && currentState->bGold && actId == gExample.goldActs[nRound - 1]) {
+                    if (bTrain && currentState->bGold && actId == gExample->goldActs[nRound - 1]) {
                         goldScoredTran = trans;
                         bEarlyUpdate = (inserted == 0); // early update if gold transition was not inserted into the beam
                         nGoldTransitionIndex = actId;
@@ -139,18 +142,18 @@ public:
                  break;
              }
 
-             float dMaxScore = numeric_limits<float>::min();
+             float dMaxScore = std::numeric_limits<float>::min();
              // lazy expand the target states in the beam
              for (int i = 0; i < beam.currentBeamSize; ++i) {
                  const CScoredTransition transition = beam.beam[i];
 
                  State *target = lattice_index[nRound] + i;
-                 *target = *(transition.source);
-                 tranSystem->move(*(transition.source), *target);
+                 *target = *(const_cast<State *>(transition.source));
+                 tranSystem.move(*(const_cast<State *>(transition.source)), *target, transition);
 
                  if (bTrain) {
                      target->setBeamIdx(i);
-                     target->bGold = transition.source->bGold && transition.action == gExample.goldActs[nRound - 1];
+                     target->bGold = transition.source->bGold && transition.action == gExample->goldActs[nRound - 1];
                  }
 
                  if (target->score > dMaxScore) {
@@ -164,7 +167,7 @@ public:
         }
 
         // shut down mshadow tensor engine
-        ShutdownTensorEngine(XPU)();
+        ShutdownTensorEngine<XPU>();
 
         return retval; // return without early updating
     }
@@ -173,7 +176,7 @@ private:
     /* generate the feature vector in all the beam states,
      * and return the input layer of neural network in batch.
     */
-    void generateIputBatch(FeatureExtractor &featExtractor, State *state, Instance &inst, std::vector<int> &featvecs) {
+    void generateInputBatch(FeatureExtractor &featExtractor, State *state, Instance &inst, std::vector<std::vector<int>> &featvecs) {
         for (int i = 0; i < featvecs.size(); i++) {
             featvecs[i].resize(CConfig::nFeatureNum);
             featExtractor.extractFeature(*(state + i), inst, featvecs[i]);

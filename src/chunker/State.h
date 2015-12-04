@@ -59,7 +59,7 @@ public:
 
     void clear() {
         m_nIndex = -1;
-        previous_ = NULL;
+        previous_ = nullptr;
         score = 0;
         last_action = -1;
         m_nLen = 0;

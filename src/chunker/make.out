@@ -1,0 +1,68 @@
+../../src/chunker/BeamDecoder.h(60): error: identifier "TNNets" is undefined
+
+../../src/chunker/BeamDecoder.h(40): error: expression must have class type
+
+../../src/chunker/BeamDecoder.h(80): error: identifier "XPU" is undefined
+
+../../src/chunker/BeamDecoder.h(80): error: no instance of function template "mshadow::InitTensorEngine" matches the argument list
+
+../../src/chunker/BeamDecoder.h(84): error: identifier "real_t" is undefined
+
+../../src/chunker/BeamDecoder.h(88): error: identifier "cput" is undefined
+
+../../src/chunker/BeamDecoder.h(88): error: identifier "real_t" is undefined
+
+../../src/include/mshadow/tensor.h(252): error: name followed by "::" must be a class or namespace name
+          detected during:
+            instantiation of class "mshadow::Tensor<Device, dimension, DType> [with Device=<error-type>, dimension=2, DType=<error-type>]" 
+../../src/include/mshadow/./tensor_container.h(22): here
+            instantiation of class "mshadow::TensorContainer<Device, dimension, DType> [with Device=<error-type>, dimension=2, DType=<error-type>]" 
+../../src/chunker/BeamDecoder.h(88): here
+
+../../src/chunker/BeamDecoder.h(89): error: identifier "pre" is undefined
+
+../../src/chunker/BeamDecoder.h(101): error: a reference of type "Instance &" (not const-qualified) cannot be initialized with a value of type "Instance *"
+
+../../src/chunker/BeamDecoder.h(101): error: a reference of type "std::vector<int, std::allocator<int>> &" (not const-qualified) cannot be initialized with a value of type "std::vector<std::vector<int, std::allocator<int>>, std::allocator<std::vector<int, std::allocator<int>>>>"
+
+../../src/chunker/BeamDecoder.h(123): error: identifier "noneValid" is undefined
+
+../../src/chunker/BeamDecoder.h(130): error: expression must have class type
+
+../../src/chunker/BeamDecoder.h(144): error: identifier "numeric_limits" is undefined
+
+../../src/chunker/BeamDecoder.h(144): error: type name is not allowed
+
+../../src/chunker/BeamDecoder.h(144): error: no instance of overloaded function "min" matches the argument list
+
+../../src/chunker/BeamDecoder.h(150): error: no operator "=" matches these operands
+            operand types are: State = const State
+
+../../src/chunker/BeamDecoder.h(151): error: expression must have pointer type
+
+../../src/chunker/BeamDecoder.h(155): error: expression must have class type
+
+../../src/chunker/BeamDecoder.h(169): error: no instance of function template "mshadow::ShutdownTensorEngine" matches the argument list
+            argument types are: (<error-type>)
+
+../../src/chunker/BeamDecoder.h(180): error: expression must have class type
+
+../../src/chunker/BeamDecoder.h(181): error: a reference of type "std::vector<int, std::allocator<int>> &" (not const-qualified) cannot be initialized with a value of type "int"
+
+../../src/chunker/Chunker.cu(55): error: no instance of constructor "ChunkedSentence::ChunkedSentence" matches the argument list
+            argument types are: (Instance)
+
+../../src/chunker/Chunker.cu(56): error: no suitable user-defined conversion from "ChunkedSentence" to "const Instance" exists
+
+../../src/chunker/Chunker.cu(56): error: too few arguments in function call
+
+../../src/include/mshadow/./tensor_container.h(176): error: no instance of overloaded function "mshadow::FreeSpace" matches the argument list
+            argument types are: (mshadow::Tensor<<error-type>, 2, <error-type>> *)
+          detected during:
+            instantiation of "void mshadow::TensorContainer<Device, dimension, DType>::FreeSpace() [with Device=<error-type>, dimension=2, DType=<error-type>]" 
+(75): here
+            instantiation of "mshadow::TensorContainer<Device, dimension, DType>::~TensorContainer() [with Device=<error-type>, dimension=2, DType=<error-type>]" 
+../../src/chunker/BeamDecoder.h(88): here
+
+26 errors detected in the compilation of "/tmp/tmpxft_000028c0_00000000-7_Chunker.cpp1.ii".
+make: *** [../../OBJ/Chunker.o] Error 2

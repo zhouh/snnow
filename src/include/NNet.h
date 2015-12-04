@@ -4,6 +4,7 @@
 // this implements a simple two layer neural net
 #include <vector>
 #include <cmath>
+#include <sstream>
 
 #include <typeinfo>
 
@@ -279,23 +280,13 @@ class NNet{
 
     nhidden = F<cube>(nhidden);
 
-    std::cout << std::endl;
-    std::cout << std::endl;
-    std::cout << "In forword pars->rnd's type is " << typeid(paras->rnd).name() << std::endl;
-    std::cout << std::endl;
-    std::cout << std::endl;
-    
-    char my_ch;
-    std::cin >> my_ch;
-
     using mshadow::Random;
-
 
     if(bDropOut){
         TensorContainer<xpu,2, real_t> mask;
         mask.set_stream(paras->stream);
         mask.Resize(nhidden.shape_);
-        paras->rnd.SampleUniform(&mask, 0.0f, 1.0f);
+        //paras->rnd.SampleUniform(&mask, 0.0f, 1.0f);
         //F<threshold>(mask, CConfig::fDropoutProb);
         nhidden = nhidden * mask;
     } //dropout

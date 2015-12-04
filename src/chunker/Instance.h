@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <iostream>
 
 #include "ChunkedSentence.h"
 

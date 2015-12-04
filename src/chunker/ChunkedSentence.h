@@ -11,6 +11,7 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
+#include <assert.h>
 
 typedef std::vector<std::pair<std::string, std::string>> ChunkerInput;
 
@@ -22,6 +23,19 @@ struct ChunkedWord {
     ChunkedWord() {}
     ChunkedWord(std::string w, std::string t, std::string l): word(w), tag(t), label(l) {}
     ChunkedWord(std::string w, std::string t): word(w), tag(t) {}
+    ChunkedWord(const ChunkedWord &cw) : word(cw.word), tag(cw.tag), label(cw.label) {}
+    ChunkedWord& operator= (ChunkedWord &cw) {
+        if (this == &cw) {
+            return *this;
+        }
+
+        this->word = cw.word;
+        this->tag = cw.tag;
+        this->label = cw.label;
+
+        return *this;
+    }
+
     static std::string reviseLabel(const std::string &s) {
         std::size_t found = s.find_first_of("-");
 
@@ -74,6 +88,28 @@ public:
 
     ChunkedSentence(): m_lChunkedWords(0) {}
 
+    ChunkedSentence(const ChunkedSentence &cs) {
+        m_nLength = cs.m_nLength;
+        
+        for (int i = 0; i < m_nLength; i++) {
+            m_lChunkedWords.push_back(cs.m_lChunkedWords[i]);
+        }
+    }
+
+    ChunkedSentence& operator= (ChunkedSentence &cs) {
+        if (this == &cs) {
+            return *this;
+        }
+        this->m_lChunkedWords.resize(cs.m_nLength);
+
+        m_nLength = cs.m_nLength;
+
+        for (int i = 0; i < m_nLength; i++) {
+            m_lChunkedWords[i] = cs.m_lChunkedWords[i];
+        }
+
+        return *this;
+    }
     ~ChunkedSentence() {}
 
     void init(ChunkerInput &input) {
@@ -102,6 +138,12 @@ public:
 
     const std::vector<ChunkedWord>& getChunkedWords() const {
         return m_lChunkedWords;
+    }
+
+    void setLabel(const int i, const std::string label) {
+        assert (i >= 0 && i <= m_nLength);
+
+        m_lChunkedWords[i].label = label;
     }
 
     friend std::istream& operator >> (std::istream &is, ChunkedSentence &cs); 

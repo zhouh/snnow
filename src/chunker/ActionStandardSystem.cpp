@@ -6,6 +6,12 @@
  ************************************************************************/
 #include "ActionStandardSystem.h"
 
+#define DEBUG
+
+#ifdef DEBUG
+//#define DEBUG1
+#endif
+
 void ActionStandardSystem::makeTransition(const std::vector<std::string> &knowLabels) {
     this->knowLabels = knowLabels;
 
@@ -60,15 +66,15 @@ int ActionStandardSystem::actionIdx2LabelIdx(const int actionIdx) {
     }
 }
 
-void ActionStandardSystem::move(State &srcState, State &dstState, CScoredTransition &transition) {
+void ActionStandardSystem::move(const State &srcState, State &dstState, const CScoredTransition &transition) {
     int actionType = actionIdx2actionType(transition.action);
 
     if (actionType == nOutside) {
-        doOutsideMove(srcState, dstState, transition);
+        doOutsideMove(const_cast<State &>(srcState), dstState, transition);
     } else if (actionType == nInside) {
-        doInsideMove(srcState, dstState, transition);
+        doInsideMove(const_cast<State &>(srcState), dstState, transition);
     } else if (actionType == nBegin) {
-        doBeginMove(srcState, dstState, transition);
+        doBeginMove(const_cast<State &>(srcState), dstState, transition);
     } else {
         std::cerr << "Invalid Move Action Type: " << transition.action << std::endl;
         exit(1);
@@ -97,26 +103,38 @@ void ActionStandardSystem::generateValidActs(State &state, std::vector<int> &val
     }
 }
 
-void ActionStandardSystem::doOutsideMove(State &srcState, State &dstState, CScoredTransition &transition) {
-    dstState.m_nIndex = srcState.m_nIndex + 1;
-    dstState.previous_ = &srcState;
-    dstState.last_action = nOutside;
-    dstState.m_nLen = srcState.m_nLen;
-    dstState.score = transition.score;
+void ActionStandardSystem::generateOutput(const State &state, ChunkedSentence &sent) {
+    const State *ptr = &state;
+    while (ptr->previous_ != nullptr) {
+#ifdef DEBUG1
+        std::cout << "current m_nIndex: " << ptr->m_nIndex << "\tlabel Idx: " << actionIdx2LabelIdx(ptr->last_action) << "\t"<< sent.m_lChunkedWords[ptr->m_nIndex].word << "\t" << sent.m_lChunkedWords[ptr->m_nIndex].tag << std::endl;
+#endif
+        sent.setLabel(ptr->m_nIndex, knowLabels[actionIdx2LabelIdx(ptr->last_action)]);
+
+        ptr = ptr->previous_;
+    }
 }
 
-void ActionStandardSystem::doInsideMove(State &srcState, State &dstState, CScoredTransition &transition) {
+void ActionStandardSystem::doOutsideMove(State &srcState, State &dstState, const CScoredTransition &transition) {
     dstState.m_nIndex = srcState.m_nIndex + 1;
     dstState.previous_ = &srcState;
     dstState.last_action = nOutside;
     dstState.m_nLen = srcState.m_nLen;
-    dstState.score = transition.score;
+    dstState.score = const_cast<CScoredTransition &>(transition).score;
 }
 
-void ActionStandardSystem::doBeginMove(State &srcState, State &dstState, CScoredTransition &transition) {
+void ActionStandardSystem::doInsideMove(State &srcState, State &dstState, const CScoredTransition &transition) {
     dstState.m_nIndex = srcState.m_nIndex + 1;
     dstState.previous_ = &srcState;
     dstState.last_action = nOutside;
     dstState.m_nLen = srcState.m_nLen;
-    dstState.score = transition.score;
+    dstState.score = const_cast<CScoredTransition &>(transition).score;
+}
+
+void ActionStandardSystem::doBeginMove(State &srcState, State &dstState, const CScoredTransition &transition) {
+    dstState.m_nIndex = srcState.m_nIndex + 1;
+    dstState.previous_ = &srcState;
+    dstState.last_action = nOutside;
+    dstState.m_nLen = srcState.m_nLen;
+    dstState.score = const_cast<CScoredTransition &>(transition).score;
 }

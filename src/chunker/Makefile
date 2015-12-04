@@ -53,4 +53,4 @@ $(CUBIN) :
 	$(NVCC) -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" -Xlinker "$(LDFLAGS)" $(filter %.cu %.cpp %.o, $^)
 
 clean:
-	rm $(OBJ) $(BIN) $(CUBIN) $(CUOBJ) *~
+	rm $(OBJ) $(BIN) $(CUBIN) $(CUOBJ)

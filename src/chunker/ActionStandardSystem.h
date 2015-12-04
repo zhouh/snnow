@@ -13,6 +13,7 @@
 
 #include "State.h"
 #include "ChunkedSentence.h"
+#include "Instance.h"
 
 class ActionStandardSystem {
 public:
@@ -37,11 +38,13 @@ public:
 
     int actionIdx2LabelIdx(const int actionIdx);
 
-    void move(State &srcState, State &dstState, CScoredTransition &transition);
+    void move(const State &srcState, State &dstState, const CScoredTransition &transition);
 
     int standardMove(State &state, ChunkedSentence &gSent, std::vector<int> labelIndexesCache);
 
     void generateValidActs(State &state, std::vector<int> &validActs);
+
+    void generateOutput(const State &state, ChunkedSentence &sent);
 
     int getOutsideIndex() {
         return nOutside;
@@ -56,11 +59,11 @@ public:
     }
 
 private:
-    void doOutsideMove(State &srcState, State &dstState, CScoredTransition &transition);
+    void doOutsideMove(State &srcState, State &dstState, const CScoredTransition &transition);
 
-    void doInsideMove(State &srcState, State &dstState, CScoredTransition &transition);
+    void doInsideMove(State &srcState, State &dstState, const CScoredTransition &transition);
 
-    void doBeginMove(State &srcState, State &dstState, CScoredTransition &transition);
+    void doBeginMove(State &srcState, State &dstState, const CScoredTransition &transition);
 
 public:
     void displayLabel2ActionIdx() {

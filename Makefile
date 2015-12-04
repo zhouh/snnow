@@ -1,5 +1,4 @@
 BASE_DIR = .
-BIN_DIR = ./
 INCLUDE_DIR = $(BASE_DIR)/src/include
 DEPPARSER_DIR = $(BASE_DIR)/src/depparser
 

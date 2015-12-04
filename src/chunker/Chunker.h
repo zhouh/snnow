@@ -9,17 +9,17 @@
 #include <iostream>
 #include <memory>
 
+#define XPU cpu
 
+#include "NNet.h"
+#include "Beam.h"
+#include "BeamDecoder.h"
 #include "Config.h"
 #include "FeatureExtractor.h"
 #include "ChunkedSentence.h"
 #include "ActionStandardSystem.h"
 #include "FeatureEmbedding.h"
 #include "Instance.h"
-
-#include "NNet.h"
-
-#define XPU gpu
 
 class Chunker{
     std::shared_ptr<FeatureExtractor> m_featExtractor;
@@ -39,7 +39,7 @@ public:
 
     void train(ChunkedDataSet &goldSet, InstanceSet &trainSet, InstanceSet &devSet);
 
-    double parse(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, NNetPara<XPU> &netsPara);
+    double chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, NNetPara<XPU> &netsPara);
 
 private:
     void initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet);
