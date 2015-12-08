@@ -148,8 +148,8 @@ public:
                  const CScoredTransition transition = beam.beam[i];
 
                  State *target = lattice_index[nRound] + i;
-                 *target = *(const_cast<State *>(transition.source));
-                 tranSystem.move(*(const_cast<State *>(transition.source)), *target, transition);
+                 *target = *(transition.source);
+                 tranSystem.move(*(transition.source), *target, transition);
 
                  if (bTrain) {
                      target->setBeamIdx(i);

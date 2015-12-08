@@ -12,7 +12,7 @@
 #include "Config.h"
 #include "ChunkedSentence.h"
 #include "Instance.h"
-#include "Chunker.h"
+#include "GreedyChunker.h"
 
 using std::cout;
 using std::cerr;
@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
         count++;
     }
 
-    Chunker chunker(true);
+    GreedyChunker chunker(true);
     cerr << "Training sentence number: " << count << endl;
     cerr << endl;
 

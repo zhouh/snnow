@@ -24,7 +24,7 @@ struct ChunkedWord {
     ChunkedWord(std::string w, std::string t, std::string l): word(w), tag(t), label(l) {}
     ChunkedWord(std::string w, std::string t): word(w), tag(t) {}
     ChunkedWord(const ChunkedWord &cw) : word(cw.word), tag(cw.tag), label(cw.label) {}
-    ChunkedWord& operator= (ChunkedWord &cw) {
+    ChunkedWord& operator= (const ChunkedWord &cw) {
         if (this == &cw) {
             return *this;
         }
@@ -88,15 +88,16 @@ public:
 
     ChunkedSentence(): m_lChunkedWords(0) {}
 
-    ChunkedSentence(const ChunkedSentence &cs) {
-        m_nLength = cs.m_nLength;
-        
-        for (int i = 0; i < m_nLength; i++) {
-            m_lChunkedWords.push_back(cs.m_lChunkedWords[i]);
-        }
+    ChunkedSentence(const ChunkedSentence &cs): m_nLength(cs.m_nLength), m_lChunkedWords(cs.m_lChunkedWords) {
+        // m_nLength = cs.m_nLength;
+        // m_lChunkedWords.resize(m_nLength);
+        // 
+        // for (int i = 0; i < cs.m_nLength; i++) {
+        //     m_lChunkedWords[i] = cs.m_lChunkedWords[i];
+        // }
     }
 
-    ChunkedSentence& operator= (ChunkedSentence &cs) {
+    ChunkedSentence& operator= (const ChunkedSentence &cs) {
         if (this == &cs) {
             return *this;
         }

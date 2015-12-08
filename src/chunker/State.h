@@ -70,7 +70,7 @@ public:
 
 struct CScoredTransition {
     //! The pointer to the source state
-    const State *source;
+    State *source;
 
     //! The action applied to the source state
     int action;
@@ -80,9 +80,9 @@ struct CScoredTransition {
 
     CScoredTransition(): source(NULL), action(-1), score(0) {}
 
-    CScoredTransition(const State *s, int a, double sc): source(s), action(a), score(sc) {}
+    CScoredTransition(State *s, int a, double sc): source(s), action(a), score(sc) {}
 
-    void operator()(const State *s, int a, double sc) {
+    void operator()(State *s, int a, double sc) {
         source = s;
         action = a;
         score = sc;

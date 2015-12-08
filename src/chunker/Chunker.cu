@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
+#include <limits.h>
 
 #include "Config.h"
 
@@ -23,6 +24,7 @@
 // #define DEBUG1
 // #define DEBUG2
 #define DEBUG4
+#define DEBUG5
 #endif
 
 Chunker::Chunker() {
@@ -49,13 +51,13 @@ double Chunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, NNe
 
     TNNets tnnets(beam_size, num_in, num_hidden, num_out, &netsParas, false);
 
-    ChunkedDataSet predSents(devInstances.size());
+    // ChunkedDataSet predSents(devInstances.size());
 
     clock_t start, end;
     start = clock();
     ChunkedDataSet predictDevSet;
     for (unsigned inst = 0; inst < devInstances.size(); inst++) {
-        predSents[inst].init(devInstances[inst].input);
+        // predSents[inst].init(devInstances[inst].input);
 
         BeamDecoder decoder(&(devInstances[inst]), m_nBeamSize, false);
         State *predState = decoder.decode(*m_transitionSystem, tnnets, *m_featExtractor, *m_fEmb);
@@ -65,7 +67,7 @@ double Chunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, NNe
         }
 #endif
 
-        ChunkedSentence predictSent(goldDevSet[inst]);
+        ChunkedSentence predictSent(devInstances[inst].input);
 
 #ifdef DEBUG1
         std::cout << "predictSent's size: " << predictSent.m_lChunkedWords.size() << std::endl;
@@ -78,7 +80,7 @@ double Chunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, NNe
     end = clock();
 
     double time_used = (double)(end - start) / CLOCKS_PER_SEC;
-    std::cout << "totally parse " << devInstances.size() << " sentences, time: " << time_used << " average: " << devInstances.size() / time_used << " sentences/second!" << std::endl;
+    std::cout << "totally chunk " << devInstances.size() << " sentences, time: " << time_used << " average: " << devInstances.size() / time_used << " sentences/second!" << std::endl;
 
     auto res = Evalb::eval(predictDevSet, goldDevSet);
 
@@ -88,17 +90,12 @@ double Chunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, NNe
 void Chunker::train(ChunkedDataSet &goldSet, InstanceSet &trainSet, InstanceSet &devSet) {
 #ifdef DEBUG2
     char ch;
-    std::cin >> ch;
 #endif 
     initTrain(goldSet, trainSet);
 
     m_featExtractor->generateInstanceSetCache(devSet);
 
     m_featExtractor->readPretrainEmbeddings(CConfig::strEmbeddingPath, *m_fEmb);
-
-#ifdef DEBUG2
-    std::cin >> ch;
-#endif 
 
     const int num_in = CConfig::nEmbeddingDim * CConfig::nFeatureNum;
     const int num_hidden = CConfig::nHiddenSize;
@@ -111,18 +108,11 @@ void Chunker::train(ChunkedDataSet &goldSet, InstanceSet &trainSet, InstanceSet 
     srand(0);
 
     NNetPara<XPU> netsParas(beam_size, num_in, num_hidden, num_out);
-#ifdef DEBUG2
-    std::cin >> ch;
-#endif 
     double bestDevFB1 = -1.0;
 #ifdef DEBUG2
     std::cout << "Before chunking..." << std::endl;
 #endif 
     for (int iter = 0; iter < CConfig::nRound; iter++) {
-#ifdef DEBUG3
-        char ch;
-        std::cin >> ch;
-#endif 
         // Evaluate FB1 score per iteration
         if (iter % CConfig::nEvaluatePerIters == 0) {
             double currentFB1 = chunk(devSet, goldSet, netsParas);
@@ -165,10 +155,6 @@ void Chunker::train(ChunkedDataSet &goldSet, InstanceSet &trainSet, InstanceSet 
             for (unsigned inst = 0; inst < currentThreadData.size(); inst++) {
                 // fetch a to-be-trained instance
                 GlobalExample *example = currentThreadData[inst];
-
-                TensorContainer<cpu, 2, real_t> mask;
-                mask.set_stream(netsParas.stream);
-                netsParas.rnd.SampleUniform(&mask, 0.0f, 1.0f);
 
                 TNNets tnnets(m_nBeamSize, num_in, num_hidden, num_out, &netsParas);
 

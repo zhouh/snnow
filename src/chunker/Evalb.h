@@ -14,6 +14,7 @@
 #include "ChunkedSentence.h"
 
 class Evalb {
+    static std::string BEGIN_I_TYPE;
 public:
     // return (precision, recall, FB1)
     static std::tuple<double, double, double> eval(ChunkedDataSet &predicts, ChunkedDataSet &golds, bool isEvalNP = false) {
@@ -24,7 +25,11 @@ public:
         int foundGuessed = 0;
         
         for (int i = 0; i < predicts.size(); i++){
-            auto res = eval(predicts[i], golds[i], isEvalNP);
+            ChunkedSentence pscs(predicts[i]);
+            ChunkedSentence gscs(golds[i]);
+            convert2StardandBIOFormat(pscs);
+            convert2StardandBIOFormat(gscs);
+            auto res = eval(pscs, gscs, isEvalNP);
 
             correctChunk += std::get<0>(res);
             foundCorrect += std::get<1>(res);
@@ -47,6 +52,19 @@ public:
         }
 
         return std::make_tuple(precision, recall, FB1);
+    }
+
+    static void convert2StardandBIOFormat(ChunkedSentence &scs) {
+        std::string type = BEGIN_I_TYPE;
+        for (int i = 0; i < scs.m_nLength; i++) {
+            if (scs.m_lChunkedWords[i].label == "I") {
+                scs.m_lChunkedWords[i].label = "I-" + type;
+            } else if (scs.m_lChunkedWords[i].label[0] == 'B'){
+                type = scs.m_lChunkedWords[i].label.substr(2);
+            } else {
+                type = BEGIN_I_TYPE;
+            }
+        }
     }
 
     // return: (correct_count, gold_count, predict_count)
@@ -220,6 +238,9 @@ private:
         return chunkEnd;
     }
 };
+
+std::string Evalb::BEGIN_I_TYPE = "ITYPE";
+
 /*
 int main() {
     ChunkedDataSet predicts;
