@@ -13,6 +13,7 @@
 #include "ChunkedSentence.h"
 #include "Instance.h"
 #include "GreedyChunker.h"
+// #include "Chunker.h"
 
 using std::cout;
 using std::cerr;
@@ -63,6 +64,8 @@ int main(int argc, char *argv[]) {
         count++;
     }
 
+    cerr << "Training sentences number: " << count << endl;
+
     count = 0;
     while (true) {
         ChunkedSentence cs;
@@ -91,12 +94,11 @@ int main(int argc, char *argv[]) {
     }
 
     GreedyChunker chunker(true);
-    cerr << "Training sentence number: " << count << endl;
-    cerr << endl;
+    cerr << "Dev sentences number: " << count << endl;
+    cerr << "------------------------------------" << endl;
 
-    cerr << "Chunker: training..." << endl;
-
-    chunker.train(trainGoldSentences, trainInstances, devInstances);
+    cerr << "Chunker: start training..." << endl;
+    chunker.train(trainGoldSentences, trainInstances, devGoldSentences, devInstances);
 
     return 0;
 }

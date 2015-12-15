@@ -9,11 +9,12 @@
 
 #include "FeatureExtractor.h"
 
-//#define DEBUG
+#define DEBUG
 #ifdef DEBUG
-
 //#define DEBUG1
 #define DEBUG2
+//#define DEBUG3
+#define DEBUG4
 
 #endif // DEBUG
 
@@ -37,35 +38,63 @@ void FeatureExtractor::getDictionaries(const ChunkedDataSet &goldSet) {
     }
 
 #ifdef DEBUG
-    std::cerr << "wordSet size: " << wordSet.size() << std::endl;
-    std::cerr << "tagSet size: " << tagSet.size() << std::endl;
-    std::cerr << "labelSet Size: " << labelSet.size() << std::endl;
+    std::cerr << "  wordSet size: " << wordSet.size() << std::endl;
+    std::cerr << "  tagSet size: " << tagSet.size() << std::endl;
+    std::cerr << "  labelSet Size: " << labelSet.size() << std::endl;
 #endif
 
     int idx = 0;
 
     for (auto &l : labelSet) {
         m_mLabel2Idx[l] = idx++;
+
+#ifdef DEBUG3
+        std::cout << l << ": " << idx - 1 << std::endl;
+#endif
         m_lKnownLabels.push_back(l);
     }
     labelNullIdx = idx, m_mLabel2Idx[nullstr] = idx++;
+#ifdef DEBUG3
+        std::cout << nullstr << "[label]: " << idx - 1 << std::endl;
+#endif
     labelUnkIdx = idx, m_mLabel2Idx[unknownstr] = idx++;
+#ifdef DEBUG3
+        std::cout << unknownstr << "[label]: " << idx - 1 << std::endl;
+#endif
 
     wordNullIdx = idx, m_mWord2Idx[nullstr] = idx++;
+#ifdef DEBUG3
+        std::cout << nullstr << "[word]: " << idx - 1 << std::endl;
+#endif
     wordUnkIdx = idx, m_mWord2Idx[unknownstr] = idx++;
+#ifdef DEBUG3
+        std::cout << unknownstr << "[word]: " << idx - 1 << std::endl;
+#endif
     m_lKnownWords.push_back(nullstr);
     m_lKnownWords.push_back(unknownstr);
     for (auto &w : wordSet) {
         m_mWord2Idx[w] = idx++;
+#ifdef DEBUG3
+        std::cout << w << ": " << idx - 1 << std::endl;
+#endif
         m_lKnownWords.push_back(w);
     }
 
     tagNullIdx = idx, m_mTag2Idx[nullstr] = idx++;
+#ifdef DEBUG3
+    std::cout << nullstr << "[tag]: " << idx - 1 << std::endl;
+#endif
     tagUnkIdx = idx, m_mTag2Idx[unknownstr] = idx++;
+#ifdef DEBUG3
+    std::cout << unknownstr << "[tag]: " << idx - 1 << std::endl;
+#endif
     m_lKnownTags.push_back(nullstr);
     m_lKnownTags.push_back(unknownstr);
     for (auto &t : tagSet) {
         m_mTag2Idx[t] = idx++;
+#ifdef DEBUG3
+        std::cout << t << ": " << idx - 1 << std::endl;
+#endif
         m_lKnownTags.push_back(t);
     }
 }
@@ -76,8 +105,8 @@ void FeatureExtractor::generateInstanceCache(Instance &inst) {
 
     int index = 0;
     for (auto &e : inst.input) {
-        int wordIdx = getWordIdx(e.first);
-        int tagIdx = getTagIdx(e.second);
+        int wordIdx = word2WordIdx(e.first);
+        int tagIdx = tag2TagIdx(e.second);
 
         inst.wordCache[index] = wordIdx;
         inst.tagCache[index] = tagIdx;
@@ -87,12 +116,58 @@ void FeatureExtractor::generateInstanceCache(Instance &inst) {
 }
 
 void FeatureExtractor::generateInstanceSetCache(InstanceSet &instSet) {
-    for (auto &inst : instSet)
+    for (auto &inst : instSet) {
         generateInstanceCache(inst);
+    }
 }
 
 void FeatureExtractor::extractFeature(State &state, Instance &inst, std::vector<int> &features) {
+    auto getWordIndex = [&state, &inst, this](int index) -> int {
+        if (index < 0 || index >= state.m_nLen) {
+            return this->wordNullIdx;
+        }
 
+        return inst.wordCache[index];
+    };
+
+    auto getTagIndex = [&state, &inst, this](int index) -> int {
+        if (index < 0 || index >= state.m_nLen) {
+            return this->tagNullIdx;
+        }
+
+        return inst.tagCache[index];
+    };
+
+    int IDIdx = 0;
+    int currentIndex = state.m_nIndex + 1;
+
+    int neg3UniWord   = getWordIndex(currentIndex - 3);
+    int neg2UniWord   = getWordIndex(currentIndex - 2);
+    int neg1UniWord   = getWordIndex(currentIndex - 1);
+    int pos1UniWord   = getWordIndex(currentIndex);
+    int pos2UniWord   = getWordIndex(currentIndex + 1);
+    int pos3UniWord   = getWordIndex(currentIndex + 2);
+
+    features[IDIdx++] = neg3UniWord;
+    features[IDIdx++] = neg2UniWord;
+    features[IDIdx++] = neg1UniWord;
+    features[IDIdx++] = pos1UniWord;
+    features[IDIdx++] = pos2UniWord;
+    features[IDIdx++] = pos3UniWord;
+
+    int neg3UniPos    = getTagIndex(currentIndex - 3);
+    int neg2UniPos    = getTagIndex(currentIndex - 2);
+    int neg1UniPos    = getTagIndex(currentIndex - 1);
+    int pos1UniPos    = getTagIndex(currentIndex);
+    int pos2UniPos    = getTagIndex(currentIndex + 1);
+    int pos3UniPos    = getTagIndex(currentIndex + 2);
+
+    features[IDIdx++] = neg3UniPos;
+    features[IDIdx++] = neg2UniPos;
+    features[IDIdx++] = neg1UniPos;
+    features[IDIdx++] = pos1UniPos;
+    features[IDIdx++] = pos2UniPos;
+    features[IDIdx++] = pos3UniPos;
 }
 
 void FeatureExtractor::generateTrainingExamples(ActionStandardSystem &transitionSystem, InstanceSet &instSet, ChunkedDataSet &goldSet, GlobalExamples &gExamples) {
@@ -108,7 +183,7 @@ void FeatureExtractor::generateTrainingExamples(ActionStandardSystem &transition
         std::vector<int> labelIndexCache(gSent.size());
         int index = 0;
         for (const ChunkedWord &w : gSent.getChunkedWords()) {
-            int labelIdx = getLabelIdx(w.label);
+            int labelIdx = label2LabelIdx(w.label);
 #ifdef DEBUG1
             std::cerr << w.word << " " << w.tag << " " << w.label << std::endl;
             //std::cerr << "label idx: " << labelIdx << std::endl;
@@ -135,7 +210,16 @@ void FeatureExtractor::generateTrainingExamples(ActionStandardSystem &transition
             std::vector<int> labels(transitionSystem.nActNum, 0);
 
             extractFeature(*state, inst, features);
-            
+
+#ifdef DEBUGX
+            std::cout << "j = " << j << std::endl;
+            for (int fi = 0; fi < features.size(); fi++) {
+                std::cout << features[fi] << " ";
+            }
+            std::cout << std::endl;
+            char tch;
+            std::cin >> tch;
+#endif
             transitionSystem.generateValidActs(*state, labels);
 
             int goldAct = transitionSystem.standardMove(*state, gSent, labelIndexCache);
@@ -181,13 +265,18 @@ void FeatureExtractor::generateTrainingExamples(ActionStandardSystem &transition
 int FeatureExtractor::readPretrainEmbeddings(std::string &pretrainFile, FeatureEmbedding &fe){
     std::tr1::unordered_map<std::string, int> pretrainWords;
     std::vector<std::vector<double>> pretrainEmbs;
-
+#ifdef DEBUGX
+    std::cout << "pretrain file path is: " << pretrainFile << std::endl;
+#endif
     std::string line;
     std::ifstream in(pretrainFile);
-    getline(in, line);
+    getline(in, line); //TODO dirrent from zhouh
 
     int index = 0;
     while (getline(in, line)) {
+#ifdef DEBUGX
+    std::cout << "line: " << line << std::endl;
+#endif
         if (line.empty()) {
             continue;
         }
@@ -206,7 +295,7 @@ int FeatureExtractor::readPretrainEmbeddings(std::string &pretrainFile, FeatureE
         pretrainWords[word] = index++;
     }
 
-#ifdef DEBUG2
+#ifdef DEBUG
     std::cerr << "pretrainWords's size: " << pretrainEmbs.size() << std::endl;
 #endif
 

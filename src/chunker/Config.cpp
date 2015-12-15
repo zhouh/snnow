@@ -7,26 +7,32 @@
 #include "Config.h"
 
 string CConfig::strEmbeddingPath("../../data/chunk/English/sen.emb");
-string CConfig::strTrainPath("../../data/chunk/English/small.train");
-string CConfig::strDevPath("../../data/chunk/English/small.train");
-string CConfig::strTestPath("../../data/chunk/English/small.test");
+// string CConfig::strTrainPath("../../data/chunk/English/small.train");
+// string CConfig::strDevPath("../../data/chunk/English/small.train");
+// string CConfig::strTestPath("../../data/chunk/English/small.test");
 
-//string CConfig::strTrainPath("../../data/chunk/English/train.txt");
-//string CConfig::strTestPath("../../data/chunk/English/test.txt");
+// string CConfig::strTrainPath("../../data/chunk/English/train.txt");
+// string CConfig::strTrainPath("../../data/chunk/English/test.txt");
+// string CConfig::strDevPath("../../data/chunk/English/test.txt");
+// string CConfig::strTestPath("../../data/chunk/English/test.txt");
+
+string CConfig::strTrainPath("../../data/chunk/English/single.train");
+string CConfig::strDevPath("../../data/chunk/English/single.dev");
+string CConfig::strTestPath("../../data/chunk/English/single.test");
 
 int CConfig::nBeamSize = 50;
 
-int CConfig::nFeatureNum = 1;
+int CConfig::nFeatureNum = 12;
 
 int CConfig::nEmbeddingDim = 50;
 
 int CConfig::nHiddenSize = 200;
 
-int CConfig::nRound = 100;
+int CConfig::nRound = 1000;
 
-int CConfig::nBatchSize = 10;
+int CConfig::nBatchSize = 100;
 
-int CConfig::nEvaluatePerIters = 10;
+int CConfig::nEvaluatePerIters = 2;
 
 int CConfig::nThread = 1;
 

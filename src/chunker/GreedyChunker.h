@@ -21,6 +21,9 @@
 #include "Instance.h"
 
 class GreedyChunker {
+public:
+    typedef std::vector<Example *> ExamplePtrs;
+private:
     std::shared_ptr<FeatureExtractor> m_featExtractor;
     std::shared_ptr<ActionStandardSystem> m_transitionSystem;
     std::shared_ptr<FeatureEmbedding> m_fEmb;
@@ -28,13 +31,15 @@ class GreedyChunker {
     bool m_bTrain;
 
     GlobalExamples gExamples;
+
+    ExamplePtrs trainExamplePtrs;
 public:
     GreedyChunker();
     GreedyChunker(bool isTrain);
 
     ~GreedyChunker();
 
-    void train(ChunkedDataSet &goldSet, InstanceSet &trainSet, InstanceSet &devSet);
+    void train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, ChunkedDataSet &devGoldSet, InstanceSet &devSet);
 
     double chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, NNetPara<XPU> &netsPara);
 
@@ -47,6 +52,10 @@ private:
      * and return the input layer of neural network in batch.
     */
     void generateInputBatch(State *state, Instance *inst, std::vector<std::vector<int>> &featvecs); 
+
+    void printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &devGoldSet, NNetPara<XPU> &netsPara, double batchObjLoss, double posClassificationRate, double &bestDevFB1);
+
+    void generateMultiThreadsMiniBatchData(std::vector<ExamplePtrs> &multiThread_miniBatch_data);
 };
 
 #endif

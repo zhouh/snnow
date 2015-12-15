@@ -1,0 +1,203 @@
+Initing FeatureExtractor & ActionStandardSystem & generateTrainingExamples...
+Excuting generateInstanceSetCache & readPretrainEmbeddings...
+
+totally chunk 1 sentences, time: 0.310093 average: 3.22484 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 0.00
+current objective fun-score: 1.79	classfication rate: 31.25
+objective[log-loss]:1.79	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.28 average: 3.51 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 0.00
+current objective fun-score: 2.96	classfication rate: 25.00
+objective[log-loss]:2.96	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.51 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 0.00
+current objective fun-score: 357.71	classfication rate: 12.50
+objective[log-loss]:357.71	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.28 average: 3.51 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 0.00
+current objective fun-score: 402.85	classfication rate: 31.25
+objective[log-loss]:402.85	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.51 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 0.00
+current objective fun-score: 342.42	classfication rate: 6.25
+objective[log-loss]:342.42	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.28 average: 3.53 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 0.00
+current objective fun-score: 148.78	classfication rate: 25.00
+objective[log-loss]:148.78	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.49 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 0.00
+current objective fun-score: 165.98	classfication rate: 18.75
+objective[log-loss]:165.98	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.28 average: 3.52 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 0.00
+current objective fun-score: 133.19	classfication rate: 31.25
+objective[log-loss]:133.19	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.28 average: 3.51 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 0.00
+current objective fun-score: 53.18	classfication rate: 12.50
+objective[log-loss]:53.18	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.28 average: 3.51 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 0.00
+current objective fun-score: 67.13	classfication rate: 18.75
+objective[log-loss]:67.13	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.28 average: 3.51 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 0.00
+current objective fun-score: 126.56	classfication rate: 6.25
+objective[log-loss]:126.56	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.28 average: 3.51 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 0.00
+current objective fun-score: 81.31	classfication rate: 6.25
+objective[log-loss]:81.31	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.28 average: 3.51 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 0.00
+current objective fun-score: 62.14	classfication rate: 18.75
+objective[log-loss]:62.14	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.28 average: 3.51 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 0.00
+current objective fun-score: 115.95	classfication rate: 31.25
+objective[log-loss]:115.95	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.28 average: 3.51 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 0.00
+current objective fun-score: 37.30	classfication rate: 31.25
+objective[log-loss]:37.30	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.28 average: 3.51 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 0.00
+current objective fun-score: 23.63	classfication rate: 31.25
+objective[log-loss]:23.63	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.51 sentences/second!
+current iteration FB1-score: 9.52	best FB1-score: 9.52
+current objective fun-score: 39.48	classfication rate: 18.75
+objective[log-loss]:39.48	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.51 sentences/second!
+current iteration FB1-score: 9.52	best FB1-score: 9.52
+current objective fun-score: 66.20	classfication rate: 12.50
+objective[log-loss]:66.20	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.51 sentences/second!
+current iteration FB1-score: 9.52	best FB1-score: 9.52
+current objective fun-score: 60.03	classfication rate: 6.25
+objective[log-loss]:60.03	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.51 sentences/second!
+current iteration FB1-score: 9.52	best FB1-score: 9.52
+current objective fun-score: 60.08	classfication rate: 12.50
+objective[log-loss]:60.08	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.50 sentences/second!
+current iteration FB1-score: 9.52	best FB1-score: 9.52
+current objective fun-score: 115.32	classfication rate: 25.00
+objective[log-loss]:115.32	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.28 average: 3.51 sentences/second!
+current iteration FB1-score: 9.52	best FB1-score: 9.52
+current objective fun-score: 107.73	classfication rate: 25.00
+objective[log-loss]:107.73	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.28 average: 3.52 sentences/second!
+current iteration FB1-score: 9.52	best FB1-score: 9.52
+current objective fun-score: 101.82	classfication rate: 25.00
+objective[log-loss]:101.82	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.28 average: 3.51 sentences/second!
+current iteration FB1-score: 9.52	best FB1-score: 9.52
+current objective fun-score: 94.50	classfication rate: 25.00
+objective[log-loss]:94.50	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.51 sentences/second!
+current iteration FB1-score: 9.52	best FB1-score: 9.52
+current objective fun-score: 47.78	classfication rate: 18.75
+objective[log-loss]:47.78	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.51 sentences/second!
+current iteration FB1-score: 9.52	best FB1-score: 9.52
+current objective fun-score: 42.22	classfication rate: 18.75
+objective[log-loss]:42.22	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.51 sentences/second!
+current iteration FB1-score: 10.00	best FB1-score: 10.00
+current objective fun-score: 61.67	classfication rate: 6.25
+objective[log-loss]:61.67	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.28 average: 3.51 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 41.92	classfication rate: 25.00
+objective[log-loss]:41.92	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.49 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 39.96	classfication rate: 25.00
+objective[log-loss]:39.96	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.49 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 65.03	classfication rate: 12.50
+objective[log-loss]:65.03	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.49 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 73.01	classfication rate: 31.25
+objective[log-loss]:73.01	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.49 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 67.89	classfication rate: 6.25
+objective[log-loss]:67.89	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.50 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 66.51	classfication rate: 31.25
+objective[log-loss]:66.51	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.28 average: 3.51 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 65.07	classfication rate: 31.25
+objective[log-loss]:65.07	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.49 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 63.68	classfication rate: 31.25
+objective[log-loss]:63.68	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.47 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 62.41	classfication rate: 31.25
+objective[log-loss]:62.41	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.47 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 61.23	classfication rate: 31.25
+objective[log-loss]:61.23	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.47 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 60.09	classfication rate: 31.25
+objective[log-loss]:60.09	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.47 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 58.99	classfication rate: 31.25
+objective[log-loss]:58.99	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.47 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 57.93	classfication rate: 31.25
+objective[log-loss]:57.93	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.47 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 56.90	classfication rate: 31.25
+objective[log-loss]:56.90	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.47 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 55.91	classfication rate: 31.25
+objective[log-loss]:55.91	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.47 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 54.94	classfication rate: 31.25
+objective[log-loss]:54.94	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.48 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 54.00	classfication rate: 31.25
+objective[log-loss]:54.00	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.47 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 53.10	classfication rate: 31.25
+objective[log-loss]:53.10	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.48 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 52.23	classfication rate: 31.25
+objective[log-loss]:52.23	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.47 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 51.47	classfication rate: 31.25
+objective[log-loss]:51.47	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.47 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 50.90	classfication rate: 31.25
+objective[log-loss]:50.90	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.46 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 50.43	classfication rate: 31.25
+objective[log-loss]:50.42	objective[regularzation loss]:0.00
+totally chunk 1 sentences, time: 0.29 average: 3.48 sentences/second!
+current iteration FB1-score: 0.00	best FB1-score: 10.00
+current objective fun-score: 76.74	classfication rate: 6.25
+objective[log-loss]:76.74	objective[regularzation loss]:0.00

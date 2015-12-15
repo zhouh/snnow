@@ -11,10 +11,11 @@ include $(BASE_DIR)/make/mshadow.mk
 
 export CFLAGS = -g -std=c++11 -I$(INCLUDE_DIR)/ -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
 export LDFLAGS = -lm -L$(CUDA_HOME)/lib64 $(MSHADOW_LDFLAGS)
-export NVCCFLAGS =-g -G -O0 -std=c++11 --use_fast_math -ccbin $(CXX)  $(MSHADOW_NVCCFLAGS)
+export NVCCFLAGS = -g -G -std=c++11 --use_fast_math -ccbin $(CXX) $(MSHADOW_NVCCFLAGS)
 
 BIN = $(BASE_DIR)/bin/chunk
 OBJ =  $(OBJ_DIR)/Config.o $(OBJ_DIR)/FeatureExtractor.o $(OBJ_DIR)/Beam.o $(OBJ_DIR)/ActionStandardSystem.o
+#CUOBJ = $(OBJ_DIR)/Chunker.o
 CUOBJ = $(OBJ_DIR)/GreedyChunker.o
 CUBIN = 
 .PHONY: clean all
@@ -54,7 +55,7 @@ $(OBJ) :
 	$(CXX) -c $(CFLAGS) $(firstword $(filter %.cpp %.c, $^) ) -o $@
 
 $(CUOBJ) :
-	$(NVCC) -c -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" $(filter %.cu, $^)
+	$(NVCC) -g -c -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" $(filter %.cu, $^)
 
 $(CUBIN) :
 	$(NVCC) -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" -Xlinker "$(LDFLAGS)" $(filter %.cu %.cpp %.o, $^)

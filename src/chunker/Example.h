@@ -13,11 +13,11 @@
 
 class Example {
 public:
-    std::vector<int> featuers;
+    std::vector<int> features;
     std::vector<int> labels;
 
     Example(std::vector<int> &f, std::vector<int> &l){
-        featuers = f;
+        features = f;
         labels = l;
     }
 

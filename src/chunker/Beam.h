@@ -22,7 +22,7 @@ public:
 
     Beam(int beamFullSize) {
         this->beamFullSize = beamFullSize;
-        this->currentBeamSize = currentBeamSize;
+        this->currentBeamSize = 0;
         beam = new CScoredTransition[beamFullSize];
         bBeamContainGoldState = false;
     }

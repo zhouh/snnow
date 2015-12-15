@@ -18,6 +18,7 @@ class Evalb {
 public:
     // return (precision, recall, FB1)
     static std::tuple<double, double, double> eval(ChunkedDataSet &predicts, ChunkedDataSet &golds, bool isEvalNP = false) {
+        // std::cout << "predict.size = " << predicts.size() << "\tgold.size = " << golds.size() << std::endl;
         assert(predicts.size() == golds.size());
 
         int correctChunk = 0;

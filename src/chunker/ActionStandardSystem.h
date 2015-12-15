@@ -67,14 +67,14 @@ private:
 
 public:
     void displayLabel2ActionIdx() {
-        std::cerr << "Transition Action Info: " << std::endl;
+        std::cerr << "\tTransition Action Info: " << std::endl;
         for (int i = 0; i < nActNum; i++) {
-            std::cerr << i << ": " << knowLabels[i] << std::endl;
+            std::cerr << "\t\t" << i << ": " << knowLabels[i] << std::endl;
         }
 
-        std::cerr << "nInside: " << nInside << std::endl;
-        std::cerr << "nOutside: " << nOutside << std::endl;
-        std::cerr << "nBegin: " << nBegin << std::endl;
+        std::cerr << "\t\tnInside: " << nInside << std::endl;
+        std::cerr << "\t\tnOutside: " << nOutside << std::endl;
+        std::cerr << "\t\tnBegin: " << nBegin << std::endl;
     }
 };
 

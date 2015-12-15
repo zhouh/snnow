@@ -14,7 +14,6 @@
 #include "NNet.h"
 #include "Beam.h"
 #include "BeamDecoder.h"
-#include "GreedyDecoder.h"
 #include "Config.h"
 #include "FeatureExtractor.h"
 #include "ChunkedSentence.h"
@@ -38,7 +37,7 @@ public:
 
     ~Chunker();
 
-    void train(ChunkedDataSet &goldSet, InstanceSet &trainSet, InstanceSet &devSet);
+    void train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, ChunkedDataSet &devGoldSet,  InstanceSet &devSet);
 
     double chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, NNetPara<XPU> &netsPara);
     

@@ -62,7 +62,6 @@ public:
         previous_ = nullptr;
         score = 0;
         last_action = -1;
-        m_nLen = 0;
         beamIdx = 0;
         bGold = false;
     }

@@ -14,6 +14,7 @@
 #include "State.h"
 #include "TNNets.h"
 #include "Instance.h"
+#include "ChunkedSentence.h"
 #include "ActionStandardSystem.h"
 
 #include "mshadow/tensor.h"
@@ -22,6 +23,10 @@
 
 class BeamDecoder {
 public:
+    ActionStandardSystem *tranSystem;
+    FeatureExtractor *featExtractor;
+    FeatureEmbedding *fEmb;
+
     bool bTrain;
     bool bEarlyUpdate;
     Beam beam;
@@ -37,7 +42,16 @@ public:
 
     Instance * inst;
 
-    BeamDecoder(Instance *inst, int beamSize, bool bTrain) : beam(beamSize) {
+    BeamDecoder(Instance *inst, 
+                ActionStandardSystem *transitionSystem, 
+                FeatureExtractor *featureExtractor, 
+                FeatureEmbedding *featureEmbedding, 
+                int beamSize, 
+                bool bTrain) : 
+                tranSystem(transitionSystem), 
+                featExtractor(featureExtractor), 
+                fEmb(featureEmbedding), 
+                beam(beamSize) {
         nSentLen = inst->input.size();
         nMaxRound = nSentLen;
 
@@ -58,7 +72,38 @@ public:
         delete []lattice_index;
     }
 
-    State *decode(ActionStandardSystem &tranSystem, TNNets &tnnet, FeatureExtractor &featExtractor, FeatureEmbedding &fEmb, GlobalExample *gExample = nullptr) {
+    void generateChunkedSentence(TNNets &tnnets, ChunkedSentence &predictedSent) {
+        // std::cout << "[input]: " << std::endl;
+        // std::cout << predictedSent << std::endl;
+
+        State *predState = decode(tnnets);
+
+        // std::cout << std::endl;
+        // std::cout << "current beam size: " << beam.currentBeamSize << std::endl;
+        // std::cout << predictedSent;
+
+        // std::vector<int> predictedActions;
+        // State *ptr = predState;
+        // if (ptr == nullptr) {
+        //     std::cout << "predstate is nullptr!" << std::endl;
+        // }
+        // int i = 1;
+        // while (ptr != nullptr && ptr->last_action != -1) {
+        //     i++;
+        //     predictedActions.push_back(ptr->last_action);
+        //     ptr = ptr->previous_;
+        // }
+        // std::cout << "decoded path length: " << i << std::endl;
+        // std::cout << "[pred action sequences]: ";
+        // for (int i = 0; i < predictedActions.size(); i++) {
+        //     std::cout << predictedActions[predictedActions.size() - 1 - i] << " ";
+        // }
+        // std::cout << std::endl;
+
+        tranSystem->generateOutput(*predState, predictedSent);
+    }
+
+    State *decode(TNNets &tnnet, GlobalExample *gExample = nullptr) {
         State *retval = nullptr;
 
         for (int i = 0; i < nMaxLatticeSize; ++i) {
@@ -99,8 +144,8 @@ public:
             // extract features and generate input embeddings
             std::vector<std::vector<int>> featureVectors; // extracted feature vectors in batch
             featureVectors.resize(nRound == 1 ? 1 : beam.currentBeamSize);
-            generateInputBatch(featExtractor, lattice_index[nRound - 1], *(inst), featureVectors);
-            fEmb.returnInput(featureVectors, input);
+            generateInputBatch(*featExtractor, lattice_index[nRound - 1], *(inst), featureVectors);
+            fEmb->returnInput(featureVectors, input);
 
             tnnet.Forward(input, pred);
 
@@ -111,7 +156,7 @@ public:
             int stateIdx = 0;
             for (State *currentState = lattice_index[nRound - 1]; currentState != lattice_index[nRound]; ++currentState, ++stateIdx) {
                 std::vector<int> validActs;
-                tranSystem.generateValidActs(*currentState, validActs);
+                tranSystem->generateValidActs(*currentState, validActs);
 
                 bool noValid = true;
                 // for each valid action
@@ -126,37 +171,43 @@ public:
                     CScoredTransition trans;
                     trans(currentState, actId, currentState->score + pred[stateIdx][actId]); // TODO: ignore inValid scores ?
                     
+                    if (isnan((real_t)pred[stateIdx][actId])) {
+                        std::cout << "found a nan" << std::endl;
+                    }
                     int inserted = beam.insert(trans);
                     // if this is the gold transition
                     if (bTrain && currentState->bGold && actId == gExample->goldActs[nRound - 1]) {
                         goldScoredTran = trans;
                         bEarlyUpdate = (inserted == 0); // early update if gold transition was not inserted into the beam
-                        nGoldTransitionIndex = actId;
+                        // nGoldTransitionIndex = actId;   // TODO something is wrong ?
                     }
                 }
                 assert (noValid == false);
             }
 
-             if (bTrain && bEarlyUpdate) {
-                 std::cout << "early updata! round " << nRound << " of maxRound " << nMaxRound << std::endl;
+             if (bEarlyUpdate && bTrain) {
+                 std::cout << "early update at round " << nRound << " of maxRound " << nMaxRound << std::endl;
                  break;
              }
 
-             float dMaxScore = std::numeric_limits<float>::min();
+             float dMaxScore = 0.0;
              // lazy expand the target states in the beam
              for (int i = 0; i < beam.currentBeamSize; ++i) {
                  const CScoredTransition transition = beam.beam[i];
 
                  State *target = lattice_index[nRound] + i;
                  *target = *(transition.source);
-                 tranSystem.move(*(transition.source), *target, transition);
+                 tranSystem->move(*(transition.source), *target, transition);
 
                  if (bTrain) {
-                     target->setBeamIdx(i);
                      target->bGold = transition.source->bGold && transition.action == gExample->goldActs[nRound - 1];
+                     target->setBeamIdx(i);       // the corresponding nnet to be forwarded in the tnnets of specific round
+                     if (target->bGold) {
+                         nGoldTransitionIndex = i;
+                     }
                  }
 
-                 if (target->score > dMaxScore) {
+                 if (i == 0 || target->score > dMaxScore) {
                      dMaxScore = target->score;
                      retval = target;
                  }

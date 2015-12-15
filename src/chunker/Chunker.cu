@@ -57,23 +57,26 @@ double Chunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, NNe
     start = clock();
     ChunkedDataSet predictDevSet;
     for (unsigned inst = 0; inst < devInstances.size(); inst++) {
+        // std::cout << "inst = " << inst << std::endl;
+        // char tch;
+        // std::cin >> tch;
         // predSents[inst].init(devInstances[inst].input);
-
-        BeamDecoder decoder(&(devInstances[inst]), m_nBeamSize, false);
-        State *predState = decoder.decode(*m_transitionSystem, tnnets, *m_featExtractor, *m_fEmb);
-#ifdef DEBUG1
-        if (predState == nullptr) {
-            std::cout << "predState is nullptr!" << std::endl;
-        }
-#endif
 
         ChunkedSentence predictSent(devInstances[inst].input);
 
+        BeamDecoder decoder(&(devInstances[inst]), 
+                            m_transitionSystem.get(),
+                            m_featExtractor.get(),
+                            m_fEmb.get(),
+                            m_nBeamSize, 
+                            false);
+
+        decoder.generateChunkedSentence(tnnets, predictSent);
 #ifdef DEBUG1
         std::cout << "predictSent's size: " << predictSent.m_lChunkedWords.size() << std::endl;
 #endif
         //State *predState = new State();
-        m_transitionSystem->generateOutput(*predState, predictSent);
+        // m_transitionSystem->generateOutput(*predState, predictSent);
 
         predictDevSet.push_back(predictSent);
     }
@@ -87,11 +90,11 @@ double Chunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, NNe
     return std::get<2>(res);
 }
 
-void Chunker::train(ChunkedDataSet &goldSet, InstanceSet &trainSet, InstanceSet &devSet) {
+void Chunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, ChunkedDataSet &devGoldSet, InstanceSet &devSet) {
 #ifdef DEBUG2
     char ch;
 #endif 
-    initTrain(goldSet, trainSet);
+    initTrain(trainGoldSet, trainSet);
 
     m_featExtractor->generateInstanceSetCache(devSet);
 
@@ -108,14 +111,27 @@ void Chunker::train(ChunkedDataSet &goldSet, InstanceSet &trainSet, InstanceSet 
     srand(0);
 
     NNetPara<XPU> netsParas(beam_size, num_in, num_hidden, num_out);
+    for (int ii = 0; ii < netsParas.Wi2h.shape_[0]; ii++) {
+        for (int jj = 0; jj < netsParas.Wi2h.shape_[1]; jj++){
+            if (netsParas.Wi2h[ii][jj]) {
+                std::cout << "[Chunker train [1]: NaN appears in netsParas.Wi2h" << std::endl;
+                char ch;
+                std::cin >> ch;
+            }
+        }
+    }
     double bestDevFB1 = -1.0;
 #ifdef DEBUG2
     std::cout << "Before chunking..." << std::endl;
 #endif 
-    for (int iter = 0; iter < CConfig::nRound; iter++) {
+    for (int iter = 1; iter <= CConfig::nRound; iter++) {
         // Evaluate FB1 score per iteration
+        std::cout << "iter = " << iter << std::endl;
+        if (iter == 2) {
+            std::cout << "begin to debug" << std::endl;
+        }
         if (iter % CConfig::nEvaluatePerIters == 0) {
-            double currentFB1 = chunk(devSet, goldSet, netsParas);
+            double currentFB1 = chunk(devSet, devGoldSet, netsParas);
             if (currentFB1 > bestDevFB1) {
                 bestDevFB1 = currentFB1;
             }
@@ -146,7 +162,7 @@ void Chunker::train(ChunkedDataSet &goldSet, InstanceSet &trainSet, InstanceSet 
         }
 
         // begin to multi thread Training
-#pragma omp parallel
+// #pragma omp parallel
         {
             auto currentThreadData = multiThread_miniBatch_data[omp_get_thread_num()];
             UpdateGrads<XPU> cumulatedGrads(netsParas.stream, num_in, num_hidden, num_out);
@@ -157,18 +173,77 @@ void Chunker::train(ChunkedDataSet &goldSet, InstanceSet &trainSet, InstanceSet 
                 GlobalExample *example = currentThreadData[inst];
 
                 TNNets tnnets(m_nBeamSize, num_in, num_hidden, num_out, &netsParas);
+                for (int ii = 0; ii < netsParas.Wi2h.shape_[0]; ii++) {
+                    for (int jj = 0; jj < netsParas.Wi2h.shape_[1]; jj++){
+                        if (netsParas.Wi2h[ii][jj]) {
+                            std::cout << "[Chunker train [2]: NaN appears in netsParas.Wi2h" << std::endl;
+                            char ch;
+                            std::cin >> ch;
+                        }
+                    }
+                }
 
                 // decode and update
                 // std::cout << "begin to decode!" << std::endl;
-                BeamDecoder decoder(&(example->instance), m_nBeamSize, true);
+                BeamDecoder decoder(&(example->instance), 
+                                    m_transitionSystem.get(),
+                                    m_featExtractor.get(),
+                                    m_fEmb.get(),
+                                    m_nBeamSize, 
+                                    true);
+
+                std::cout << "round: " << iter << "\tinst: " << inst << std::endl;
+
+                State * predState = decoder.decode(tnnets, example);
+
+                std::cout << "current beamsize: " << decoder.beam.currentBeamSize << std::endl;
                 // std::cout << "end decoding!" << std::endl;
 
-                State *predState = decoder.decode(*m_transitionSystem, tnnets, *m_featExtractor, *m_fEmb, example);
+                // std::vector<int> predictedActions;
+                // State *ptr = predState;
+                // if (ptr == nullptr) {
+                //     std::cout << "predstate is nullptr!" << std::endl;
+                // }
+                // int i = 1;
+                // while (ptr != nullptr && ptr->last_action != -1) {
+                //     i++;
+                //     predictedActions.push_back(ptr->last_action);
+                //     ptr = ptr->previous_;
+                // }
+                // std::cout << "decoded path length: " << i << std::endl;
+                // std::cout << "[pred action sequences]: ";
+                // for (int i = 0; i < predictedActions.size(); i++) {
+                //     std::cout << predictedActions[predictedActions.size() - 1 - i] << " ";
+                // }
+                // std::cout << std::endl;
+                // char tch;
+                // std::cin >> tch;
+
                 tnnets.updateTNNetParas(cumulatedGrads, decoder.beam, decoder.bEarlyUpdate, decoder.nGoldTransitionIndex, decoder.goldScoredTran);
+                for (int ii = 0; ii < cumulatedGrads.cg_Wi2h.shape_[0]; ii++) {
+                    for (int jj = 0; jj < cumulatedGrads.cg_Wi2h.shape_[1]; jj++){
+                        if (isnan(cumulatedGrads.cg_Wi2h[ii][jj])) {
+                            std::cout << "W(input -> hidden): NaN appears!" << std::endl;
+                        }
+                    }
+                }
+                for (int ii = 0; ii < cumulatedGrads.cg_Wh2o.shape_[0]; ii++) {
+                    for (int jj = 0; jj < cumulatedGrads.cg_Wh2o.shape_[1]; jj++){
+                        if (isnan(cumulatedGrads.cg_Wh2o[ii][jj])) {
+                            std::cout << "W(hidden -> output): NaN appears!" << std::endl;
+                        }
+                    }
+                }
+                for (int ii = 0; ii < cumulatedGrads.cg_hbias.shape_[0]; ii++) {
+                    if (isnan(cumulatedGrads.cg_hbias[ii])) {
+                        std::cout << "Bias: NaN appears!" << std::endl;
+                    }
+                }
             } // end for instance traverse
 
-#pragma omp barrier
-#pragma omp critical
+// #pragma omp barrier
+// #pragma omp critical
+
             NNet<XPU>::UpdateCumulateGrads(cumulatedGrads, &netsParas);
         } // end multi-processor
     } // end total iteration

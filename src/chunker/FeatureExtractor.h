@@ -38,7 +38,7 @@ class FeatureExtractor{
 public:
     static std::string nullstr;
     static std::string unknownstr;
-    const static int featureNum = 1;
+    const static int featureNum = 12;
 
 public:
     FeatureExtractor() {}
@@ -53,19 +53,19 @@ public:
         std::cout << "knownlabels size: " << m_lKnownLabels.size() << std::endl;
     }
 
-    int getWordIdx(const std::string &s) {
+    int word2WordIdx(const std::string &s) {
         auto it = m_mWord2Idx.find(s);
 
         return (it == m_mWord2Idx.end()) ? wordUnkIdx : it->second;
     }
 
-    int getTagIdx(const std::string &s) {
+    int tag2TagIdx(const std::string &s) {
         auto it = m_mTag2Idx.find(s);
 
         return (it == m_mTag2Idx.end()) ? tagUnkIdx : it->second;
     }
 
-    int getLabelIdx(const std::string &s) {
+    int label2LabelIdx(const std::string &s) {
         auto it = m_mLabel2Idx.find(s);
 
         if (it == m_mLabel2Idx.end()) {

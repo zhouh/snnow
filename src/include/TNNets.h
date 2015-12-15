@@ -106,11 +106,57 @@ public:
                     ( *iter )->source = ( *iter )->source->previous_;
                }
            }
+           for (int ii = 0; ii < batch_size; ii++) {
+               for (int jj = 0; jj < num_out; jj++) {
+                   if (isnan(grads[ii][jj])) {
+                       std::cout << "[before backprop]: nan appears in grads" << std::endl;
+                   }
+               }
+           }
+
            //std::cout<<"begin to back propagation!"<<std::endl;
            nets[backRound]->Backprop(grads);
 
+           for (int ii = 0; ii < nets[backRound]->g_Wi2h.shape_[0]; ii++) {
+               for (int jj = 0; jj < nets[backRound]->g_Wi2h.shape_[1]; jj++){
+                   if (isnan(nets[backRound]->g_Wi2h[ii][jj])) {
+                       std::cout << "[after backprop]W(input -> hidden): NaN appears!" << std::endl;
+                   }
+               }
+           }
+           for (int ii = 0; ii < nets[backRound]->g_Wh2o.shape_[0]; ii++) {
+               for (int jj = 0; jj < nets[backRound]->g_Wh2o.shape_[1]; jj++){
+                   if (isnan(nets[backRound]->g_Wh2o[ii][jj])) {
+                       std::cout << "[after backprop]W(hidden -> output): NaN appears!" << std::endl;
+                   }
+               }
+           }
+           for (int ii = 0; ii < nets[backRound]->g_hbias.shape_[0]; ii++) {
+               if (isnan(nets[backRound]->g_hbias[ii])) {
+                   std::cout << "[after backprop]Bias: NaN appears!" << std::endl;
+               }
+           }
            //std::cout<<"begin to back subsidegrads!"<<std::endl;
            nets[backRound]->SubsideGrads(cumulatedGrads);
+           for (int ii = 0; ii < cumulatedGrads.cg_Wi2h.shape_[0]; ii++) {
+               for (int jj = 0; jj < cumulatedGrads.cg_Wi2h.shape_[1]; jj++){
+                   if (isnan(cumulatedGrads.cg_Wi2h[ii][jj])) {
+                       std::cout << "W(input -> hidden): NaN appears!" << std::endl;
+                   }
+               }
+           }
+           for (int ii = 0; ii < cumulatedGrads.cg_Wh2o.shape_[0]; ii++) {
+               for (int jj = 0; jj < cumulatedGrads.cg_Wh2o.shape_[1]; jj++){
+                   if (isnan(cumulatedGrads.cg_Wh2o[ii][jj])) {
+                       std::cout << "W(hidden -> output): NaN appears!" << std::endl;
+                   }
+               }
+           }
+           for (int ii = 0; ii < cumulatedGrads.cg_hbias.shape_[0]; ii++) {
+               if (isnan(cumulatedGrads.cg_hbias[ii])) {
+                   std::cout << "Bias: NaN appears!" << std::endl;
+               }
+           }
        }
     }
 

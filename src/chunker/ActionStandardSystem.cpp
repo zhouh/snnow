@@ -10,6 +10,7 @@
 
 #ifdef DEBUG
 //#define DEBUG1
+#define DEBUG2
 #endif
 
 void ActionStandardSystem::makeTransition(const std::vector<std::string> &knowLabels) {
@@ -106,7 +107,7 @@ void ActionStandardSystem::generateValidActs(State &state, std::vector<int> &val
 void ActionStandardSystem::generateOutput(const State &state, ChunkedSentence &sent) {
     const State *ptr = &state;
     while (ptr->previous_ != nullptr) {
-#ifdef DEBUG1
+#ifdef DEBUGX
         std::cout << "current m_nIndex: " << ptr->m_nIndex << "\tlabel Idx: " << actionIdx2LabelIdx(ptr->last_action) << "\t"<< sent.m_lChunkedWords[ptr->m_nIndex].word << "\t" << sent.m_lChunkedWords[ptr->m_nIndex].tag << std::endl;
 #endif
         sent.setLabel(ptr->m_nIndex, knowLabels[actionIdx2LabelIdx(ptr->last_action)]);
@@ -118,7 +119,7 @@ void ActionStandardSystem::generateOutput(const State &state, ChunkedSentence &s
 void ActionStandardSystem::doOutsideMove(State &srcState, State &dstState, const CScoredTransition &transition) {
     dstState.m_nIndex = srcState.m_nIndex + 1;
     dstState.previous_ = &srcState;
-    dstState.last_action = nOutside;
+    dstState.last_action = const_cast<CScoredTransition &>(transition).action;
     dstState.m_nLen = srcState.m_nLen;
     dstState.score = const_cast<CScoredTransition &>(transition).score;
 }
@@ -126,7 +127,7 @@ void ActionStandardSystem::doOutsideMove(State &srcState, State &dstState, const
 void ActionStandardSystem::doInsideMove(State &srcState, State &dstState, const CScoredTransition &transition) {
     dstState.m_nIndex = srcState.m_nIndex + 1;
     dstState.previous_ = &srcState;
-    dstState.last_action = nOutside;
+    dstState.last_action = const_cast<CScoredTransition &>(transition).action;
     dstState.m_nLen = srcState.m_nLen;
     dstState.score = const_cast<CScoredTransition &>(transition).score;
 }
@@ -134,7 +135,7 @@ void ActionStandardSystem::doInsideMove(State &srcState, State &dstState, const 
 void ActionStandardSystem::doBeginMove(State &srcState, State &dstState, const CScoredTransition &transition) {
     dstState.m_nIndex = srcState.m_nIndex + 1;
     dstState.previous_ = &srcState;
-    dstState.last_action = nOutside;
+    dstState.last_action = const_cast<CScoredTransition &>(transition).action;
     dstState.m_nLen = srcState.m_nLen;
     dstState.score = const_cast<CScoredTransition &>(transition).score;
 }
