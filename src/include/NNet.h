@@ -4,10 +4,6 @@
 // this implements a simple two layer neural net
 #include <vector>
 #include <cmath>
-#include <sstream>
-
-#include <typeinfo>
-
 // header file to use mshadow
 #include "mshadow/tensor.h"
 
@@ -48,6 +44,20 @@ struct mySqrt{
     }
 };
 
+ /*bool is1TensorNaN(Tensor<cpu, 1, real_t> & tensor){*/
+     //for(int i = 0; i < tensor.size(0); i++)
+         //if(std::isnan(tensor[i]))
+             //return true;
+     //return false;
+ //}
+
+ //bool is2TensorNaN(Tensor<cpu, 2, real_t> & tensor){
+     //for(int i = 0; i < tensor.size(0); i++)
+        //for(int j = 0; j < tensor.size(1); j++)
+         //if(std::isnan(tensor[i][j]))
+             //return true;
+     //return false;
+ //}
 
 /*
  * parameters of a neural net
@@ -64,18 +74,27 @@ struct NNetPara{
   
 
   NNetPara(int batch_size, int num_in, int num_hidden, int num_out) : rnd(0) {
+
     Wi2h.set_stream(stream);
     Wh2o.set_stream(stream);
     hbias.set_stream(stream);
     Wi2h.Resize(Shape2(num_in, num_hidden));  
     Wh2o.Resize(Shape2(num_hidden, num_out)); 
     
-    rnd.SampleUniform(&Wi2h, -0.01, 0.01);
-    rnd.SampleUniform(&Wh2o, -0.01, 0.01);
+    rnd.SampleUniform(&Wi2h, -0.01, 0.01f);
+    rnd.SampleUniform(&Wh2o, -0.01, 0.01f);
 
-    hbias.Resize(Shape1(num_hidden)); 
-    rnd.SampleUniform(&hbias, -0.01, 0.01);
     
+    hbias.Resize(Shape1(num_hidden)); 
+    rnd.SampleUniform(&hbias, -0.01, 0.01f);
+
+    /*
+     * assert the tensor is not NaN
+     */
+    /*assert( !is2TensorNaN(Wi2h) );*/
+    //assert( !is2TensorNaN(Wh2o) );
+    //assert( !is1TensorNaN(hbias) );
+
     eg2Wi2h.set_stream(stream);
     eg2Wh2o.set_stream(stream);
     eg2Hbias.set_stream(stream);
@@ -201,8 +220,9 @@ template<typename xpu>
 class NNet{
  public:
   // initialize the network
-  NNet(int batch_size, int num_in, int num_hidden, int num_out, NNetPara<xpu>* tparas): paras(tparas) {
+  NNet(int batch_size, int num_in, int num_hidden, int num_out, NNetPara<xpu>* paras) {
     // setup stream
+    this->paras = paras;
     ninput.set_stream(paras->stream);
     nhidden.set_stream(paras->stream);
     nhiddenbak.set_stream(paras->stream);
@@ -242,7 +262,6 @@ class NNet{
   }
 
  ~NNet() {}
-
   // forward propagation
  void Forward(const Tensor<cpu, 2, real_t>& inbatch,
          Tensor<cpu, 2, real_t> &oubatch, bool bDropOut){
@@ -255,28 +274,8 @@ class NNet{
     // copy data to input layer
     Copy(ninput, inbatch, ninput.stream_);
 
-    // for (int ii = 0; ii < paras->Wi2h.shape_[0]; ii++) {
-    //     for (int jj = 0; jj < paras->Wi2h.shape_[1]; jj++) {
-    //         if (isnan(paras->Wi2h[ii][jj])) {
-    //             std::cout << "[NNet Forward before dot 1]: NaN appears in paras->Wi2h" << std::endl;
-    //             char ch;
-    //             std::cin >> ch;
-    //         }
-    //     }
-    // }
     // first layer, fullc
     nhidden = dot(ninput, paras->Wi2h);
-    // for (int ii = 0; ii < nhidden.shape_[0]; ii++) {
-    //     for (int jj = 0; jj < nhidden.shape_[1]; jj++) {
-    //         if (isnan(nhidden[ii][jj])) {
-    //             std::cout << "[NNet Forward before dot 1]: NaN appears in nhidden" << std::endl;
-    //             char ch;
-    //             std::cin >> ch;
-    //         }
-    //     }
-    // }
-
-    
 
 /*    copytensor.Resize(nhidden.shape_);*/
     //Copy(copytensor, nhidden, nhidden.stream_);
@@ -287,21 +286,7 @@ class NNet{
     //Copy(copytensor, paras->Wi2h, paras->Wi2h.stream_);
     //display2Tensor(copytensor);
 
-    // for (int ii = 0; ii < paras->hbias.shape_[0]; ii++) {
-    //     if (isnan(paras->hbias[ii])) {
-    //         std::cout << "[NNet Forward]: NaN appears in paras->hbias" << std::endl;
-    //     }
-    // }
-    nhidden += repmat(paras->hbias, batch_size);
-    // for (int ii = 0; ii < nhidden.shape_[0]; ii++) {
-    //     for (int jj = 0; jj < nhidden.shape_[1]; jj++) {
-    //         if (isnan(nhidden[ii][jj])) {
-    //             std::cout << "[NNet Forward before dot 2]: NaN appears in nhidden" << std::endl;
-    //             char ch;
-    //             std::cin >> ch;
-    //         }
-    //     }
-    // }
+    nhidden+= repmat(paras->hbias, batch_size);
     // activation, sigmloid, backup activation in nhidden
 
     //std::cout<<"hidden after add base"<<std::endl;
@@ -311,17 +296,6 @@ class NNet{
     //display2Tensor(copytensor);
 
     nhidden = F<cube>(nhidden);
-    // for (int ii = 0; ii < nhidden.shape_[0]; ii++) {
-    //     for (int jj = 0; jj < nhidden.shape_[1]; jj++) {
-    //         if (isnan(nhidden[ii][jj])) {
-    //             std::cout << "[NNet Forward before dot 3]: NaN appears in nhidden" << std::endl;
-    //             char ch;
-    //             std::cin >> ch;
-    //         }
-    //     }
-    // }
-
-    using mshadow::Random;
 
     if(bDropOut){
         TensorContainer<xpu,2, real_t> mask;
@@ -341,15 +315,6 @@ class NNet{
     Copy(nhiddenbak, nhidden, nhiddenbak.stream_);
     // second layer fullc
     nout = dot(nhiddenbak, paras->Wh2o);
-    // for (int ii = 0; ii < nhiddenbak.shape_[0]; ii++) {
-    //     for (int jj = 0; jj < nhiddenbak.shape_[1]; jj++) {
-    //         if (isnan(nhiddenbak[ii][jj])) {
-    //             std::cout << "[NNet Backprop before dot]: NaN appears in nhiddenbak" << std::endl;
-    //             char ch;
-    //             std::cin >> ch;
-    //         }
-    //     }
-    // }
     // softmax calculation
   //  Softmax(nout, nout); // in TNN training, we do not need softmax in each step
     // copy result out
@@ -385,68 +350,16 @@ class NNet{
  void Backprop(const Tensor<cpu, 2, real_t>& gradout){
     // copy gradient to output layer
     Copy(nout, gradout, nout.stream_);
-    // for (int ii = 0; ii < nout.shape_[0]; ii++) {
-    //     for (int jj = 0; jj < nout.shape_[1]; jj++) {
-    //         if (isnan(nout[ii][jj])) {
-    //             std::cout << "[NNet BackProp]: NaN appears in nout" << std::endl;
-    //             char ch;
-    //             std::cin >> ch;
-    //         }
-    //     }
-    // }
-    // for (int ii = 0; ii < nhiddenbak.shape_[0]; ii++) {
-    //     for (int jj = 0; jj < nhiddenbak.shape_[1]; jj++) {
-    //         if (isnan(nhiddenbak[ii][jj])) {
-    //             std::cout << "[NNet Backprop before dot]: NaN appears in nhiddenbak" << std::endl;
-    //             char ch;
-    //             std::cin >> ch;
-    //         }
-    //     }
-    // }
     // calc grad of layer 2
     g_Wh2o  = dot(nhiddenbak.T(), nout);
-    // for (int ii = 0; ii < g_Wh2o.shape_[0]; ii++) {
-    //     for (int jj = 0; jj < g_Wh2o.shape_[1]; jj++) {
-    //         if (isnan(g_Wh2o[ii][jj])) {
-    //             std::cout << "[NNet Backprop]: NaN appears in g_Wh2o" << std::endl;
-    //             char ch;
-    //             std::cin >> ch;
-    //         }
-    //     }
-    // }
     // backprop to layer 1
     nhiddenbak = dot(nout, paras->Wh2o.T());
-    // for (int ii = 0; ii < nhiddenbak.shape_[0]; ii++) {
-    //     for (int jj = 0; jj < nhiddenbak.shape_[1]; jj++) {
-    //         if (nhiddenbak[ii][jj]) {
-    //             std::cout << "[NNet Backprop]: NaN appears in nhiddenbak" << std::endl;
-    //             char ch;
-    //             std::cin >> ch;
-    //         }
-    //     }
-    // }
     //// calculate gradient of sigmoid layer
     //nhidden = nhidden * (1.0f-nhidden) * nhiddenbak;
     // calculate gradient of cube layer
     nhidden = 3 * nhidden * nhidden * nhiddenbak;
-    // for (int ii = 0; ii < nhidden.shape_[0]; ii++) {
-    //     for (int jj = 0; jj < nhidden.shape_[1]; jj++) {
-    //         if (isnan(nhidden[ii][jj])) {
-    //             std::cout << "[NNet Backprop]: NaN appears in nhidden" << std::endl;
-    //             char ch;
-    //             std::cin >> ch;
-    //         }
-    //     }
-    // }
     // calc grad of layer 1
     g_hbias = sum_rows(nhidden);
-    // for (int ii = 0; ii << g_hbias.shape_[0]; ii++) {
-    //     if (isnan(g_hbias[ii])) {
-    //         std::cout << "[NNet Backprop]: NaN appears in g_hbias" << std::endl;
-    //             char ch;
-    //             std::cin >> ch;
-    //     }
-    // }
     g_Wi2h  = dot(ninput.T(), nhidden);
  }
 
@@ -488,7 +401,7 @@ class NNet{
 
  }
 
-public:
+ private:
 
  // neural network parameters
  NNetPara<xpu>* paras;

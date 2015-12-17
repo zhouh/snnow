@@ -24,12 +24,32 @@ public:
         int correctChunk = 0;
         int foundCorrect = 0;
         int foundGuessed = 0;
-        
+       
         for (int i = 0; i < predicts.size(); i++){
+            // std::cout << "sentence " << (i + 1) << ":" << std::endl;
+            // std::vector<std::string> pbefore; 
+            // std::vector<std::string> pafter; 
+            // std::vector<std::string> gbefore; 
+            // std::vector<std::string> gafter; 
+
             ChunkedSentence pscs(predicts[i]);
             ChunkedSentence gscs(golds[i]);
+            // for (int j = 0; j < pscs.m_nLength; j++) {
+            //     pbefore.push_back(pscs.m_lChunkedWords[j].label);
+            //     gbefore.push_back(gscs.m_lChunkedWords[j].label);
+            // }
             convert2StardandBIOFormat(pscs);
             convert2StardandBIOFormat(gscs);
+            // for (int j = 0; j < pscs.m_nLength; j++) {
+            //     pafter.push_back(pscs.m_lChunkedWords[j].label);
+            //     gafter.push_back(gscs.m_lChunkedWords[j].label);
+            // }
+            // int k = 0;
+            // while (k < pbefore.size()) {
+            //     std::cout << pbefore[k] << "\t" << gbefore[k] << "\t" << pafter[k] << "\t" << gafter[k] << std::endl;
+            //     k++;
+            // }
+
             auto res = eval(pscs, gscs, isEvalNP);
 
             correctChunk += std::get<0>(res);

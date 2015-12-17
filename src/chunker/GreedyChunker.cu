@@ -30,8 +30,11 @@
 // #define DEBUG7
 // #define CONSTROUNDDEBUG
 // #define ADDREGURLOSS
-#define DEBUG8
+// #define DEBUG8
 // #define DEBUG9
+// #define DEBUG10
+// #define DEBUG11
+// #define DEBUG12
 #endif
 
 GreedyChunker::GreedyChunker() {
@@ -71,7 +74,7 @@ double GreedyChunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSe
 #endif
         m_transitionSystem->generateOutput(*predState, predSent);
 
-#ifdef DEBUG9
+#ifdef DEBUG10
         std::cout << "After chunked: " << std::endl;
         std::cout << predSent << std::endl;
 #endif
@@ -93,11 +96,6 @@ double GreedyChunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSe
 }
 
 void GreedyChunker::printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &devGoldSet, NNetPara<XPU> &netsPara, double batchObjLoss, double posClassificationRate, double &bestDevFB1) {
-    static int iter = 0;
-    iter++;
-#ifdef DEBUG9
-    std::cout << "iter = " << iter << std::endl;
-#endif
     double currentFB1 = chunk(devSet, devGoldSet, netsPara);
     if (currentFB1 > bestDevFB1) {
         bestDevFB1 = currentFB1;
@@ -119,13 +117,20 @@ void GreedyChunker::printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &de
     for (int ii = 0; ii < netsPara.hbias.shape_[0]; ii++) {
         paraLoss += netsPara.hbias[ii] * netsPara.hbias[ii];
     }
+    std::cout << "current |W|^2: " << paraLoss << std::endl;
     paraLoss *= 0.5 * CConfig::fRegularizationRate;
 
     loss += paraLoss;
 #endif
 
-    std::cout << "current iteration FB1-score: " << std::setiosflags(std::ios::fixed) << std::setprecision(2) << currentFB1 << "\tbest FB1-score: " << bestDevFB1 << std::endl;
-    std::cout << "current objective fun-score: " << std::setiosflags(std::ios::fixed) << std::setprecision(2) << loss << "\tclassfication rate: " << std::setiosflags(std::ios::fixed) << std::setprecision(2) << posClassificationRate << std::endl;
+    auto sf = std::cout.flags();
+    auto sp = std::cout.precision();
+    std::cout.flags(std::ios::fixed);
+    std::cout.precision(2);
+    std::cout << "current iteration FB1-score: " << currentFB1 << "\tbest FB1-score: " << bestDevFB1 << std::endl;
+    std::cout << "current objective fun-score: " << loss << "\tclassfication rate: " << posClassificationRate << std::endl;
+    std::cout.flags(sf);
+    std::cout.precision(sp);
 }
 
 void GreedyChunker::generateMultiThreadsMiniBatchData(std::vector<ExamplePtrs> &multiThread_miniBatch_data) {
@@ -161,7 +166,7 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
     const static int num_out = m_transitionSystem->nActNum;
     const static int batchSize = std::min(CConfig::nBatchSize, static_cast<int>(trainExamplePtrs.size()));
 
-    // omp_set_num_threads(CConfig::nThread);
+    omp_set_num_threads(CConfig::nThread);
 
     srand(0);
 
@@ -171,11 +176,17 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
 
     int batchCorrectSize = 0;
     double batchObjLoss = 0.0;
+
+    InitTensorEngine<XPU>();
+
     for (int iter = 1; iter <= CConfig::nRound; iter++) {
-        std::cout << "\nPress any key:" << std::endl;
+#ifdef DEBUG13
+        std::cout << "iter = " << iter << std::endl;
         char tch;
         std::cin >> tch;
+#endif
         if (iter % CConfig::nEvaluatePerIters == 0) {
+
             double posClassificationRate = 100 * static_cast<double>(batchCorrectSize) / batchSize;
 
             printEvaluationInfor(devSet, devGoldSet, netsParas, batchObjLoss, posClassificationRate, bestDevFB1);
@@ -191,20 +202,56 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
         // prepare mini-batch data for each threads
         // std::random_shuffle(trainExamplePtrs.begin(), trainExamplePtrs.end());
         generateMultiThreadsMiniBatchData(multiThread_miniBatch_data);
-
+        UpdateGrads<XPU> batchCumulatedGrads(netsParas.stream, num_in, num_hidden, num_out);
+#ifdef DEBUG13
+        for (int ii = 0; ii < batchCumulatedGrads.cg_Wi2h.shape_[0]; ii++) {
+            for (int jj = 0; jj < batchCumulatedGrads.cg_Wi2h.shape_[1]; jj++) {
+                batchCumulatedGrads.cg_Wi2h[ii][jj] = 0.0;
+            }
+        }
+        for (int ii = 0; ii < batchCumulatedGrads.cg_Wh2o.shape_[0]; ii++) {
+            for (int jj = 0; jj < batchCumulatedGrads.cg_Wh2o.shape_[1]; jj++) {
+                batchCumulatedGrads.cg_Wh2o[ii][jj] = 0.0;
+            }
+        }
+        for (int ii = 0; ii < batchCumulatedGrads.cg_hbias.shape_[0]; ii++) {
+            batchCumulatedGrads.cg_hbias[ii] = 0.0;
+        }
+#endif
+#ifdef DEBUG8
+            int threadconst = 0;
+#endif
+        
 // #pragma omp parallel
         {
-            // auto currentThreadData = multiThread_miniBatch_data[omp_get_thread_num()];
-            auto currentThreadData = multiThread_miniBatch_data[0];
+            int threadIndex = omp_get_thread_num();
+            auto currentThreadData = multiThread_miniBatch_data[threadIndex];
             UpdateGrads<XPU> cumulatedGrads(netsParas.stream, num_in, num_hidden, num_out);
+#ifdef DEBUG13
+            for (int ii = 0; ii < cumulatedGrads.cg_Wi2h.shape_[0]; ii++) {
+                for (int jj = 0; jj < cumulatedGrads.cg_Wi2h.shape_[1]; jj++) {
+                    cumulatedGrads.cg_Wi2h[ii][jj] = 0.0;
+                }
+            }
+            for (int ii = 0; ii < cumulatedGrads.cg_Wh2o.shape_[0]; ii++) {
+                for (int jj = 0; jj < cumulatedGrads.cg_Wh2o.shape_[1]; jj++) {
+                    cumulatedGrads.cg_Wh2o[ii][jj] = 0.0;
+                }
+            }
+            for (int ii = 0; ii < cumulatedGrads.cg_hbias.shape_[0]; ii++) {
+                cumulatedGrads.cg_hbias[ii] = 0.0;
+            }
+#endif
+
             int threadCorrectSize = 0;
             double threadObjLoss = 0.0;
 
+
             for (unsigned inst = 0; inst < currentThreadData.size(); inst++) {
+
                 Example *e = currentThreadData[inst];
                 std::shared_ptr<NNet<XPU>> nnet(new NNet<XPU>(1, num_in, num_hidden, num_out, &netsParas));
 
-                InitTensorEngine<XPU>();
                 TensorContainer<cpu, 2, real_t> input;
                 input.Resize(Shape2(1, num_in));
 
@@ -215,27 +262,31 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
                 featureVectors.push_back(e->features);
                 m_fEmb->returnInput(featureVectors, input);
 #ifdef DEBUG8
-                std::cout << "Feature input index: ";
-                for (int i = 0; i < CConfig::nFeatureNum; i++) {
-                    std::cout << e->features[i] << " ";
+                if (threadIndex == threadconst) {
+                    std::cout << "Feature input index: ";
+                    for (int i = 0; i < CConfig::nFeatureNum; i++) {
+                        std::cout << e->features[i] << " ";
+                    }
+                    std::cout << std::endl;
                 }
-                std::cout << std::endl;
 #endif
 
                 nnet->Forward(input, pred, false);
 
                 std::vector<int> validActs(e->labels);
 #ifdef DEBUG8
-                std::cout << "[valid acts sequence]: ";
-                for (int ai = 0; ai < validActs.size(); ai++){
-                    std::cout << validActs[ai] << " ";
+                if (threadIndex == threadconst) {
+                    std::cout << "[valid acts sequence]: ";
+                    for (int ai = 0; ai < validActs.size(); ai++){
+                        std::cout << validActs[ai] << " ";
+                    }
+                    std::cout << std::endl;
+                    std::cout <<"[nn scores]: ";
+                    for (int ai = 0; ai < validActs.size(); ai++) {
+                        std::cout << pred[0][ai] << " ";
+                    }
+                    std::cout << std::endl;
                 }
-                std::cout << std::endl;
-                // std::cout <<"[nn scores]: ";
-                // for (int ai = 0; ai < validActs.size(); ai++) {
-                //     std::cout << pred[0][ai] << " ";
-                // }
-                // std::cout << std::endl;
 #endif 
                 int optAct = -1;
                 int goldAct = -1;
@@ -257,8 +308,10 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
                 real_t maxScore = pred[0][optAct];
                 real_t goldScore = pred[0][goldAct];
 #ifdef DEBUG8
-                std::cout << "maxAct = " << optAct << "\tgoldAct = " << goldAct << std::endl;
-                std::cout << "maxScore = " << maxScore << "\tgoldScore = " << goldScore << std::endl;
+                if (threadIndex == threadconst) {
+                    std::cout << "maxAct = " << optAct << "\tgoldAct = " << goldAct << std::endl;
+                    std::cout << "maxScore = " << maxScore << "\tgoldScore = " << goldScore << std::endl;
+                }
 #endif
                 real_t sum = 0.0;
                 for (int i = 0; i < validActs.size(); i++) {
@@ -267,10 +320,6 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
                         sum += pred[0][i];
                     }
                 }
-
-#ifdef DEBUG8
-                // std::cout << "sum = " << sum << "\tlog(sum) = " << std::log(sum) << "\tlog(gold) = " << std::log(std::exp(goldScore - maxScore)) << std::endl;
-#endif
 
                 threadObjLoss += (std::log(sum) - (goldScore - maxScore)) / batchSize;
 #ifdef DEBUG8
@@ -290,213 +339,141 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
                 }
                 pred[0][goldAct] -= 1.0;
 #ifdef DEBUG8
-                std::cout <<"[probability]: ";
-                for (int ai = 0; ai < validActs.size(); ai++) {
-                    std::cout << pred[0][ai] << " ";
+                if (threadIndex == threadconst) {
+                    std::cout <<"[probability]: ";
+                    for (int ai = 0; ai < validActs.size(); ai++) {
+                        std::cout << pred[0][ai] << " ";
+                    }
+                    std::cout << std::endl;
                 }
-                std::cout << std::endl;
 #endif
+
+                for (int i = 0; i < validActs.size(); i++) {
+                    pred[0][i] /= batchSize;
+                }
+
                 nnet->Backprop(pred);
                 nnet->SubsideGrads(cumulatedGrads);
-
-                ShutdownTensorEngine<XPU>();
+#ifdef DEBUG13
+                std::cout << "inst = " << inst << std::endl;
+                std::cout << "check cumulatedGrads..." << std::endl;
+                bool nanAppear = false;
+                for (int ii = 0; ii < cumulatedGrads.cg_Wi2h.shape_[0]; ii++) {
+                    for (int jj = 0; jj < cumulatedGrads.cg_Wi2h.shape_[1]; jj++) {
+                        if (isnan(cumulatedGrads.cg_Wi2h[ii][jj])) {
+                            std::cout << "NaN appears in cumulatedGrads.cg_Wi2h!" << std::endl;
+                            nanAppear = true;
+                        }
+                    }
+                }
+                for (int ii = 0; ii < cumulatedGrads.cg_Wh2o.shape_[0]; ii++) {
+                    for (int jj = 0; jj < cumulatedGrads.cg_Wh2o.shape_[1]; jj++) {
+                        if (isnan(cumulatedGrads.cg_Wh2o[ii][jj])) {
+                            std::cout << "NaN appears in cumulatedGrads.cg_Wh2o!" << std::endl;
+                            nanAppear = true;
+                        }
+                    }
+                }
+                for (int ii = 0; ii < cumulatedGrads.cg_hbias.shape_[0]; ii++) {
+                    if (isnan(cumulatedGrads.cg_hbias[ii])) {
+                        std::cout << "NaN appears in cumulatedGrads.cg_hbias!" << std::endl;
+                        nanAppear = true;
+                    }
+                }
+                if (!nanAppear)
+                    std::cout << "No NaN appears in cumulatedGrads!" << std::endl;
+#endif
             }
 
 // #pragma omp barrier
 // #pragma omp critical 
             {
-                NNet<XPU>::UpdateCumulateGrads(cumulatedGrads, &netsParas);
+#ifdef DEBUG13
+                std::cout << "check batch cumulatedGrads..." << std::endl;
+                bool nanAppear = false;
+                for (int ii = 0; ii < cumulatedGrads.cg_Wi2h.shape_[0]; ii++) {
+                    for (int jj = 0; jj < cumulatedGrads.cg_Wi2h.shape_[1]; jj++) {
+                        if (isnan(cumulatedGrads.cg_Wi2h[ii][jj])) {
+                            std::cout << "NaN appears in cumulatedGrads.cg_Wi2h!" << std::endl;
+                            nanAppear = true;
+                        }
+                    }
+                }
+                for (int ii = 0; ii < cumulatedGrads.cg_Wh2o.shape_[0]; ii++) {
+                    for (int jj = 0; jj < cumulatedGrads.cg_Wh2o.shape_[1]; jj++) {
+                        if (isnan(cumulatedGrads.cg_Wh2o[ii][jj])) {
+                            std::cout << "NaN appears in cumulatedGrads.cg_Wh2o!" << std::endl;
+                            nanAppear = true;
+                        }
+                    }
+                }
+                for (int ii = 0; ii < cumulatedGrads.cg_hbias.shape_[0]; ii++) {
+                    std::cout << cumulatedGrads.cg_hbias[ii] << " ";
+                    if (isnan(cumulatedGrads.cg_hbias[ii])) {
+                        std::cout << "NaN appears in cumulatedGrads.cg_hbias!" << std::endl;
+                        nanAppear = true;
+                    }
+                }
+                std::cout << std::endl;
+                if (!nanAppear)
+                    std::cout << "No NaN appears in cumulatedGrads!" << std::endl;
+                std::cout << "Before adding cumulatedGrads.cg_hbias" << std::endl;
+                for (int ii = 0; ii < batchCumulatedGrads.cg_hbias.shape_[0]; ii++) {
+                    std::cout << batchCumulatedGrads.cg_hbias[ii] << " ";
+                    if (isnan(batchCumulatedGrads.cg_hbias[ii])) {
+                        std::cout << "NaN appears in batchCumulatedGrads.cg_hbias!" << std::endl;
+                        nanAppear = true;
+                    }
+                }
+                std::cout << std::endl;
+#endif
 
-                batchCorrectSize += threadCorrectSize;
-
-                batchObjLoss += threadObjLoss;
-
+                batchCumulatedGrads.cg_hbias += cumulatedGrads.cg_hbias;
+                batchCumulatedGrads.cg_Wi2h += cumulatedGrads.cg_Wi2h;
+                batchCumulatedGrads.cg_Wh2o += cumulatedGrads.cg_Wh2o;
+#ifdef DEBUG13
+                std::cout << "check batchCumulatedGrads..." << std::endl;
+                nanAppear = false;
+                for (int ii = 0; ii < batchCumulatedGrads.cg_Wi2h.shape_[0]; ii++) {
+                    for (int jj = 0; jj < batchCumulatedGrads.cg_Wi2h.shape_[1]; jj++) {
+                        if (isnan(batchCumulatedGrads.cg_Wi2h[ii][jj])) {
+                            std::cout << "NaN appears in batchCumulatedGrads.cg_Wi2h!" << std::endl;
+                            nanAppear = true;
+                        }
+                    }
+                }
+                for (int ii = 0; ii < batchCumulatedGrads.cg_Wh2o.shape_[0]; ii++) {
+                    for (int jj = 0; jj < batchCumulatedGrads.cg_Wh2o.shape_[1]; jj++) {
+                        if (isnan(batchCumulatedGrads.cg_Wh2o[ii][jj])) {
+                            std::cout << "NaN appears in batchCumulatedGrads.cg_Wh2o!" << std::endl;
+                            nanAppear = true;
+                        }
+                    }
+                }
+                for (int ii = 0; ii < batchCumulatedGrads.cg_hbias.shape_[0]; ii++) {
+                    std::cout << batchCumulatedGrads.cg_hbias[ii] << " ";
+                    if (isnan(batchCumulatedGrads.cg_hbias[ii])) {
+                        std::cout << "NaN appears in batchCumulatedGrads.cg_hbias!" << std::endl;
+                        nanAppear = true;
+                    }
+                }
+                std::cout << std::endl;
+                if (!nanAppear)
+                    std::cout << "No NaN appears in batchCumulatedGrads!" << std::endl;
+#endif
             }
+
+// #pragma omp critical 
+            batchCorrectSize += threadCorrectSize;
+
+// #pragma omp critical 
+            batchObjLoss += threadObjLoss;
         }  // end multi-processor
 
-//             auto longestSent = *std::max_element(currentThreadData.begin(), currentThreadData.end(), [](GlobalExample *g1, GlobalExample *g2) { return g1->instance.size() < g2->instance.size();} );
-// 
-//             State *lattice = new State[longestSent->instance.size() + 1];
-// 
-//             // for every instance in this mini-batch
-//             for (unsigned inst = 0; inst < currentThreadData.size(); inst++) {
-//                 // fetch a to-be-trained instance
-//                 GlobalExample *ge = currentThreadData[inst];
-//                 int nMaxRound = static_cast<int>(ge->instance.size());
-// 
-//                 lattice[0].clear();
-//                 for (int i = 0; i <= nMaxRound; i++) {
-//                     lattice[i].m_nLen = nMaxRound;
-//                 }
-// 
-//                 InitTensorEngine<XPU>();
-//                 for (int nRound = 1; nRound <= nMaxRound; nRound++){
-//                     std::shared_ptr<NNet<XPU>> nnet(new NNet<XPU>(1, num_in, num_hidden, num_out, &netsParas));
-// #ifdef CONSTROUNDDEBUG
-//                     const int roundConstant = 16;
-//                     if (nRound != roundConstant) 
-//                         continue;
-// #endif
-//                     State *currentState = lattice + nRound - 1;
-//                     State *target = lattice + nRound;
-//                     int goldAct = ge->goldActs[nRound - 1];
-// 
-//                     TensorContainer<cpu, 2, real_t> input;
-//                     input.Resize(Shape2(1, num_in));
-// 
-//                     TensorContainer<cpu, 2, real_t> pred;
-//                     pred.Resize(Shape2(1, num_out));
-// 
-// #ifdef DEBUG7
-// #ifdef CONSTROUNDDEBUG
-//                     if (nRound == roundConstant)
-// #endif
-//                     std::cout << "iter = " << iter << ", inst = " << inst << ", nRound = " << nRound << std::endl; 
-// #endif
-//                     std::vector<std::vector<int>> featureVectors(1);
-//                     generateInputBatch(currentState, &(ge->instance), featureVectors);
-//                     m_fEmb->returnInput(featureVectors, input);
-// 
-// #ifdef DEBUG7
-// #ifdef CONSTROUNDDEBUG
-//                     if (nRound == roundConstant){
-// #endif
-//                     std::cout << "Feature input value: ";
-//                     for (int i = 0; i < CConfig::nFeatureNum; i++) {
-//                         std::cout << input[0][i] << " ";
-//                     }
-//                     std::cout << std::endl;
-// #ifdef CONSTROUNDDEBUG
-//                     }
-// #endif
-// #endif
-//                     nnet->Forward(input, pred, false);
-// 
-//                     std::vector<int> validActs;
-//                     m_transitionSystem->generateValidActs(*currentState, validActs);
-// #ifdef DEBUG7
-// #ifdef CONSTROUNDDEBUG
-//                     if (nRound == roundConstant){
-// #endif
-//                     std::cout << "[valid acts sequence]: ";
-//                     for (int ai = 0; ai < validActs.size(); ai++){
-//                         std::cout << validActs[ai] << " ";
-//                     }
-//                     std::cout << std::endl;
-//                     std::cout <<"[nn scores]: ";
-//                     for (int ai = 0; ai < validActs.size(); ai++) {
-//                         std::cout << pred[0][ai] << " ";
-//                     }
-//                     std::cout << std::endl;
-// #ifdef CONSTROUNDDEBUG
-//                     }
-// #endif
-// #endif
-// 
-//                     int optAct = -1;
-//                     for (int i = 0; i < validActs.size(); i++) {
-//                         if (i == goldAct || validActs[i] >= 0) {
-//                             if (optAct == -1 || pred[0][i] > pred[0][optAct]){
-//                                 optAct = i;
-//                             }
-//                         }
-//                     }
-//                     if (optAct == goldAct) {
-//                         threadCorrectSize += 1;
-//                     }
-// 
-//                     real_t maxScore = pred[0][optAct];
-//                     real_t goldScore = pred[0][goldAct];
-// #ifdef DEBUG7
-// #ifdef CONSTROUNDDEBUG
-//                     if (nRound == roundConstant) {
-// #endif
-//                     std::cout << "maxAct = " << optAct << "\tgoldAct = " << goldAct << std::endl;
-//                     std::cout << "maxScore = " << maxScore << "\tgoldScore = " << goldScore << std::endl;
-// #ifdef CONSTROUNDDEBUG
-//                     }
-// #endif
-// #endif
-//                     real_t sum = 0.0;
-//                     for (int i = 0; i < validActs.size(); i++) {
-//                         if (i == goldAct || validActs[i] >= 0) {
-//                             pred[0][i] = std::exp(pred[0][i] - maxScore);
-//                             sum += pred[0][i];
-//                         }
-//                     }
-// #ifdef DEBUG2
-//                     std::cout << "log(sum) = " << std::log(sum) << "\tlog(gold) = " << std::log(std::exp(goldScore - maxScore)) << std::endl;
-// #endif
-// 
-//                     threadObjLoss += (std::log(sum) - (goldScore - maxScore)) / batchSize;
-// 
-// #ifdef DEBUG7
-// #ifdef CONSTROUNDDEBUG
-//                     if (nRound == roundConstant) {
-// #endif
-//                     std::cout << "sum = " << sum << std::endl;
-//                     std::cout <<"[divided by exp(maxScore)]: ";
-//                     for (int ai = 0; ai < validActs.size(); ai++) {
-//                         std::cout << pred[0][ai] << " ";
-//                     }
-//                     std::cout << std::endl;
-//                     std::cout << "threadObjLoss: " << threadObjLoss << std::endl;
-// #ifdef CONSTROUNDDEBUG
-//                     }
-// #endif
-// #endif
-// 
-//                     for (int i = 0; i < validActs.size(); i++) {
-//                         if (i == goldAct || validActs[i] >= 0) {
-//                             pred[0][i] = pred[0][i] / sum;
-//                         } else {
-//                             pred[0][i] = 0.0;
-//                         }
-//                     }
-//                     pred[0][goldAct] -= 1.0;
-// 
-// #ifdef DEBUG7
-// #ifdef CONSTROUNDDEBUG
-//                     if (nRound == roundConstant) {
-// #endif
-//                     std::cout <<"[probability]: ";
-//                     for (int ai = 0; ai < validActs.size(); ai++) {
-//                         std::cout << pred[0][ai] << " ";
-//                     }
-//                     std::cout << std::endl;
-// #ifdef CONSTROUNDDEBUG
-//                     }
-// #endif
-// #endif
-// 
-//                     for (int i = 0; i < validActs.size(); i++) {
-//                         pred[0][i] /= batchSize;
-//                     }
-// 
-//                     nnet->Backprop(pred);
-//                     nnet->SubsideGrads(cumulatedGrads);
-// 
-//                     CScoredTransition trans(currentState, goldAct, currentState->score + goldScore);
-//                     *target = *currentState;
-//                     m_transitionSystem->move(*currentState, *target, trans);
-//                 }
-//                 ShutdownTensorEngine<XPU>();
-//             } // end for instance traverse
-// 
-//             delete []lattice;
-// 
-// #pragma omp barrier
-// #pragma omp critical 
-//             {
-//                 NNet<XPU>::UpdateCumulateGrads(cumulatedGrads, &netsParas);
-// 
-//                 batchCorrectSize += threadCorrectSize;
-// 
-//                 batchObjLoss += threadObjLoss;
-// 
-//             }
-//         }  // end multi-processor
+        NNet<XPU>::UpdateCumulateGrads(batchCumulatedGrads, &netsParas);
     }
+
+    ShutdownTensorEngine<XPU>();
 }
 
 void GreedyChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
@@ -555,7 +532,7 @@ State* GreedyChunker::decode(Instance *inst, NNetPara<XPU> &paras, State *lattic
 #ifdef DEBUG5
     std::cout << "[deco action sequances]: ";
 #endif
-    InitTensorEngine<XPU>();
+    // InitTensorEngine<XPU>();
     for (int nRound = 1; nRound <= nMaxRound; nRound++){
         State *currentState = lattice + nRound - 1;
         State *target = lattice + nRound;
@@ -619,7 +596,7 @@ State* GreedyChunker::decode(Instance *inst, NNetPara<XPU> &paras, State *lattic
     std::cout << std::endl;
 #endif
 
-    ShutdownTensorEngine<XPU>();
+    // ShutdownTensorEngine<XPU>();
 
     return retval;
 }

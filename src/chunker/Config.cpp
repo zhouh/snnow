@@ -30,9 +30,9 @@ int CConfig::nHiddenSize = 200;
 
 int CConfig::nRound = 1000;
 
-int CConfig::nBatchSize = 100;
+int CConfig::nBatchSize = 1000;
 
-int CConfig::nEvaluatePerIters = 2;
+int CConfig::nEvaluatePerIters = 1;
 
 int CConfig::nThread = 1;
 
