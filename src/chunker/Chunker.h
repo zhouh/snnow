@@ -9,7 +9,7 @@
 #include <iostream>
 #include <memory>
 
-#define XPU cpu
+#define XPU gpu
 
 #include "NNet.h"
 #include "Beam.h"

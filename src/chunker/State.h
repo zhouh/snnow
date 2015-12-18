@@ -18,6 +18,8 @@ public:
     bool bGold;
 
     State(){
+        bGold = true;
+        beamIdx = 0;
         clear();
     }
 
@@ -33,7 +35,7 @@ public:
         bGold = s.bGold;
     }
 
-    State& operator= (State &s) {
+    State& operator= (const State &s) {
         if (this == &s) {
             return *this;
         }
@@ -62,8 +64,6 @@ public:
         previous_ = nullptr;
         score = 0;
         last_action = -1;
-        beamIdx = 0;
-        bGold = false;
     }
 };
 
@@ -77,15 +77,43 @@ struct CScoredTransition {
     //! The result score
     double score;
 
-    CScoredTransition(): source(NULL), action(-1), score(0) {}
+    //! If this transition is gold
+    bool bGold;
 
-    CScoredTransition(State *s, int a, double sc): source(s), action(a), score(sc) {}
+    CScoredTransition(): source(NULL), action(-1), score(0), bGold(false) {}
+
+    CScoredTransition(State *s, int a, double sc): source(s), action(a), score(sc), bGold(false) {}
+
+    CScoredTransition(const CScoredTransition &s) {
+        this->source = s.source;
+        this->action = s.action;
+        this->score = s.score;
+        this->bGold = s.bGold;
+    }
+
+    CScoredTransition& operator= (const CScoredTransition &s) {
+        if (this == &s) {
+            return *this;
+        }
+
+        this->source = s.source;
+        this->action = s.action;
+        this->score = s.score;
+        this->bGold = s.bGold;
+
+        return *this;
+    }
+
+    ~CScoredTransition() {}
 
     void operator()(State *s, int a, double sc) {
         source = s;
         action = a;
         score = sc;
+
+        bGold = false;
     }
+
 };
 
 #endif

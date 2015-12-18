@@ -49,51 +49,51 @@ void FeatureExtractor::getDictionaries(const ChunkedDataSet &goldSet) {
         m_mLabel2Idx[l] = idx++;
 
 #ifdef DEBUG3
-        std::cout << l << ": " << idx - 1 << std::endl;
+        std::cerr << l << ": " << idx - 1 << std::endl;
 #endif
         m_lKnownLabels.push_back(l);
     }
     labelNullIdx = idx, m_mLabel2Idx[nullstr] = idx++;
 #ifdef DEBUG3
-        std::cout << nullstr << "[label]: " << idx - 1 << std::endl;
+        std::cerr << nullstr << "[label]: " << idx - 1 << std::endl;
 #endif
     labelUnkIdx = idx, m_mLabel2Idx[unknownstr] = idx++;
 #ifdef DEBUG3
-        std::cout << unknownstr << "[label]: " << idx - 1 << std::endl;
+        std::cerr << unknownstr << "[label]: " << idx - 1 << std::endl;
 #endif
 
     wordNullIdx = idx, m_mWord2Idx[nullstr] = idx++;
 #ifdef DEBUG3
-        std::cout << nullstr << "[word]: " << idx - 1 << std::endl;
+        std::cerr << nullstr << "[word]: " << idx - 1 << std::endl;
 #endif
     wordUnkIdx = idx, m_mWord2Idx[unknownstr] = idx++;
 #ifdef DEBUG3
-        std::cout << unknownstr << "[word]: " << idx - 1 << std::endl;
+        std::cerr << unknownstr << "[word]: " << idx - 1 << std::endl;
 #endif
     m_lKnownWords.push_back(nullstr);
     m_lKnownWords.push_back(unknownstr);
     for (auto &w : wordSet) {
         m_mWord2Idx[w] = idx++;
 #ifdef DEBUG3
-        std::cout << w << ": " << idx - 1 << std::endl;
+        std::cerr << w << ": " << idx - 1 << std::endl;
 #endif
         m_lKnownWords.push_back(w);
     }
 
     tagNullIdx = idx, m_mTag2Idx[nullstr] = idx++;
 #ifdef DEBUG3
-    std::cout << nullstr << "[tag]: " << idx - 1 << std::endl;
+    std::cerr << nullstr << "[tag]: " << idx - 1 << std::endl;
 #endif
     tagUnkIdx = idx, m_mTag2Idx[unknownstr] = idx++;
 #ifdef DEBUG3
-    std::cout << unknownstr << "[tag]: " << idx - 1 << std::endl;
+    std::cerr << unknownstr << "[tag]: " << idx - 1 << std::endl;
 #endif
     m_lKnownTags.push_back(nullstr);
     m_lKnownTags.push_back(unknownstr);
     for (auto &t : tagSet) {
         m_mTag2Idx[t] = idx++;
 #ifdef DEBUG3
-        std::cout << t << ": " << idx - 1 << std::endl;
+        std::cerr << t << ": " << idx - 1 << std::endl;
 #endif
         m_lKnownTags.push_back(t);
     }
@@ -212,11 +212,11 @@ void FeatureExtractor::generateTrainingExamples(ActionStandardSystem &transition
             extractFeature(*state, inst, features);
 
 #ifdef DEBUGX
-            std::cout << "j = " << j << std::endl;
+            std::cerr << "j = " << j << std::endl;
             for (int fi = 0; fi < features.size(); fi++) {
-                std::cout << features[fi] << " ";
+                std::cerr << features[fi] << " ";
             }
-            std::cout << std::endl;
+            std::cerr << std::endl;
             char tch;
             std::cin >> tch;
 #endif
@@ -266,7 +266,7 @@ int FeatureExtractor::readPretrainEmbeddings(std::string &pretrainFile, FeatureE
     std::tr1::unordered_map<std::string, int> pretrainWords;
     std::vector<std::vector<double>> pretrainEmbs;
 #ifdef DEBUGX
-    std::cout << "pretrain file path is: " << pretrainFile << std::endl;
+    std::cerr << "pretrain file path is: " << pretrainFile << std::endl;
 #endif
     std::string line;
     std::ifstream in(pretrainFile);
@@ -275,7 +275,7 @@ int FeatureExtractor::readPretrainEmbeddings(std::string &pretrainFile, FeatureE
     int index = 0;
     while (getline(in, line)) {
 #ifdef DEBUGX
-    std::cout << "line: " << line << std::endl;
+    std::cerr << "line: " << line << std::endl;
 #endif
         if (line.empty()) {
             continue;

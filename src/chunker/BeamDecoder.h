@@ -73,19 +73,19 @@ public:
     }
 
     void generateChunkedSentence(TNNets &tnnets, ChunkedSentence &predictedSent) {
-        // std::cout << "[input]: " << std::endl;
-        // std::cout << predictedSent << std::endl;
+        // std::cerr << "[input]: " << std::endl;
+        // std::cerr << predictedSent << std::endl;
 
         State *predState = decode(tnnets);
 
-        // std::cout << std::endl;
-        // std::cout << "current beam size: " << beam.currentBeamSize << std::endl;
-        // std::cout << predictedSent;
+        // std::cerr << std::endl;
+        // std::cerr << "current beam size: " << beam.currentBeamSize << std::endl;
+        // std::cerr << predictedSent;
 
         // std::vector<int> predictedActions;
         // State *ptr = predState;
         // if (ptr == nullptr) {
-        //     std::cout << "predstate is nullptr!" << std::endl;
+        //     std::cerr << "predstate is nullptr!" << std::endl;
         // }
         // int i = 1;
         // while (ptr != nullptr && ptr->last_action != -1) {
@@ -93,12 +93,12 @@ public:
         //     predictedActions.push_back(ptr->last_action);
         //     ptr = ptr->previous_;
         // }
-        // std::cout << "decoded path length: " << i << std::endl;
-        // std::cout << "[pred action sequences]: ";
+        // std::cerr << "decoded path length: " << i << std::endl;
+        // std::cerr << "[pred action sequences]: ";
         // for (int i = 0; i < predictedActions.size(); i++) {
-        //     std::cout << predictedActions[predictedActions.size() - 1 - i] << " ";
+        //     std::cerr << predictedActions[predictedActions.size() - 1 - i] << " ";
         // }
-        // std::cout << std::endl;
+        // std::cerr << std::endl;
 
         tranSystem->generateOutput(*predState, predictedSent);
     }
@@ -168,53 +168,54 @@ public:
 
                     noValid = false;
                     // construct scored transition and insert it into beam
-                    CScoredTransition trans;
-                    trans(currentState, actId, currentState->score + pred[stateIdx][actId]); // TODO: ignore inValid scores ?
+                    CScoredTransition trans(currentState, actId, currentState->score + pred[stateIdx][actId]); // TODO: ignore inValid scores ?
                     
-                    if (isnan((real_t)pred[stateIdx][actId])) {
-                        std::cout << "found a nan" << std::endl;
-                    }
-                    int inserted = beam.insert(trans);
                     // if this is the gold transition
                     if (bTrain && currentState->bGold && actId == gExample->goldActs[nRound - 1]) {
+                        trans.bGold = true;
                         goldScoredTran = trans;
-                        bEarlyUpdate = (inserted == 0); // early update if gold transition was not inserted into the beam
-                        // nGoldTransitionIndex = actId;   // TODO something is wrong ?
                     }
+                    beam.insert(trans);
                 }
                 assert (noValid == false);
             }
 
-             if (bEarlyUpdate && bTrain) {
-                 std::cout << "early update at round " << nRound << " of maxRound " << nMaxRound << std::endl;
-                 break;
-             }
+            bEarlyUpdate = true; // early update if gold transition was not inserted into the beam
+            for (int i = 0; i < beam.currentBeamSize; ++i) {
+                if (beam.beam[i].bGold) {
+                    bEarlyUpdate = false;
+                }
+            }
 
-             float dMaxScore = 0.0;
-             // lazy expand the target states in the beam
-             for (int i = 0; i < beam.currentBeamSize; ++i) {
-                 const CScoredTransition transition = beam.beam[i];
+            if (bTrain && bEarlyUpdate) {
+                break;
+            }
 
-                 State *target = lattice_index[nRound] + i;
-                 *target = *(transition.source);
-                 tranSystem->move(*(transition.source), *target, transition);
+            float dMaxScore = 0.0;
+            // lazy expand the target states in the beam
+            for (int i = 0; i < beam.currentBeamSize; ++i) {
+                const CScoredTransition transition = beam.beam[i];
 
-                 if (bTrain) {
-                     target->bGold = transition.source->bGold && transition.action == gExample->goldActs[nRound - 1];
-                     target->setBeamIdx(i);       // the corresponding nnet to be forwarded in the tnnets of specific round
-                     if (target->bGold) {
-                         nGoldTransitionIndex = i;
-                     }
-                 }
+                State *target = lattice_index[nRound] + i;
+                *target = *(transition.source);
+                tranSystem->move(*(transition.source), *target, transition);
 
-                 if (i == 0 || target->score > dMaxScore) {
-                     dMaxScore = target->score;
-                     retval = target;
-                 }
-             }
+                if (bTrain) {
+                    target->bGold = transition.bGold;
+                    target->setBeamIdx(i);       // the corresponding nnet to be forwarded in the tnnets of specific round
+                    if (transition.bGold) {
+                        nGoldTransitionIndex = i;
+                    }
+                }
 
-             // prepare lattice for next chunking round
-             lattice_index[nRound + 1] = lattice_index[nRound] + beam.currentBeamSize;
+                if (i == 0 || target->score > dMaxScore) {
+                    dMaxScore = target->score;
+                    retval = target;
+                }
+            }
+
+            // prepare lattice for next chunking round
+            lattice_index[nRound + 1] = lattice_index[nRound] + beam.currentBeamSize;
         }
 
         // shut down mshadow tensor engine

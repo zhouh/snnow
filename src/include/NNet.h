@@ -4,6 +4,7 @@
 // this implements a simple two layer neural net
 #include <vector>
 #include <cmath>
+#include <sstream>
 // header file to use mshadow
 #include "mshadow/tensor.h"
 

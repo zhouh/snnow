@@ -18,7 +18,7 @@ class Evalb {
 public:
     // return (precision, recall, FB1)
     static std::tuple<double, double, double> eval(ChunkedDataSet &predicts, ChunkedDataSet &golds, bool isEvalNP = false) {
-        // std::cout << "predict.size = " << predicts.size() << "\tgold.size = " << golds.size() << std::endl;
+        // std::cerr << "predict.size = " << predicts.size() << "\tgold.size = " << golds.size() << std::endl;
         assert(predicts.size() == golds.size());
 
         int correctChunk = 0;
@@ -26,7 +26,7 @@ public:
         int foundGuessed = 0;
        
         for (int i = 0; i < predicts.size(); i++){
-            // std::cout << "sentence " << (i + 1) << ":" << std::endl;
+            // std::cerr << "sentence " << (i + 1) << ":" << std::endl;
             // std::vector<std::string> pbefore; 
             // std::vector<std::string> pafter; 
             // std::vector<std::string> gbefore; 
@@ -46,7 +46,7 @@ public:
             // }
             // int k = 0;
             // while (k < pbefore.size()) {
-            //     std::cout << pbefore[k] << "\t" << gbefore[k] << "\t" << pafter[k] << "\t" << gafter[k] << std::endl;
+            //     std::cerr << pbefore[k] << "\t" << gbefore[k] << "\t" << pafter[k] << "\t" << gafter[k] << std::endl;
             //     k++;
             // }
 
@@ -306,9 +306,9 @@ int main() {
 
     auto res = Evalb::eval(predicts, golds, true);
 
-    std::cout << "precision: " << std::get<0>(res) << std::endl;
-    std::cout << "recall: " << std::get<1>(res) << std::endl;
-    std::cout << "FB1: " << std::get<2>(res) << std::endl;
+    std::cerr << "precision: " << std::get<0>(res) << std::endl;
+    std::cerr << "recall: " << std::get<1>(res) << std::endl;
+    std::cerr << "FB1: " << std::get<2>(res) << std::endl;
 
     return 0;
 }

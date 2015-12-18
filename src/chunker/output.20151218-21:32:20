@@ -1,0 +1,29 @@
+Chunker: init...
+Training sentences number: 8936
+Dev sentences number: 2012
+------------------------------------
+Chunker: start training...
+Training init...
+  Training Instance num: 8936
+  wordSet size: 19122
+  tagSet size: 44
+  labelSet Size: 13
+	Transition Action Info: 
+		0: B-UCP
+		1: B-CONJP
+		2: B-INTJ
+		3: B-PP
+		4: I
+		5: O
+		6: B-NP
+		7: B-PRT
+		8: B-LST
+		9: B-VP
+		10: B-ADJP
+		11: B-SBAR
+		12: B-ADVP
+		nInside: 4
+		nOutside: 5
+		nBegin: 12
+pretrainWords's size: 129999
+total words's size: 19124

@@ -29,8 +29,8 @@ public:
 
     void print() {
         for (auto &wordTag : input)
-            std::cout << wordTag.first << "_" << wordTag.second << " ";
-        std::cout << std::endl;
+            std::cerr << wordTag.first << "_" << wordTag.second << " ";
+        std::cerr << std::endl;
     }
 
     ~Instance() {}

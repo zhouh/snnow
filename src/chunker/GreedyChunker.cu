@@ -50,7 +50,7 @@ double GreedyChunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSe
     end = clock();
 
     double time_used = (double)(end - start) / CLOCKS_PER_SEC;
-    std::cout << "totally chunk " << devInstances.size() << " sentences, time: " << time_used << " average: " << devInstances.size() / time_used << " sentences/second!" << std::endl;
+    std::cerr << "totally chunk " << devInstances.size() << " sentences, time: " << time_used << " average: " << devInstances.size() / time_used << " sentences/second!" << std::endl;
 
     delete []lattice;
 
@@ -67,14 +67,14 @@ void GreedyChunker::printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &de
 
     double loss = batchObjLoss;
 
-    auto sf = std::cout.flags();
-    auto sp = std::cout.precision();
-    std::cout.flags(std::ios::fixed);
-    std::cout.precision(2);
-    std::cout << "current iteration FB1-score: " << currentFB1 << "\tbest FB1-score: " << bestDevFB1 << std::endl;
-    std::cout << "current objective fun-score: " << loss << "\tclassfication rate: " << posClassificationRate << std::endl;
-    std::cout.flags(sf);
-    std::cout.precision(sp);
+    auto sf = std::cerr.flags();
+    auto sp = std::cerr.precision();
+    std::cerr.flags(std::ios::fixed);
+    std::cerr.precision(2);
+    std::cerr << "current iteration FB1-score: " << currentFB1 << "\tbest FB1-score: " << bestDevFB1 << std::endl;
+    std::cerr << "current objective fun-score: " << loss << "\tclassfication rate: " << posClassificationRate << std::endl;
+    std::cerr.flags(sf);
+    std::cerr.precision(sp);
 }
 
 void GreedyChunker::generateMultiThreadsMiniBatchData(std::vector<ExamplePtrs> &multiThread_miniBatch_data) {
@@ -98,25 +98,26 @@ void GreedyChunker::generateMultiThreadsMiniBatchData(std::vector<ExamplePtrs> &
 
 void display1Tensor( Tensor<cpu, 1, real_t> & tensor ){
     for(int i = 0; i < tensor.size(0); i++)
-        std::cout<<tensor[i]<<" ";
-    std::cout<<std::endl;
+        std::cerr<<tensor[i]<<" ";
+    std::cerr<<std::endl;
 }
 
 void display2Tensor( Tensor<cpu, 2, double> tensor ){
-    std::cout<<"size 0 :" << tensor.size(0)<<" size 1: "<<tensor.size(1)<<std::endl;
+    std::cerr<<"size 0 :" << tensor.size(0)<<" size 1: "<<tensor.size(1)<<std::endl;
     for(int i = 0; i < tensor.size(0); i++){
        for(int j = 0; j < tensor.size(1); j++)
-           std::cout<<tensor[i][j]<<" ";
-       std::cout<<std::endl;
+           std::cerr<<tensor[i][j]<<" ";
+       std::cerr<<std::endl;
     }
 }
 
 void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, ChunkedDataSet &devGoldSet, InstanceSet &devSet) {
-    std::cout << "Initing FeatureExtractor & ActionStandardSystem & generateTrainingExamples..." << std::endl;
+    std::cerr << "Initing FeatureExtractor & ActionStandardSystem & generateTrainingExamples..." << std::endl;
     initTrain(trainGoldSet, trainSet);
 
-    std::cout << "Excuting generateInstanceSetCache & readPretrainEmbeddings..." << std::endl;
+    std::cerr << "Excuting generateInstanceSetCache & readPretrainEmbeddings..." << std::endl;
     m_featExtractor->generateInstanceSetCache(devSet);
+    std::cerr << "  Trainset's size: " << trainExamplePtrs.size() << std::endl;
 
     m_featExtractor->readPretrainEmbeddings(CConfig::strEmbeddingPath, *m_fEmb);
 
@@ -152,7 +153,7 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
         std::vector<ExamplePtrs> multiThread_miniBatch_data;
 
         // prepare mini-batch data for each threads
-        // std::random_shuffle(trainExamplePtrs.begin(), trainExamplePtrs.end());
+        std::random_shuffle(trainExamplePtrs.begin(), trainExamplePtrs.end());
         generateMultiThreadsMiniBatchData(multiThread_miniBatch_data);
         UpdateGrads<XPU> batchCumulatedGrads(netsParas.stream, num_in, num_hidden, num_out);
 
@@ -256,7 +257,7 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
 }
 
 void GreedyChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
-    using std::cout;
+    using std::cerr;
     using std::endl;
 
 

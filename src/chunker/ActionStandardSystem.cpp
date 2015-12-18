@@ -108,7 +108,7 @@ void ActionStandardSystem::generateOutput(const State &state, ChunkedSentence &s
     const State *ptr = &state;
     while (ptr->previous_ != nullptr) {
 #ifdef DEBUGX
-        std::cout << "current m_nIndex: " << ptr->m_nIndex << "\tlabel Idx: " << actionIdx2LabelIdx(ptr->last_action) << "\t"<< sent.m_lChunkedWords[ptr->m_nIndex].word << "\t" << sent.m_lChunkedWords[ptr->m_nIndex].tag << std::endl;
+        std::cerr << "current m_nIndex: " << ptr->m_nIndex << "\tlabel Idx: " << actionIdx2LabelIdx(ptr->last_action) << "\t"<< sent.m_lChunkedWords[ptr->m_nIndex].word << "\t" << sent.m_lChunkedWords[ptr->m_nIndex].tag << std::endl;
 #endif
         sent.setLabel(ptr->m_nIndex, knowLabels[actionIdx2LabelIdx(ptr->last_action)]);
 

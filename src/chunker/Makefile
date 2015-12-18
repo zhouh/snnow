@@ -15,8 +15,8 @@ export NVCCFLAGS = -g -G -std=c++11 --use_fast_math -ccbin $(CXX) $(MSHADOW_NVCC
 
 BIN = $(BASE_DIR)/bin/chunk
 OBJ =  $(OBJ_DIR)/Config.o $(OBJ_DIR)/FeatureExtractor.o $(OBJ_DIR)/Beam.o $(OBJ_DIR)/ActionStandardSystem.o
-#CUOBJ = $(OBJ_DIR)/Chunker.o
-CUOBJ = $(OBJ_DIR)/GreedyChunker.o
+CUOBJ = $(OBJ_DIR)/Chunker.o
+#CUOBJ = $(OBJ_DIR)/GreedyChunker.o
 CUBIN = 
 .PHONY: clean all
 

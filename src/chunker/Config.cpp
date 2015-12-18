@@ -7,14 +7,14 @@
 #include "Config.h"
 
 string CConfig::strEmbeddingPath("../../data/chunk/English/sen.emb");
-string CConfig::strTrainPath("../../data/chunk/English/small.train");
-string CConfig::strDevPath("../../data/chunk/English/small.train");
-string CConfig::strTestPath("../../data/chunk/English/small.test");
+// string CConfig::strTrainPath("../../data/chunk/English/small.train");
+// string CConfig::strDevPath("../../data/chunk/English/small.train");
+// string CConfig::strTestPath("../../data/chunk/English/small.test");
 
-// string CConfig::strTrainPath("../../data/chunk/English/train.txt");
+string CConfig::strTrainPath("../../data/chunk/English/train.txt");
 // string CConfig::strTrainPath("../../data/chunk/English/test.txt");
-// string CConfig::strDevPath("../../data/chunk/English/test.txt");
-// string CConfig::strTestPath("../../data/chunk/English/test.txt");
+string CConfig::strDevPath("../../data/chunk/English/test.txt");
+string CConfig::strTestPath("../../data/chunk/English/test.txt");
 
 // string CConfig::strTrainPath("../../data/chunk/English/single.train");
 // string CConfig::strDevPath("../../data/chunk/English/single.dev");
@@ -30,7 +30,7 @@ int CConfig::nHiddenSize = 200;
 
 int CConfig::nRound = 1000;
 
-int CConfig::nBatchSize = 1000;
+int CConfig::nBatchSize = 100;
 
 int CConfig::nEvaluatePerIters = 20;
 

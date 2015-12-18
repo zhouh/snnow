@@ -48,9 +48,9 @@ public:
     }
 
     void printDict() {
-        std::cout << "knownwords size: " << m_lKnownWords.size() << std::endl;
-        std::cout << "knowntags size: " << m_lKnownTags.size() << std::endl;
-        std::cout << "knownlabels size: " << m_lKnownLabels.size() << std::endl;
+        std::cerr << "knownwords size: " << m_lKnownWords.size() << std::endl;
+        std::cerr << "knowntags size: " << m_lKnownTags.size() << std::endl;
+        std::cerr << "knownlabels size: " << m_lKnownLabels.size() << std::endl;
     }
 
     int word2WordIdx(const std::string &s) {

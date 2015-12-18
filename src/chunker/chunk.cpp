@@ -13,10 +13,9 @@
 #include "Config.h"
 #include "ChunkedSentence.h"
 #include "Instance.h"
-#include "GreedyChunker.h"
-// #include "Chunker.h"
+// #include "GreedyChunker.h"
+#include "Chunker.h"
 
-using std::cout;
 using std::cerr;
 using std::endl;
 using std::vector;
@@ -46,21 +45,12 @@ int main(int argc, char *argv[]) {
 
         if (!(isTrain >> cs)) break;
 
-#ifdef DEBUG1
-        cout << cs << endl;
-        cout << "size: " << cs.size() << endl;
-#endif //!DEBUG1
-
         trainGoldSentences.push_back(cs);
 
         ChunkerInput ci;
         cs.getChunkerInput(ci);
         Instance inst(ci);
         trainInstances.push_back(inst);
-
-#ifdef DEBUG1
-        inst.print();
-#endif //! DEBUG1
 
         count++;
     }
@@ -75,11 +65,6 @@ int main(int argc, char *argv[]) {
             break;
         }
 
-#ifdef DEBUG1
-        cout << cs << endl;
-        cout << "size: " << cs.size() << endl;
-#endif
-        
         devGoldSentences.push_back(cs);
 
         ChunkerInput ci;
@@ -87,14 +72,10 @@ int main(int argc, char *argv[]) {
         Instance inst(ci);
         devInstances.push_back(inst);
 
-#ifdef DEBUG1
-        inst.print();
-#endif
-
         count++;
     }
 
-    GreedyChunker chunker(true);
+    Chunker chunker(true);
     cerr << "Dev sentences number: " << count << endl;
     cerr << "------------------------------------" << endl;
 
