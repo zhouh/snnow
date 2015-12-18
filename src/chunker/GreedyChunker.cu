@@ -20,11 +20,6 @@
 
 #define DEBUG
 
-#ifdef DEBUG
-#define ADDREGURLOSS
-// #define CLOSEOPENOMP
-#endif
-
 GreedyChunker::GreedyChunker() {
 
 }
@@ -71,26 +66,6 @@ void GreedyChunker::printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &de
     }
 
     double loss = batchObjLoss;
-#ifdef ADDREGURLOSS
-    double paraLoss = 0.0;
-    for (int ii = 0; ii < netsPara.Wi2h.shape_[0]; ii++) {
-        for (int jj = 0; jj < netsPara.Wi2h.shape_[1]; jj++) {
-            paraLoss += netsPara.Wi2h[ii][jj] * netsPara.Wi2h[ii][jj];
-        }
-    }
-    for (int ii = 0; ii < netsPara.Wh2o.shape_[0]; ii++) {
-        for (int jj = 0; jj < netsPara.Wh2o.shape_[1]; jj++) {
-            paraLoss += netsPara.Wh2o[ii][jj] * netsPara.Wh2o[ii][jj];
-        }
-    }
-    for (int ii = 0; ii < netsPara.hbias.shape_[0]; ii++) {
-        paraLoss += netsPara.hbias[ii] * netsPara.hbias[ii];
-    }
-    std::cout << "current |W|^2: " << paraLoss << std::endl;
-    paraLoss *= 0.5 * CConfig::fRegularizationRate;
-
-    loss += paraLoss;
-#endif
 
     auto sf = std::cout.flags();
     auto sp = std::cout.precision();
@@ -143,7 +118,7 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
     std::cout << "Excuting generateInstanceSetCache & readPretrainEmbeddings..." << std::endl;
     m_featExtractor->generateInstanceSetCache(devSet);
 
-    // m_featExtractor->readPretrainEmbeddings(CConfig::strEmbeddingPath, *m_fEmb);
+    m_featExtractor->readPretrainEmbeddings(CConfig::strEmbeddingPath, *m_fEmb);
 
     const static int num_in = CConfig::nEmbeddingDim * CConfig::nFeatureNum;
     const static int num_hidden = CConfig::nHiddenSize;
@@ -182,17 +157,11 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
         UpdateGrads<XPU> batchCumulatedGrads(netsParas.stream, num_in, num_hidden, num_out);
 
 
-#ifndef CLOSEOPENOMP 
 #pragma omp parallel
-#endif
         {
             int threadIndex = omp_get_thread_num();
-#ifndef CLOSEOPENOMP
             auto currentThreadData = multiThread_miniBatch_data[threadIndex];
-#endif
-#ifdef CLOSEOPENOMP
-            auto currentThreadData = multiThread_miniBatch_data[0];
-#endif
+
             int threadCorrectSize = 0;
             double threadObjLoss = 0.0;
 
@@ -264,24 +233,18 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
                 nnet->SubsideGrads(cumulatedGrads);
             }
 
-#ifndef CLOSEOPENOMP 
 #pragma omp barrier
 #pragma omp critical 
-#endif            
             {
                 batchCumulatedGrads.cg_hbias = batchCumulatedGrads.cg_hbias + cumulatedGrads.cg_hbias;
                 batchCumulatedGrads.cg_Wi2h = batchCumulatedGrads.cg_Wi2h + cumulatedGrads.cg_Wi2h;
                 batchCumulatedGrads.cg_Wh2o = batchCumulatedGrads.cg_Wh2o + cumulatedGrads.cg_Wh2o;
             }
 
-#ifndef CLOSEOPENOMP 
 #pragma omp critical 
-#endif
             batchCorrectSize += threadCorrectSize;
 
-#ifndef CLOSEOPENOMP 
 #pragma omp critical 
-#endif
             batchObjLoss += threadObjLoss;
         
         }  // end multi-processor

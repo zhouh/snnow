@@ -59,17 +59,18 @@ struct NNetPara{
   
 
   NNetPara(int batch_size, int num_in, int num_hidden, int num_out) : rnd(0) {
+
     Wi2h.set_stream(stream);
     Wh2o.set_stream(stream);
     hbias.set_stream(stream);
-    Wi2h.Resize(Shape2(num_in, num_hidden));  
-    Wh2o.Resize(Shape2(num_hidden, num_out)); 
+    Wi2h.Resize(Shape2(num_in, num_hidden), static_cast<real_t>(0.0));  
+    Wh2o.Resize(Shape2(num_hidden, num_out), static_cast<real_t>(0.0)); 
     
     rnd.SampleUniform(&Wi2h, -0.01, 0.01f);
     rnd.SampleUniform(&Wh2o, -0.01, 0.01f);
 
     
-    hbias.Resize(Shape1(num_hidden)); 
+    hbias.Resize(Shape1(num_hidden), static_cast<real_t>(0.0)); 
     rnd.SampleUniform(&hbias, -0.01, 0.01f);
 
     /*
@@ -79,9 +80,13 @@ struct NNetPara{
     //assert( !is2TensorNaN(Wh2o) );
     //assert( !is1TensorNaN(hbias) );
 
+    eg2Wi2h.set_stream(stream);
+    eg2Wh2o.set_stream(stream);
+    eg2Hbias.set_stream(stream);
     eg2Wi2h.Resize(Shape2(num_in, num_hidden), static_cast<real_t>(0.0));  
     eg2Wh2o.Resize(Shape2(num_hidden, num_out), static_cast<real_t>(0.0)); 
     eg2Hbias.Resize(Shape1(num_hidden), static_cast<real_t>(0.0)); 
+
   }
 
   void saveModel( std::ostream & os ){
@@ -182,14 +187,14 @@ struct UpdateGrads{
     TensorContainer<xpu, 1, real_t> cg_hbias;
     TensorContainer<xpu, 2, real_t> cg_Wi2h, cg_Wh2o;
 
-    UpdateGrads(Stream<xpu> *stream, int num_in, int num_hidden, int num_out) :
-        cg_Wi2h(Shape2(num_in, num_hidden), static_cast<real_t>(0.0)),
-        cg_Wh2o(Shape2(num_hidden, num_out), static_cast<real_t>(0.0)),
-        cg_hbias(Shape1(num_hidden), static_cast<real_t>(0.0))
-    {
+    UpdateGrads(Stream<xpu> *stream, int num_in, int num_hidden, int num_out){
         cg_hbias.set_stream(stream);
         cg_Wi2h.set_stream(stream);
         cg_Wh2o.set_stream(stream);
+
+        cg_Wi2h.Resize(Shape2(num_in, num_hidden), static_cast<real_t>(0.0));  
+        cg_Wh2o.Resize(Shape2(num_hidden, num_out), static_cast<real_t>(0.0)); 
+        cg_hbias.Resize(Shape1(num_hidden), static_cast<real_t>(0.0)); 
     }
 };
 
@@ -197,17 +202,9 @@ template<typename xpu>
 class NNet{
  public:
   // initialize the network
-  NNet(int batch_size, int num_in, int num_hidden, int num_out, NNetPara<xpu>* para) :
-    paras(para),
-    g_Wi2h(para->Wi2h.shape_, static_cast<real_t>(0.0)),
-    g_Wh2o(para->Wh2o.shape_, static_cast<real_t>(0.0)),
-    g_hbias(para->hbias.shape_, static_cast<real_t>(0.0)),
-    ninput(Shape2(batch_size, num_in), static_cast<real_t>(0.0)),
-    nhidden(Shape2(batch_size, num_hidden), static_cast<real_t>(0.0)),
-    nhiddenbak(Shape2(batch_size, num_hidden), static_cast<real_t>(0.0)),
-    nout(Shape2(batch_size, num_out), static_cast<real_t>(0.0))
-  {
+  NNet(int batch_size, int num_in, int num_hidden, int num_out, NNetPara<xpu>* paras) {
     // setup stream
+    this->paras = paras;
     ninput.set_stream(paras->stream);
     nhidden.set_stream(paras->stream);
     nhiddenbak.set_stream(paras->stream);
@@ -215,18 +212,19 @@ class NNet{
     g_hbias.set_stream(paras->stream);
     g_Wi2h.set_stream(paras->stream);
     g_Wh2o.set_stream(paras->stream);
+
+    g_Wh2o.Resize(paras->Wh2o.shape_, static_cast<real_t>(0.0));
+    g_Wi2h.Resize(paras->Wi2h.shape_, static_cast<real_t>(0.0));
+    g_hbias.Resize(paras->hbias.shape_, static_cast<real_t>(0.0));
+    // setup nodes
+    ninput.Resize(Shape2(batch_size, num_in), static_cast<real_t>(0.0));
+    nhidden.Resize(Shape2(batch_size, num_hidden), static_cast<real_t>(0.0));
+    nhiddenbak.Resize(nhidden.shape_, static_cast<real_t>(0.0));
+    nout.Resize(Shape2(batch_size, num_out), static_cast<real_t>(0.0));
   }
 
-  NNet(NNet* net) :
-    paras(net->paras),
-    g_Wi2h(net->paras->Wi2h.shape_, static_cast<real_t>(0.0)),
-    g_Wh2o(net->paras->Wh2o.shape_, static_cast<real_t>(0.0)),
-    g_hbias(net->paras->hbias.shape_, static_cast<real_t>(0.0)),
-    ninput(net->input.shape_, static_cast<real_t>(0.0)),
-    nhidden(net->nhidden.shape_, static_cast<real_t>(0.0)),
-    nhiddenbak(net->nhiddenbak.shape_, static_cast<real_t>(0.0)),
-    nout(net->nout.shape_, static_cast<real_t>(0.0))
-  {
+  NNet(NNet* net){
+    this->paras = net->paras;
     ninput.set_stream(paras->stream);
     nhidden.set_stream(paras->stream);
     nhiddenbak.set_stream(paras->stream);
@@ -234,6 +232,15 @@ class NNet{
     g_hbias.set_stream(paras->stream);
     g_Wi2h.set_stream(paras->stream);
     g_Wh2o.set_stream(paras->stream);
+
+    g_Wh2o.Resize(paras->Wh2o.shape_, static_cast<real_t>(0.0));
+    g_Wi2h.Resize(paras->Wi2h.shape_, static_cast<real_t>(0.0));
+    g_hbias.Resize(paras->hbias.shape_, static_cast<real_t>(0.0));
+    // setup nodes
+    ninput.Resize(net->ninput.shape_, static_cast<real_t>(0.0));
+    nhidden.Resize( Shape2(net->nhidden.shape_), static_cast<real_t>(0.0) );
+    nhiddenbak.Resize(net->nhiddenbak.shape_, static_cast<real_t>(0.0));
+    nout.Resize(net->nout.shape_, static_cast<real_t>(0.0)); 
   }
 
  ~NNet() {}
@@ -276,7 +283,7 @@ class NNet{
         TensorContainer<xpu,2, real_t> mask;
         mask.set_stream(paras->stream);
         mask.Resize(nhidden.shape_);
-        // paras->rnd.SampleUniform(&mask, 0.0f, 1.0f);
+        //paras->rnd.SampleUniform(&mask, 0.0f, 1.0f);
         // F<threshold>(mask, CConfig::fDropoutProb);
         nhidden = nhidden * mask;
     } //dropout
