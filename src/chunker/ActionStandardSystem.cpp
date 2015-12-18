@@ -100,7 +100,7 @@ void ActionStandardSystem::generateValidActs(State &state, std::vector<int> &val
     validActs.resize(nActNum, 0);
 
     if (state.m_nIndex == -1 || state.last_action == nOutside) {
-        validActs[nInside] = -1;
+       validActs[nInside] = -1;
     }
 }
 

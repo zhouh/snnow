@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "mshadow/tensor.h"
 #include "Config.h"
 #include "ChunkedSentence.h"
 #include "Instance.h"
@@ -99,6 +100,34 @@ int main(int argc, char *argv[]) {
 
     cerr << "Chunker: start training..." << endl;
     chunker.train(trainGoldSentences, trainInstances, devGoldSentences, devInstances);
+
+    using namespace mshadow;
+    using namespace mshadow::expr;
+
+    // InitTensorEngine<cpu>();
+    // InitTensorEngine<gpu>();
+
+    // Stream<cpu> *stream = NewStream<cpu>();
+
+    // Tensor<cpu, 2> ts1 = NewTensor<cpu, float>(Shape2(2, 2), 0.0f);
+
+    // ts1[0][0] = 1;
+    // ts1[0][1] = 2;
+    // ts1[1][0] = 3;
+    // ts1[1][1] = 4;
+
+    // Tensor<gpu, 2> tg = NewTensor<gpu, float>(ts1.shape_, 0.0f);
+    // Copy(tg, ts1);
+
+    // for (int r = 0; r < tg.shape_[0]; r++) {
+    //     for (int c = 0; c < tg.shape_[1]; c++) {
+    //         cout << tg[r][c] << " ";
+    //     }
+    //     cout << endl;
+    // }
+
+    // ShutdownTensorEngine<cpu>();
+    // ShutdownTensorEngine<gpu>();
 
     return 0;
 }
