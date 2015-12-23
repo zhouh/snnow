@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "FeatureExtractor.h"
+#include "Config.h"
 
 #define DEBUG
 #ifdef DEBUG
@@ -20,6 +21,12 @@
 
 std::string FeatureExtractor::nullstr = "-NULL-";
 std::string FeatureExtractor::unknownstr = "-UNKNOWN-";
+std::string FeatureExtractor::numberstr = "-NUMBER-";
+
+std::string FeatureExtractor::noncapitalstr = "-NONCAPITAL-";
+std::string FeatureExtractor::allcapitalstr = "-ALLCAPITAL-";
+std::string FeatureExtractor::firstlettercapstr = "-FIRSTLETTERCAPITAL-";
+std::string FeatureExtractor::hadonecapstr = "-HADONECAPITAL-";
 
 void FeatureExtractor::getDictionaries(const ChunkedDataSet &goldSet) {
     using std::unordered_set;
@@ -32,7 +39,9 @@ void FeatureExtractor::getDictionaries(const ChunkedDataSet &goldSet) {
     for (auto &sent : goldSet) {
         for (auto &cw : sent.getChunkedWords()) {
             labelSet.insert(cw.label);
-            wordSet.insert(cw.word);
+
+            wordSet.insert(processWord(cw.word));
+
             tagSet.insert(cw.tag);
         }
     }
@@ -48,68 +57,54 @@ void FeatureExtractor::getDictionaries(const ChunkedDataSet &goldSet) {
     for (auto &l : labelSet) {
         m_mLabel2Idx[l] = idx++;
 
-#ifdef DEBUG3
-        std::cerr << l << ": " << idx - 1 << std::endl;
-#endif
         m_lKnownLabels.push_back(l);
     }
     labelNullIdx = idx, m_mLabel2Idx[nullstr] = idx++;
-#ifdef DEBUG3
-        std::cerr << nullstr << "[label]: " << idx - 1 << std::endl;
-#endif
     labelUnkIdx = idx, m_mLabel2Idx[unknownstr] = idx++;
-#ifdef DEBUG3
-        std::cerr << unknownstr << "[label]: " << idx - 1 << std::endl;
-#endif
 
+    wordNumIdx = idx, m_mWord2Idx[numberstr] = idx++;
     wordNullIdx = idx, m_mWord2Idx[nullstr] = idx++;
-#ifdef DEBUG3
-        std::cerr << nullstr << "[word]: " << idx - 1 << std::endl;
-#endif
     wordUnkIdx = idx, m_mWord2Idx[unknownstr] = idx++;
-#ifdef DEBUG3
-        std::cerr << unknownstr << "[word]: " << idx - 1 << std::endl;
-#endif
     m_lKnownWords.push_back(nullstr);
     m_lKnownWords.push_back(unknownstr);
+    m_lKnownWords.push_back(numberstr);
     for (auto &w : wordSet) {
         m_mWord2Idx[w] = idx++;
-#ifdef DEBUG3
-        std::cerr << w << ": " << idx - 1 << std::endl;
-#endif
         m_lKnownWords.push_back(w);
     }
 
     tagNullIdx = idx, m_mTag2Idx[nullstr] = idx++;
-#ifdef DEBUG3
-    std::cerr << nullstr << "[tag]: " << idx - 1 << std::endl;
-#endif
     tagUnkIdx = idx, m_mTag2Idx[unknownstr] = idx++;
-#ifdef DEBUG3
-    std::cerr << unknownstr << "[tag]: " << idx - 1 << std::endl;
-#endif
     m_lKnownTags.push_back(nullstr);
     m_lKnownTags.push_back(unknownstr);
     for (auto &t : tagSet) {
         m_mTag2Idx[t] = idx++;
-#ifdef DEBUG3
-        std::cerr << t << ": " << idx - 1 << std::endl;
-#endif
         m_lKnownTags.push_back(t);
     }
+
+    // features about the word's capital information
+    capfeatNullIdx = idx, m_mCapfeat2Idx[nullstr] = idx++;
+    capfeatUnkIdx = idx, m_mCapfeat2Idx[unknownstr] = idx++;
+    m_mCapfeat2Idx[noncapitalstr] = idx++, m_lKnownCapfeats.push_back(noncapitalstr);
+    m_mCapfeat2Idx[allcapitalstr] = idx++, m_lKnownCapfeats.push_back(allcapitalstr);
+    m_mCapfeat2Idx[firstlettercapstr] = idx++, m_lKnownCapfeats.push_back(firstlettercapstr);
+    m_mCapfeat2Idx[hadonecapstr] = idx++, m_lKnownCapfeats.push_back(hadonecapstr);
 }
 
 void FeatureExtractor::generateInstanceCache(Instance &inst) {
     inst.wordCache.resize(inst.input.size());
     inst.tagCache.resize(inst.input.size());
+    inst.capfeatCache.resize(inst.input.size());
 
     int index = 0;
     for (auto &e : inst.input) {
-        int wordIdx = word2WordIdx(e.first);
+        int wordIdx = word2WordIdx(processWord(e.first));
         int tagIdx = tag2TagIdx(e.second);
+        int capfeatIdx = word2WordIdx(e.first);
 
         inst.wordCache[index] = wordIdx;
         inst.tagCache[index] = tagIdx;
+        inst.capfeatCache[index] = capfeatIdx;
 
         index++;
     }
@@ -138,36 +133,52 @@ void FeatureExtractor::extractFeature(State &state, Instance &inst, std::vector<
         return inst.tagCache[index];
     };
 
+    auto getCapfeatIndex = [&state, &inst, this](int index) -> int {
+        if (index < 0 || index >= state.m_nLen) {
+            return this->capfeatNullIdx;
+        }
+
+        return inst.capfeatCache[index];
+    };
+
     int IDIdx = 0;
     int currentIndex = state.m_nIndex + 1;
 
-    int neg3UniWord   = getWordIndex(currentIndex - 3);
     int neg2UniWord   = getWordIndex(currentIndex - 2);
     int neg1UniWord   = getWordIndex(currentIndex - 1);
-    int pos1UniWord   = getWordIndex(currentIndex);
-    int pos2UniWord   = getWordIndex(currentIndex + 1);
-    int pos3UniWord   = getWordIndex(currentIndex + 2);
+    int pos0UniWord   = getWordIndex(currentIndex);
+    int pos1UniWord   = getWordIndex(currentIndex + 1);
+    int pos2UniWord   = getWordIndex(currentIndex + 2);
 
-    features[IDIdx++] = neg3UniWord;
     features[IDIdx++] = neg2UniWord;
     features[IDIdx++] = neg1UniWord;
+    features[IDIdx++] = pos0UniWord;
     features[IDIdx++] = pos1UniWord;
     features[IDIdx++] = pos2UniWord;
-    features[IDIdx++] = pos3UniWord;
 
-    int neg3UniPos    = getTagIndex(currentIndex - 3);
     int neg2UniPos    = getTagIndex(currentIndex - 2);
     int neg1UniPos    = getTagIndex(currentIndex - 1);
-    int pos1UniPos    = getTagIndex(currentIndex);
-    int pos2UniPos    = getTagIndex(currentIndex + 1);
-    int pos3UniPos    = getTagIndex(currentIndex + 2);
+    int pos0UniPos    = getTagIndex(currentIndex);
+    int pos1UniPos    = getTagIndex(currentIndex + 1);
+    int pos2UniPos    = getTagIndex(currentIndex + 2);
 
-    features[IDIdx++] = neg3UniPos;
     features[IDIdx++] = neg2UniPos;
     features[IDIdx++] = neg1UniPos;
+    features[IDIdx++] = pos0UniPos;
     features[IDIdx++] = pos1UniPos;
     features[IDIdx++] = pos2UniPos;
-    features[IDIdx++] = pos3UniPos;
+
+    int neg2UniCap    = getCapfeatIndex(currentIndex - 2);
+    int neg1UniCap    = getCapfeatIndex(currentIndex - 1);
+    int pos0UniCap    = getCapfeatIndex(currentIndex);
+    int pos1UniCap    = getCapfeatIndex(currentIndex + 1);
+    int pos2UniCap    = getCapfeatIndex(currentIndex + 2);
+    
+    features[IDIdx++] = neg2UniCap;
+    features[IDIdx++] = neg1UniCap;
+    features[IDIdx++] = pos0UniCap;
+    features[IDIdx++] = pos1UniCap;
+    features[IDIdx++] = pos2UniCap;
 }
 
 void FeatureExtractor::generateTrainingExamples(ActionStandardSystem &transitionSystem, InstanceSet &instSet, ChunkedDataSet &goldSet, GlobalExamples &gExamples) {
@@ -206,7 +217,7 @@ void FeatureExtractor::generateTrainingExamples(ActionStandardSystem &transition
 #endif
         //generate every state of a sentence
         for (int j = 0; !state->complete(); j++) {
-            std::vector<int> features(featureNum);
+            std::vector<int> features(CConfig::nFeatureNum);
             std::vector<int> labels(transitionSystem.nActNum, 0);
 
             extractFeature(*state, inst, features);
@@ -296,7 +307,7 @@ int FeatureExtractor::readPretrainEmbeddings(std::string &pretrainFile, FeatureE
     }
 
 #ifdef DEBUG
-    std::cerr << "pretrainWords's size: " << pretrainEmbs.size() << std::endl;
+    std::cerr << "  pretrainWords's size: " << pretrainEmbs.size() << std::endl;
 #endif
 
     for (auto &wordPair : m_mWord2Idx) {
@@ -308,7 +319,7 @@ int FeatureExtractor::readPretrainEmbeddings(std::string &pretrainFile, FeatureE
     }
 
 #ifdef DEBUG2
-    std::cerr << "total words's size: " << m_mWord2Idx.size() << std::endl;
+    std::cerr << "  total words's size: " << m_mWord2Idx.size() << std::endl;
 #endif
 
     return pretrainWords.size();

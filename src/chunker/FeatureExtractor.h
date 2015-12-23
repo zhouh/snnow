@@ -10,6 +10,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cctype>
 #include <tr1/unordered_map>
 
 #include "FeatureEmbedding.h"
@@ -28,23 +29,35 @@ class FeatureExtractor{
     std::tr1::unordered_map<std::string, int> m_mTag2Idx;
     std::tr1::unordered_map<std::string, int> m_mLabel2Idx;
 
+    std::vector<std::string> m_lKnownCapfeats;
+    std::tr1::unordered_map<std::string, int> m_mCapfeat2Idx;
+
     int wordNullIdx;
     int wordUnkIdx;
+    int wordNumIdx;
     int tagNullIdx;
     int tagUnkIdx;
     int labelNullIdx;
     int labelUnkIdx;
 
+    int capfeatNullIdx;
+    int capfeatUnkIdx;
+
 public:
     static std::string nullstr;
     static std::string unknownstr;
-    const static int featureNum = 12;
+    static std::string numberstr;
+
+    static std::string noncapitalstr;
+    static std::string allcapitalstr;
+    static std::string firstlettercapstr;
+    static std::string hadonecapstr;
 
 public:
     FeatureExtractor() {}
 
     int size() {
-        return m_mWord2Idx.size() + m_mTag2Idx.size() + m_mLabel2Idx.size();
+        return m_mWord2Idx.size() + m_mTag2Idx.size() + m_mLabel2Idx.size() + m_mCapfeat2Idx.size();
     }
 
     void printDict() {
@@ -54,6 +67,10 @@ public:
     }
 
     int word2WordIdx(const std::string &s) {
+        if (isNumber(s)) {
+            return wordNumIdx;
+        }
+
         auto it = m_mWord2Idx.find(s);
 
         return (it == m_mWord2Idx.end()) ? wordUnkIdx : it->second;
@@ -76,8 +93,65 @@ public:
         return it->second;
     }
 
+    int word2CapfeatIdx(const std::string &s) {
+        bool isNoncap = true;
+        bool isAllcap = true;
+        bool isFirstCap = false;
+        bool isHadCap  = false;
+
+        if (isupper(s[0])) {
+            isFirstCap = true;
+        }
+
+        for (char ch : s) {
+            if (isupper(ch)) {
+                isHadCap = true;
+                isNoncap = false;
+            } else {
+                isAllcap = false;
+            }
+        }
+
+        if (isNoncap) {
+            return m_mCapfeat2Idx[noncapitalstr];
+        }
+
+        if (isAllcap) {
+            return m_mCapfeat2Idx[allcapitalstr];
+        }
+
+        if (isFirstCap) {
+            return m_mCapfeat2Idx[firstlettercapstr];
+        }
+
+        if (isHadCap) {
+            return m_mCapfeat2Idx[hadonecapstr];
+        }
+
+        std::cerr << "word2CapfeatIdx wrong: " << s << std::endl;
+        exit(1);
+    }
+
     const std::vector<std::string>& getKnownLabels() const {
         return m_lKnownLabels;
+    }
+
+    static std::string processWord(const std::string &word) {
+        std::string low_word(word);
+
+        std::transform(low_word.begin(), low_word.end(), low_word.begin(), ::tolower);
+
+        return low_word;
+    }
+
+    static bool isNumber(const std::string &word) {
+        for (char ch : word) {
+            if (!isdigit(ch)){
+                return false;
+            }
+        }
+
+        return true;
     }
 
     void getDictionaries(const ChunkedDataSet &goldSet);

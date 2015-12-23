@@ -22,7 +22,7 @@ string CConfig::strTestPath("../../data/chunk/English/test.txt");
 
 int CConfig::nBeamSize = 50;
 
-int CConfig::nFeatureNum = 12;
+int CConfig::nFeatureNum = 15;
 
 int CConfig::nEmbeddingDim = 50;
 

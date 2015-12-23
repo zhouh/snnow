@@ -18,6 +18,7 @@ public:
     ChunkerInput input;
     std::vector<int> tagCache;
     std::vector<int> wordCache;
+    std::vector<int> capfeatCache;
 
     Instance(ChunkerInput input) {
         this->input = input;

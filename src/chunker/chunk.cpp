@@ -28,6 +28,13 @@ using std::vector;
 #endif //! DEBUG
 
 int main(int argc, char *argv[]) {
+    std::cerr << "[Description]: ";
+    if (argc == 0) {
+        std::cerr << "There is no description!" << std::endl;
+    } else {
+        std::cerr << argv[0] << std::endl;
+    }
+
     std::cerr << "Chunker: init..." << endl;
 
     std::ifstream isTrain(CConfig::strTrainPath);
