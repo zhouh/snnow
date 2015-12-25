@@ -14,7 +14,8 @@
 
 #include "NNet.h"
 #include "Config.h"
-#include "FeatureExtractor.h"
+#include "FeatureVector.h"
+#include "FeatureManager.h"
 #include "ChunkedSentence.h"
 #include "ActionStandardSystem.h"
 #include "FeatureEmbedding.h"
@@ -24,9 +25,8 @@ class GreedyChunker {
 public:
     typedef std::vector<Example *> ExamplePtrs;
 private:
-    std::shared_ptr<FeatureExtractor> m_featExtractor;
     std::shared_ptr<ActionStandardSystem> m_transitionSystem;
-    std::shared_ptr<FeatureEmbedding> m_fEmb;
+    std::shared_ptr<FeatureManager> m_featManager;
 
     bool m_bTrain;
 
@@ -51,7 +51,7 @@ private:
     /* generate the feature vector in all the beam states,
      * and return the input layer of neural network in batch.
     */
-    void generateInputBatch(State *state, Instance *inst, std::vector<std::vector<int>> &featvecs); 
+    void generateInputBatch(State *state, Instance *inst, std::vector<FeatureVector> &featvecs); 
 
     void printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &devGoldSet, NNetPara<XPU> &netsPara, double batchObjLoss, double posClassificationRate, double &bestDevFB1);
 

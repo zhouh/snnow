@@ -112,16 +112,15 @@ void display2Tensor( Tensor<cpu, 2, double> tensor ){
 }
 
 void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, ChunkedDataSet &devGoldSet, InstanceSet &devSet) {
-    std::cerr << "Initing FeatureExtractor & ActionStandardSystem & generateTrainingExamples..." << std::endl;
+    std::cerr << "Initing FeatureManager & ActionStandardSystem & generateTrainingExamples..." << std::endl;
     initTrain(trainGoldSet, trainSet);
 
-    std::cerr << "Excuting generateInstanceSetCache & readPretrainEmbeddings..." << std::endl;
-    m_featExtractor->generateInstanceSetCache(devSet);
-    std::cerr << "  Trainset's size: " << trainExamplePtrs.size() << std::endl;
+    std::cerr << "Excuting devset generateInstanceSetCache & readPretrainEmbeddings..." << std::endl;
+    m_featManager->generateInstanceSetCache(devSet);
+    std::cerr << "  Greedy train set size: " << trainExamplePtrs.size() << std::endl;
+    m_featManager->readPretrainEmbeddings(CConfig::strEmbeddingPath);
 
-    m_featExtractor->readPretrainEmbeddings(CConfig::strEmbeddingPath, *m_fEmb);
-
-    const static int num_in = CConfig::nEmbeddingDim * CConfig::nFeatureNum;
+    const static int num_in = m_featManager->totalFeatSize;
     const static int num_hidden = CConfig::nHiddenSize;
     const static int num_out = m_transitionSystem->nActNum;
     const static int batchSize = std::min(CConfig::nBatchSize, static_cast<int>(trainExamplePtrs.size()));
@@ -179,9 +178,9 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
                 TensorContainer<cpu, 2, real_t> pred;
                 pred.Resize(Shape2(1, num_out));
 
-                std::vector<std::vector<int>> featureVectors;
+                std::vector<FeatureVector> featureVectors;
                 featureVectors.push_back(e->features);
-                m_fEmb->returnInput(featureVectors, input);
+                m_featManager->returnInput(featureVectors, input, 1);
 
                 nnet->Forward(input, pred, false);
 
@@ -260,19 +259,13 @@ void GreedyChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
     using std::cerr;
     using std::endl;
 
-
-    m_featExtractor.reset(new FeatureExtractor());
-    m_featExtractor->getDictionaries(goldSet);
+    m_featManager.reset(new FeatureManager());
+    m_featManager->init(goldSet, CConfig::fInitRange);
 
     m_transitionSystem.reset(new ActionStandardSystem());
-    m_transitionSystem->makeTransition(m_featExtractor->getKnownLabels());
+    m_transitionSystem->makeTransition(m_featManager->getKnownLabels());
 
-    m_fEmb.reset(new FeatureEmbedding(m_featExtractor->size(),
-            CConfig::nFeatureNum,
-            CConfig::nEmbeddingDim,
-            1)); // TODO ?
-
-    m_featExtractor->generateTrainingExamples(*(m_transitionSystem.get()), trainSet, goldSet, gExamples);
+    m_featManager->generateTrainingExamples(*(m_transitionSystem.get()), trainSet, goldSet, gExamples);
 
     for (auto &gExample : gExamples) {
         for (auto &example : gExample.examples) {
@@ -282,15 +275,14 @@ void GreedyChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
 }
 
 State* GreedyChunker::decode(Instance *inst, NNetPara<XPU> &paras, State *lattice) {
-    const static int num_in = CConfig::nEmbeddingDim * CConfig::nFeatureNum;
+    const static int num_in = m_featManager->totalFeatSize;
     const static int num_hidden = CConfig::nHiddenSize;
     const static int num_out = m_transitionSystem->nActNum;
 
     int nSentLen = inst->input.size();
     int nMaxRound = nSentLen;
+    FeatureManager &fManager = *(m_featManager.get());
     ActionStandardSystem &tranSystem = *(m_transitionSystem.get());
-    FeatureExtractor &featExtractor = *(m_featExtractor.get());
-    FeatureEmbedding &fEmb = *(m_fEmb.get());
     std::shared_ptr<NNet<XPU>> nnet(new NNet<XPU>(1, num_in, num_hidden, num_out, &paras));
 
     State *retval = nullptr;
@@ -311,10 +303,10 @@ State* GreedyChunker::decode(Instance *inst, NNetPara<XPU> &paras, State *lattic
         TensorContainer<cpu, 2, real_t> pred;
         pred.Resize(Shape2(1, num_out));
        
-        std::vector<std::vector<int>> featureVectors;
-        featureVectors.resize(1);
+        std::vector<FeatureVector> featureVectors;
+        featureVectors.push_back(FeatureVector(fManager.featTypes, fManager.featEmbs));
         generateInputBatch(currentState, inst, featureVectors);
-        fEmb.returnInput(featureVectors, input);
+        fManager.returnInput(featureVectors, input, 1);
 
         nnet->Forward(input, pred, false);
         
@@ -346,9 +338,8 @@ State* GreedyChunker::decode(Instance *inst, NNetPara<XPU> &paras, State *lattic
     return retval;
 }
 
-void GreedyChunker::generateInputBatch(State *state, Instance *inst, std::vector<std::vector<int>> &featvecs) {
+void GreedyChunker::generateInputBatch(State *state, Instance *inst, std::vector<FeatureVector> &featvecs) {
     for (int i = 0; i < featvecs.size(); i++) {
-        featvecs[i].resize(CConfig::nFeatureNum);
-        m_featExtractor->extractFeature(*(state + i), *inst, featvecs[i]);
+        m_featManager->extractFeature(*(state + i), *inst, featvecs[i]);
     }
 }

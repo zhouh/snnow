@@ -65,9 +65,9 @@ void FeatureExtractor::getDictionaries(const ChunkedDataSet &goldSet) {
     wordNumIdx = idx, m_mWord2Idx[numberstr] = idx++;
     wordNullIdx = idx, m_mWord2Idx[nullstr] = idx++;
     wordUnkIdx = idx, m_mWord2Idx[unknownstr] = idx++;
+    m_lKnownWords.push_back(numberstr);
     m_lKnownWords.push_back(nullstr);
     m_lKnownWords.push_back(unknownstr);
-    m_lKnownWords.push_back(numberstr);
     for (auto &w : wordSet) {
         m_mWord2Idx[w] = idx++;
         m_lKnownWords.push_back(w);
@@ -156,29 +156,29 @@ void FeatureExtractor::extractFeature(State &state, Instance &inst, std::vector<
     features[IDIdx++] = pos1UniWord;
     features[IDIdx++] = pos2UniWord;
 
-    int neg2UniPos    = getTagIndex(currentIndex - 2);
-    int neg1UniPos    = getTagIndex(currentIndex - 1);
-    int pos0UniPos    = getTagIndex(currentIndex);
-    int pos1UniPos    = getTagIndex(currentIndex + 1);
-    int pos2UniPos    = getTagIndex(currentIndex + 2);
+    // int neg2UniPos    = getTagIndex(currentIndex - 2);
+    // int neg1UniPos    = getTagIndex(currentIndex - 1);
+    // int pos0UniPos    = getTagIndex(currentIndex);
+    // int pos1UniPos    = getTagIndex(currentIndex + 1);
+    // int pos2UniPos    = getTagIndex(currentIndex + 2);
 
-    features[IDIdx++] = neg2UniPos;
-    features[IDIdx++] = neg1UniPos;
-    features[IDIdx++] = pos0UniPos;
-    features[IDIdx++] = pos1UniPos;
-    features[IDIdx++] = pos2UniPos;
+    // features[IDIdx++] = neg2UniPos;
+    // features[IDIdx++] = neg1UniPos;
+    // features[IDIdx++] = pos0UniPos;
+    // features[IDIdx++] = pos1UniPos;
+    // features[IDIdx++] = pos2UniPos;
 
-    int neg2UniCap    = getCapfeatIndex(currentIndex - 2);
-    int neg1UniCap    = getCapfeatIndex(currentIndex - 1);
     int pos0UniCap    = getCapfeatIndex(currentIndex);
-    int pos1UniCap    = getCapfeatIndex(currentIndex + 1);
-    int pos2UniCap    = getCapfeatIndex(currentIndex + 2);
+    //int neg2UniCap    = getCapfeatIndex(currentIndex - 2);
+    //int neg1UniCap    = getCapfeatIndex(currentIndex - 1);
+    //int pos1UniCap    = getCapfeatIndex(currentIndex + 1);
+    //int pos2UniCap    = getCapfeatIndex(currentIndex + 2);
     
-    features[IDIdx++] = neg2UniCap;
-    features[IDIdx++] = neg1UniCap;
     features[IDIdx++] = pos0UniCap;
-    features[IDIdx++] = pos1UniCap;
-    features[IDIdx++] = pos2UniCap;
+    // features[IDIdx++] = neg2UniCap;
+    // features[IDIdx++] = neg1UniCap;
+    // features[IDIdx++] = pos1UniCap;
+    // features[IDIdx++] = pos2UniCap;
 }
 
 void FeatureExtractor::generateTrainingExamples(ActionStandardSystem &transitionSystem, InstanceSet &instSet, ChunkedDataSet &goldSet, GlobalExamples &gExamples) {

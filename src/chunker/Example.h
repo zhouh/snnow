@@ -10,15 +10,15 @@
 #include <vector>
 
 #include "Instance.h"
+#include "FeatureVector.h"
 
 class Example {
 public:
-    std::vector<int> features;
+    FeatureVector features;
     std::vector<int> labels;
 
-    Example(std::vector<int> &f, std::vector<int> &l){
-        features = f;
-        labels = l;
+    Example(FeatureVector &f, std::vector<int> &l) : features(f), labels(l){
+
     }
 
     ~Example() {}

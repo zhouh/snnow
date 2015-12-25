@@ -14,9 +14,9 @@ export LDFLAGS = -lm -L$(CUDA_HOME)/lib64 $(MSHADOW_LDFLAGS)
 export NVCCFLAGS = -g -G -std=c++11 --use_fast_math -ccbin $(CXX) $(MSHADOW_NVCCFLAGS)
 
 BIN = $(BASE_DIR)/bin/chunk
-OBJ =  $(OBJ_DIR)/Config.o $(OBJ_DIR)/FeatureExtractor.o $(OBJ_DIR)/Beam.o $(OBJ_DIR)/ActionStandardSystem.o
-CUOBJ = $(OBJ_DIR)/Chunker.o
-#CUOBJ = $(OBJ_DIR)/GreedyChunker.o
+OBJ = $(OBJ_DIR)/Config.o $(OBJ_DIR)/Beam.o $(OBJ_DIR)/ActionStandardSystem.o $(OBJ_DIR)/FeatureType.o $(OBJ_DIR)/FeatureManager.o
+# CUOBJ = $(OBJ_DIR)/Chunker.o
+CUOBJ = $(OBJ_DIR)/GreedyChunker.o
 CUBIN = 
 .PHONY: clean all
 
@@ -24,11 +24,13 @@ all: $(BIN) $(OBJ) $(CUBIN) $(CUOBJ)
 
 $(BIN) : $(CHUNKER_DIR)/chunk.cpp $(CUOBJ) $(OBJ)
 
-$(OBJ_DIR)/Config.o : $(CHUNKER_DIR)/Config.h $(CHUNKER_DIR)/Config.cpp
-
 $(OBJ_DIR)/chunk.o : $(CHUNKER_DIR)/chunk.cpp $(CHUNKER_DIR)/Chunker.h $(CHUNKER_DIR)/State.h $(CHUNKER_DIR)/Instance.h $(CHUNKER_DIR)/ChunkedSentence.h 
 
-$(OBJ_DIR)/FeatureExtractor.o : $(CHUNKER_DIR)/FeatureExtractor.cpp $(CHUNKER_DIR)/FeatureExtractor.h $(CHUNKER_DIR)/ActionStandardSystem.h
+$(OBJ_DIR)/Config.o : $(CHUNKER_DIR)/Config.h $(CHUNKER_DIR)/Config.cpp
+
+$(OBJ_DIR)/FeatureType.o : $(CHUNKER_DIR)/FeatureVector.h $(CHUNKER_DIR)/FeatureType.cpp
+
+$(OBJ_DIR)/FeatureManager.o : $(CHUNKER_DIR)/FeatureManager.h $(CHUNKER_DIR)/FeatureManager.cpp $(INCLUDE_DIR)/FeatureEmbedding.h
 
 $(OBJ_DIR)/Chunker.o : $(CHUNKER_DIR)/Chunker.cu $(CHUNKER_DIR)/Chunker.h \
 	$(CHUNKER_DIR)/State.h $(CHUNKER_DIR)/Instance.h $(CHUNKER_DIR)/ChunkedSentence.h \
@@ -43,7 +45,7 @@ $(OBJ_DIR)/ActionStandardSystem.o : $(CHUNKER_DIR)/ActionStandardSystem.h $(CHUN
 
 $(OBJ_DIR)/GreedyChunker.o : $(CHUNKER_DIR)/GreedyChunker.cu $(CHUNKER_DIR)/GreedyChunker.h \
 	$(CHUNKER_DIR)/State.h $(CHUNKER_DIR)/Instance.h $(CHUNKER_DIR)/ChunkedSentence.h \
-	$(CHUNKER_DIR)/FeatureExtractor.h $(CHUNKER_DIR)/Config.h \
+	$(CHUNKER_DIR)/FeatureType.h $(CHUNKER_DIR)/FeatureManager.h $(CHUNKER_DIR)/FeatureVector.h $(CHUNKER_DIR)/Config.h \
 	$(CHUNKER_DIR)/Evalb.h \
 	$(INCLUDE_DIR)/FeatureEmbedding.h \
 	$(INCLUDE_DIR)/mshadow/tensor.h $(INCLUDE_DIR)/NNet.h $(INCLUDE_DIR)/Dict.h $(INCLUDE_DIR)/mshadow/*.h $(INCLUDE_DIR)/mshadow/extension/*.h

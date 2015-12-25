@@ -9,14 +9,13 @@
 
 #include <string>
 
-using std::string;
 
 class CConfig {
 public:
-    static string strTrainPath;
-    static string strDevPath;
-    static string strTestPath;
-    static string strEmbeddingPath;
+    static std::string strTrainPath;
+    static std::string strDevPath;
+    static std::string strTestPath;
+    static std::string strEmbeddingPath;
 
     static int nBeamSize;
 

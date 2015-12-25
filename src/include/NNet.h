@@ -254,6 +254,8 @@ class NNet{
 
     // size is same conventsion as numpy
     index_t batch_size = inbatch.size(0);
+
+    // copy data to input layer
     // copy data to input layer
     Copy(ninput, inbatch, ninput.stream_);
 
