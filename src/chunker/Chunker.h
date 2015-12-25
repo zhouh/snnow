@@ -15,16 +15,15 @@
 #include "Beam.h"
 #include "BeamDecoder.h"
 #include "Config.h"
-#include "FeatureExtractor.h"
+#include "FeatureManager.h"
 #include "ChunkedSentence.h"
 #include "ActionStandardSystem.h"
-#include "FeatureEmbedding.h"
 #include "Instance.h"
 
 class Chunker{
-    std::shared_ptr<FeatureExtractor> m_featExtractor;
+private:
     std::shared_ptr<ActionStandardSystem> m_transitionSystem;
-    std::shared_ptr<FeatureEmbedding> m_fEmb;
+    std::shared_ptr<FeatureManager> m_featManager;
 
     int m_nBeamSize;
     bool m_bTrain;

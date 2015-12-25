@@ -12,20 +12,20 @@
 
 #include "Beam.h"
 #include "State.h"
-#include "TNNets.h"
 #include "Instance.h"
 #include "ChunkedSentence.h"
 #include "ActionStandardSystem.h"
 
-#include "mshadow/tensor.h"
 #include "FeatureEmbedding.h"
-#include "FeatureExtractor.h"
+#include "FeatureManager.h"
+
+#include "TNNets.h"
+#include "mshadow/tensor.h"
 
 class BeamDecoder {
 public:
     ActionStandardSystem *tranSystem;
-    FeatureExtractor *featExtractor;
-    FeatureEmbedding *fEmb;
+    FeatureManager *featManager;
 
     bool bTrain;
     bool bEarlyUpdate;
@@ -44,13 +44,11 @@ public:
 
     BeamDecoder(Instance *inst, 
                 ActionStandardSystem *transitionSystem, 
-                FeatureExtractor *featureExtractor, 
-                FeatureEmbedding *featureEmbedding, 
+                FeatureManager *featureManager, 
                 int beamSize, 
                 bool bTrain) : 
                 tranSystem(transitionSystem), 
-                featExtractor(featureExtractor), 
-                fEmb(featureEmbedding), 
+                featManager(featureManager), 
                 beam(beamSize) {
         nSentLen = inst->input.size();
         nMaxRound = nSentLen;
@@ -142,10 +140,18 @@ public:
             }
 
             // extract features and generate input embeddings
-            std::vector<std::vector<int>> featureVectors; // extracted feature vectors in batch
-            featureVectors.resize(nRound == 1 ? 1 : beam.currentBeamSize);
-            generateInputBatch(*featExtractor, lattice_index[nRound - 1], *(inst), featureVectors);
-            fEmb->returnInput(featureVectors, input);
+            // std::vector<std::vector<int>> featureVectors; // extracted feature vectors in batch.
+            std::vector<FeatureVector> featureVectors;
+            if (nRound == 1) { // TODO ??
+                featureVectors.push_back(FeatureVector(featManager->featTypes, featManager->featEmbs));
+            } else {
+                for (int bi = 0; bi < beam.currentBeamSize; bi++) {
+                    featureVectors.push_back(FeatureVector(featManager->featTypes, featManager->featEmbs));
+                }
+            }
+            // featureVectors.resize(nRound == 1 ? 1 : beam.currentBeamSize);
+            generateInputBatch(*featManager, lattice_index[nRound - 1], *(inst), featureVectors);
+            featManager->returnInput(featureVectors, input, CConfig::nBeamSize);
 
             tnnet.Forward(input, pred);
 
@@ -228,10 +234,16 @@ private:
     /* generate the feature vector in all the beam states,
      * and return the input layer of neural network in batch.
     */
-    void generateInputBatch(FeatureExtractor &featExtractor, State *state, Instance &inst, std::vector<std::vector<int>> &featvecs) {
-        for (int i = 0; i < featvecs.size(); i++) {
-            featvecs[i].resize(CConfig::nFeatureNum);
-            featExtractor.extractFeature(*(state + i), inst, featvecs[i]);
+    // void generateInputBatch(FeatureExtractor &featExtractor, State *state, Instance &inst, std::vector<std::vector<int>> &featvecs) {
+    //     for (int i = 0; i < featvecs.size(); i++) {
+    //         featvecs[i].resize(CConfig::nFeatureNum);
+    //         featExtractor.extractFeature(*(state + i), inst, featvecs[i]);
+    //     }
+    // }
+
+    void generateInputBatch(FeatureManager &featManager, State *state, Instance &inst, std::vector<FeatureVector> &featVecs) {
+        for (int i = 0; i < static_cast<int>(featVecs.size()); i++) {
+            featManager.extractFeature(*(state + i), inst, featVecs[i]);
         }
     }
 };

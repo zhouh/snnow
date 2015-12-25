@@ -21,10 +21,20 @@ public:
     FeatureVector(const std::vector<FeatureType *> &featureTypes, const std::vector<FeatureEmbedding *> &featureEmbs) : featTypes(featureTypes), featEmbs(featureEmbs) { 
     
     }
+
     FeatureVector(const FeatureVector &featVec) : featTypes(featVec.featTypes), featEmbs(featVec.featEmbs), features(featVec.features) {
 
     }
-    FeatureVector& operator= (const FeatureVector &featVec) = delete;
+
+    FeatureVector& operator= (const FeatureVector &featVec) {
+        if (this == &featVec) {
+            return *this;
+        }
+
+        this->features = featVec.features;
+
+        return *this;
+    }
 
     ~FeatureVector() {}
 

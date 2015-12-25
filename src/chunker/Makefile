@@ -15,8 +15,8 @@ export NVCCFLAGS = -g -G -std=c++11 --use_fast_math -ccbin $(CXX) $(MSHADOW_NVCC
 
 BIN = $(BASE_DIR)/bin/chunk
 OBJ = $(OBJ_DIR)/Config.o $(OBJ_DIR)/Beam.o $(OBJ_DIR)/ActionStandardSystem.o $(OBJ_DIR)/FeatureType.o $(OBJ_DIR)/FeatureManager.o
-# CUOBJ = $(OBJ_DIR)/Chunker.o
-CUOBJ = $(OBJ_DIR)/GreedyChunker.o
+CUOBJ = $(OBJ_DIR)/Chunker.o
+# CUOBJ = $(OBJ_DIR)/GreedyChunker.o
 CUBIN = 
 .PHONY: clean all
 
@@ -32,23 +32,26 @@ $(OBJ_DIR)/FeatureType.o : $(CHUNKER_DIR)/FeatureVector.h $(CHUNKER_DIR)/Feature
 
 $(OBJ_DIR)/FeatureManager.o : $(CHUNKER_DIR)/FeatureManager.h $(CHUNKER_DIR)/FeatureManager.cpp $(INCLUDE_DIR)/FeatureEmbedding.h
 
-$(OBJ_DIR)/Chunker.o : $(CHUNKER_DIR)/Chunker.cu $(CHUNKER_DIR)/Chunker.h \
-	$(CHUNKER_DIR)/State.h $(CHUNKER_DIR)/Instance.h $(CHUNKER_DIR)/ChunkedSentence.h \
-	$(CHUNKER_DIR)/FeatureExtractor.h $(CHUNKER_DIR)/Config.h $(CHUNKER_DIR)/Beam.h $(CHUNKER_DIR)/BeamDecoder.h \
-	$(CHUNKER_DIR)/Evalb.h \
-	$(INCLUDE_DIR)/FeatureEmbedding.h \
-	$(INCLUDE_DIR)/mshadow/tensor.h $(INCLUDE_DIR)/NNet.h $(INCLUDE_DIR)/Dict.h $(INCLUDE_DIR)/mshadow/*.h $(INCLUDE_DIR)/mshadow/extension/*.h
-
 $(OBJ_DIR)/Beam.o : $(CHUNKER_DIR)/Beam.cpp $(CHUNKER_DIR)/Beam.h $(CHUNKER_DIR)/State.h
 
 $(OBJ_DIR)/ActionStandardSystem.o : $(CHUNKER_DIR)/ActionStandardSystem.h $(CHUNKER_DIR)/ActionStandardSystem.cpp $(CHUNKER_DIR)/State.h
 
+$(OBJ_DIR)/Chunker.o : $(CHUNKER_DIR)/Chunker.cu $(CHUNKER_DIR)/Chunker.h \
+	$(CHUNKER_DIR)/State.h $(CHUNKER_DIR)/Instance.h $(CHUNKER_DIR)/ChunkedSentence.h \
+	$(CHUNKER_DIR)/FeatureType.h $(CHUNKER_DIR)/FeatureManager.h $(CHUNKER_DIR)/FeatureVector.h $(CHUNKER_DIR)/Config.h \
+	$(INCLUDE_DIR)/FeatureEmbedding.h \
+	$(CHUNKER_DIR)/Beam.h $(CHUNKER_DIR)/BeamDecoder.h \
+	$(CHUNKER_DIR)/Evalb.h \
+	$(INCLUDE_DIR)/NNet.h $(INCLUDE_DIR)/TNNets.h \
+	$(INCLUDE_DIR)/mshadow/tensor.h $(INCLUDE_DIR)/Dict.h $(INCLUDE_DIR)/mshadow/*.h $(INCLUDE_DIR)/mshadow/extension/*.h
+
 $(OBJ_DIR)/GreedyChunker.o : $(CHUNKER_DIR)/GreedyChunker.cu $(CHUNKER_DIR)/GreedyChunker.h \
 	$(CHUNKER_DIR)/State.h $(CHUNKER_DIR)/Instance.h $(CHUNKER_DIR)/ChunkedSentence.h \
 	$(CHUNKER_DIR)/FeatureType.h $(CHUNKER_DIR)/FeatureManager.h $(CHUNKER_DIR)/FeatureVector.h $(CHUNKER_DIR)/Config.h \
-	$(CHUNKER_DIR)/Evalb.h \
 	$(INCLUDE_DIR)/FeatureEmbedding.h \
-	$(INCLUDE_DIR)/mshadow/tensor.h $(INCLUDE_DIR)/NNet.h $(INCLUDE_DIR)/Dict.h $(INCLUDE_DIR)/mshadow/*.h $(INCLUDE_DIR)/mshadow/extension/*.h
+	$(CHUNKER_DIR)/Evalb.h \
+	$(INCLUDE_DIR)/NNet.h \
+	$(INCLUDE_DIR)/mshadow/tensor.h $(INCLUDE_DIR)/Dict.h $(INCLUDE_DIR)/mshadow/*.h $(INCLUDE_DIR)/mshadow/extension/*.h
 
 $(BIN) :
 	$(CXX) $(CFLAGS) -o $@ $(filter %.cpp %.o %.c, $^) $(LDFLAGS)

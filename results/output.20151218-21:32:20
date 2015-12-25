@@ -1,0 +1,129 @@
+Chunker: init...
+Training sentences number: 8936
+Dev sentences number: 2012
+------------------------------------
+Chunker: start training...
+Training init...
+  Training Instance num: 8936
+  wordSet size: 19122
+  tagSet size: 44
+  labelSet Size: 13
+	Transition Action Info: 
+		0: B-UCP
+		1: B-CONJP
+		2: B-INTJ
+		3: B-PP
+		4: I
+		5: O
+		6: B-NP
+		7: B-PRT
+		8: B-LST
+		9: B-VP
+		10: B-ADJP
+		11: B-SBAR
+		12: B-ADVP
+		nInside: 4
+		nOutside: 5
+		nBegin: 12
+pretrainWords's size: 129999
+total words's size: 19124
+totally chunk 2012 sentences, time: 123.422 average: 16.3018 sentences/second!
+current iteration FB1-score: 50.05	 best FB1-score: 50.05
+totally chunk 2012 sentences, time: 121.993 average: 16.4927 sentences/second!
+current iteration FB1-score: 69.77	 best FB1-score: 69.77
+totally chunk 2012 sentences, time: 118.731 average: 16.9459 sentences/second!
+current iteration FB1-score: 73.16	 best FB1-score: 73.16
+totally chunk 2012 sentences, time: 125.091 average: 16.0843 sentences/second!
+current iteration FB1-score: 74.36	 best FB1-score: 74.36
+totally chunk 2012 sentences, time: 114.784 average: 17.5286 sentences/second!
+current iteration FB1-score: 76.51	 best FB1-score: 76.51
+totally chunk 2012 sentences, time: 124.551 average: 16.1541 sentences/second!
+current iteration FB1-score: 77.28	 best FB1-score: 77.28
+totally chunk 2012 sentences, time: 117.16 average: 17.1731 sentences/second!
+current iteration FB1-score: 78.50	 best FB1-score: 78.50
+totally chunk 2012 sentences, time: 121.552 average: 16.5526 sentences/second!
+current iteration FB1-score: 78.63	 best FB1-score: 78.63
+totally chunk 2012 sentences, time: 116.486 average: 17.2724 sentences/second!
+current iteration FB1-score: 79.70	 best FB1-score: 79.70
+totally chunk 2012 sentences, time: 109.833 average: 18.3187 sentences/second!
+current iteration FB1-score: 80.12	 best FB1-score: 80.12
+totally chunk 2012 sentences, time: 118.893 average: 16.9228 sentences/second!
+current iteration FB1-score: 80.13	 best FB1-score: 80.13
+totally chunk 2012 sentences, time: 126.16 average: 15.948 sentences/second!
+current iteration FB1-score: 80.28	 best FB1-score: 80.28
+totally chunk 2012 sentences, time: 118.758 average: 16.942 sentences/second!
+current iteration FB1-score: 79.75	 best FB1-score: 80.28
+totally chunk 2012 sentences, time: 122.426 average: 16.4344 sentences/second!
+current iteration FB1-score: 80.30	 best FB1-score: 80.30
+totally chunk 2012 sentences, time: 119.393 average: 16.8519 sentences/second!
+current iteration FB1-score: 80.51	 best FB1-score: 80.51
+totally chunk 2012 sentences, time: 123.267 average: 16.3222 sentences/second!
+current iteration FB1-score: 80.25	 best FB1-score: 80.51
+totally chunk 2012 sentences, time: 114.409 average: 17.5861 sentences/second!
+current iteration FB1-score: 81.05	 best FB1-score: 81.05
+totally chunk 2012 sentences, time: 126.867 average: 15.8592 sentences/second!
+current iteration FB1-score: 80.43	 best FB1-score: 81.05
+totally chunk 2012 sentences, time: 119.168 average: 16.8837 sentences/second!
+current iteration FB1-score: 80.58	 best FB1-score: 81.05
+totally chunk 2012 sentences, time: 126.75 average: 15.8738 sentences/second!
+current iteration FB1-score: 81.10	 best FB1-score: 81.10
+totally chunk 2012 sentences, time: 118.031 average: 17.0463 sentences/second!
+current iteration FB1-score: 81.38	 best FB1-score: 81.38
+totally chunk 2012 sentences, time: 123.181 average: 16.3337 sentences/second!
+current iteration FB1-score: 81.72	 best FB1-score: 81.72
+totally chunk 2012 sentences, time: 117.817 average: 17.0774 sentences/second!
+current iteration FB1-score: 80.82	 best FB1-score: 81.72
+totally chunk 2012 sentences, time: 118.417 average: 16.9908 sentences/second!
+current iteration FB1-score: 81.25	 best FB1-score: 81.72
+totally chunk 2012 sentences, time: 126.114 average: 15.9538 sentences/second!
+current iteration FB1-score: 81.42	 best FB1-score: 81.72
+totally chunk 2012 sentences, time: 122.781 average: 16.3869 sentences/second!
+current iteration FB1-score: 81.96	 best FB1-score: 81.96
+totally chunk 2012 sentences, time: 118.289 average: 17.0092 sentences/second!
+current iteration FB1-score: 82.03	 best FB1-score: 82.03
+totally chunk 2012 sentences, time: 120.455 average: 16.7033 sentences/second!
+current iteration FB1-score: 82.07	 best FB1-score: 82.07
+totally chunk 2012 sentences, time: 117.98 average: 17.0538 sentences/second!
+current iteration FB1-score: 82.67	 best FB1-score: 82.67
+totally chunk 2012 sentences, time: 124.93 average: 16.105 sentences/second!
+current iteration FB1-score: 82.71	 best FB1-score: 82.71
+totally chunk 2012 sentences, time: 118.371 average: 16.9973 sentences/second!
+current iteration FB1-score: 81.89	 best FB1-score: 82.71
+totally chunk 2012 sentences, time: 123.818 average: 16.2497 sentences/second!
+current iteration FB1-score: 82.22	 best FB1-score: 82.71
+totally chunk 2012 sentences, time: 110.163 average: 18.2639 sentences/second!
+current iteration FB1-score: 82.38	 best FB1-score: 82.71
+totally chunk 2012 sentences, time: 118.271 average: 17.0117 sentences/second!
+current iteration FB1-score: 82.30	 best FB1-score: 82.71
+totally chunk 2012 sentences, time: 114.085 average: 17.636 sentences/second!
+current iteration FB1-score: 82.28	 best FB1-score: 82.71
+totally chunk 2012 sentences, time: 124.495 average: 16.1612 sentences/second!
+current iteration FB1-score: 82.38	 best FB1-score: 82.71
+totally chunk 2012 sentences, time: 117.801 average: 17.0796 sentences/second!
+current iteration FB1-score: 82.58	 best FB1-score: 82.71
+totally chunk 2012 sentences, time: 117.371 average: 17.1423 sentences/second!
+current iteration FB1-score: 82.62	 best FB1-score: 82.71
+totally chunk 2012 sentences, time: 107.328 average: 18.7463 sentences/second!
+current iteration FB1-score: 82.28	 best FB1-score: 82.71
+totally chunk 2012 sentences, time: 112.751 average: 17.8446 sentences/second!
+current iteration FB1-score: 82.71	 best FB1-score: 82.71
+totally chunk 2012 sentences, time: 111.486 average: 18.0471 sentences/second!
+current iteration FB1-score: 82.50	 best FB1-score: 82.71
+totally chunk 2012 sentences, time: 126.147 average: 15.9497 sentences/second!
+current iteration FB1-score: 82.51	 best FB1-score: 82.71
+totally chunk 2012 sentences, time: 109.814 average: 18.3219 sentences/second!
+current iteration FB1-score: 83.09	 best FB1-score: 83.09
+totally chunk 2012 sentences, time: 117.034 average: 17.1916 sentences/second!
+current iteration FB1-score: 81.86	 best FB1-score: 83.09
+totally chunk 2012 sentences, time: 116.995 average: 17.1973 sentences/second!
+current iteration FB1-score: 83.06	 best FB1-score: 83.09
+totally chunk 2012 sentences, time: 124.107 average: 16.2118 sentences/second!
+current iteration FB1-score: 82.67	 best FB1-score: 83.09
+totally chunk 2012 sentences, time: 102.161 average: 19.6944 sentences/second!
+current iteration FB1-score: 82.99	 best FB1-score: 83.09
+totally chunk 2012 sentences, time: 115.689 average: 17.3915 sentences/second!
+current iteration FB1-score: 82.42	 best FB1-score: 83.09
+totally chunk 2012 sentences, time: 107.417 average: 18.7307 sentences/second!
+current iteration FB1-score: 82.45	 best FB1-score: 83.09
+totally chunk 2012 sentences, time: 116.895 average: 17.212 sentences/second!
+current iteration FB1-score: 82.19	 best FB1-score: 83.09

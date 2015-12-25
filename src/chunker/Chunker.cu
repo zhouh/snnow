@@ -45,7 +45,7 @@ Chunker::~Chunker() {
 }
     
 double Chunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, NNetPara<XPU> &netsParas) {
-    const int num_in = CConfig::nEmbeddingDim * CConfig::nFeatureNum;
+    const int num_in = m_featManager->totalFeatSize;
     const int num_hidden = CConfig::nHiddenSize;
     const int num_out = m_transitionSystem->nActNum;
     const int beam_size = CConfig::nBeamSize;
@@ -60,8 +60,7 @@ double Chunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, NNe
 
         BeamDecoder decoder(&(devInstances[inst]), 
                             m_transitionSystem.get(),
-                            m_featExtractor.get(),
-                            m_fEmb.get(),
+                            m_featManager.get(),
                             m_nBeamSize, 
                             false);
 
@@ -80,13 +79,14 @@ double Chunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, NNe
 }
 
 void Chunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, ChunkedDataSet &devGoldSet, InstanceSet &devSet) {
+    std::cerr << "Initing FeatureManager & ActionStandardSystem & generateTrainingExamples..." << std::endl;
     initTrain(trainGoldSet, trainSet);
 
-    m_featExtractor->generateInstanceSetCache(devSet);
+    std::cerr << "Excuting devset generateInstanceSetCache & readPretrainEmbeddings..." << std::endl;
+    m_featManager->generateInstanceSetCache(devSet);
+    m_featManager->readPretrainEmbeddings(CConfig::strEmbeddingPath);
 
-    m_featExtractor->readPretrainEmbeddings(CConfig::strEmbeddingPath, *m_fEmb);
-
-    const int num_in = CConfig::nEmbeddingDim * CConfig::nFeatureNum;
+    const int num_in = m_featManager->totalFeatSize;
     const int num_hidden = CConfig::nHiddenSize;
     const int num_out = m_transitionSystem->nActNum;
     const int batch_size = std::min(CConfig::nBatchSize, static_cast<int>(gExamples.size()));
@@ -152,8 +152,7 @@ void Chunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chunked
                 // std::cerr << "begin to decode!" << std::endl;
                 BeamDecoder decoder(&(example->instance), 
                                     m_transitionSystem.get(),
-                                    m_featExtractor.get(),
-                                    m_fEmb.get(),
+                                    m_featManager.get(),
                                     m_nBeamSize, 
                                     true);
 
@@ -181,22 +180,17 @@ void Chunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
     cerr << "Training init..." << endl;
     cerr << "  Training Instance num: " << trainSet.size() << endl;
 
-    m_featExtractor.reset(new FeatureExtractor());
-    m_featExtractor->getDictionaries(goldSet);
+    m_featManager.reset(new FeatureManager());
+    m_featManager->init(goldSet, CConfig::fInitRange);
 
     m_transitionSystem.reset(new ActionStandardSystem());
-    m_transitionSystem->makeTransition(m_featExtractor->getKnownLabels());
+    m_transitionSystem->makeTransition(m_featManager->getKnownLabels());
 
 #ifdef DEBUG
     m_transitionSystem->displayLabel2ActionIdx();
 #endif
 
-    m_fEmb.reset(new FeatureEmbedding(m_featExtractor->size(),
-            CConfig::nFeatureNum,
-            CConfig::nEmbeddingDim,
-            m_nBeamSize));
-
-    m_featExtractor->generateTrainingExamples(*(m_transitionSystem.get()), trainSet, goldSet, gExamples);
+    m_featManager->generateTrainingExamples(*(m_transitionSystem.get()), trainSet, goldSet, gExamples);
 
 #ifdef DEBUG1
     std::cerr << "train set size: " << trainSet.size() << std::endl;

@@ -259,6 +259,7 @@ void GreedyChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
     using std::cerr;
     using std::endl;
 
+    cerr << "Training init..." << endl;
     m_featManager.reset(new FeatureManager());
     m_featManager->init(goldSet, CConfig::fInitRange);
 
