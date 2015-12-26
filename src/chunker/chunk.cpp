@@ -13,8 +13,8 @@
 #include "Config.h"
 #include "ChunkedSentence.h"
 #include "Instance.h"
-#include "GreedyChunker.h"
-// #include "Chunker.h"
+// #include "GreedyChunker.h"
+#include "Chunker.h"
 
 using std::cerr;
 using std::endl;
@@ -82,8 +82,8 @@ int main(int argc, char *argv[]) {
         count++;
     }
 
-    GreedyChunker chunker(true);
-    // Chunker chunker(true);
+    // GreedyChunker chunker(true);
+    Chunker chunker(true);
     cerr << "Dev sentences number: " << count << endl;
     cerr << "------------------------------------" << endl;
 

@@ -84,7 +84,6 @@ void Chunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chunked
 
     std::cerr << "Excuting devset generateInstanceSetCache & readPretrainEmbeddings..." << std::endl;
     m_featManager->generateInstanceSetCache(devSet);
-    m_featManager->readPretrainEmbeddings(CConfig::strEmbeddingPath);
 
     const int num_in = m_featManager->totalFeatSize;
     const int num_hidden = CConfig::nHiddenSize;
@@ -96,6 +95,8 @@ void Chunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chunked
     omp_set_num_threads(CConfig::nThread);
 
     srand(0);
+
+    InitTensorEngine<XPU>();
 
     NNetPara<XPU> netsParas(beam_size, num_in, num_hidden, num_out);
 
@@ -171,6 +172,8 @@ void Chunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chunked
         } // end multi-processor
         NNet<XPU>::UpdateCumulateGrads(batchCumulatedGrads, &netsParas);
     } // end total iteration
+
+    ShutdownTensorEngine<XPU>();
 }
     
 void Chunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
@@ -181,10 +184,10 @@ void Chunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
     cerr << "  Training Instance num: " << trainSet.size() << endl;
 
     m_featManager.reset(new FeatureManager());
-    m_featManager->init(goldSet, CConfig::fInitRange);
+    m_featManager->init(goldSet, CConfig::fInitRange, true, CConfig::strEmbeddingPath);
 
     m_transitionSystem.reset(new ActionStandardSystem());
-    m_transitionSystem->makeTransition(m_featManager->getKnownLabels());
+    m_transitionSystem->init(goldSet);
 
 #ifdef DEBUG
     m_transitionSystem->displayLabel2ActionIdx();

@@ -34,11 +34,11 @@ int CConfig::nBatchSize = 1000;
 
 int CConfig::nEvaluatePerIters = 20;
 
-int CConfig::nThread = 5;
+int CConfig::nThread = 1;
 
 double CConfig::fRegularizationRate = 1e-8;
 
-double CConfig::fBPRate = 0.01;
+double CConfig::fBPRate = 0.1;
 
 double CConfig::fInitRange = 0.1;
 

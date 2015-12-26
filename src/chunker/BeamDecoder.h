@@ -120,8 +120,6 @@ public:
         lattice_index[0] = lattice;
         lattice_index[1] = lattice_index[0] + 1;
 
-        // set up mshadow tensor
-        InitTensorEngine<XPU>();
         // for every round in training
         for (nRound = 1; nRound <= nMaxRound; nRound++) {
             // temporary input layer
@@ -142,14 +140,7 @@ public:
             // extract features and generate input embeddings
             // std::vector<std::vector<int>> featureVectors; // extracted feature vectors in batch.
             std::vector<FeatureVector> featureVectors;
-            if (nRound == 1) { // TODO ??
-                featureVectors.push_back(FeatureVector(featManager->featTypes, featManager->featEmbs));
-            } else {
-                for (int bi = 0; bi < beam.currentBeamSize; bi++) {
-                    featureVectors.push_back(FeatureVector(featManager->featTypes, featManager->featEmbs));
-                }
-            }
-            // featureVectors.resize(nRound == 1 ? 1 : beam.currentBeamSize);
+            featureVectors.resize(nRound == 1 ? 1 : beam.currentBeamSize);
             generateInputBatch(*featManager, lattice_index[nRound - 1], *(inst), featureVectors);
             featManager->returnInput(featureVectors, input, CConfig::nBeamSize);
 
@@ -223,9 +214,6 @@ public:
             // prepare lattice for next chunking round
             lattice_index[nRound + 1] = lattice_index[nRound] + beam.currentBeamSize;
         }
-
-        // shut down mshadow tensor engine
-        ShutdownTensorEngine<XPU>();
 
         return retval; // return without early updating
     }
