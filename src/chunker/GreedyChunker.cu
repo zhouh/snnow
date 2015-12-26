@@ -115,10 +115,9 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
     std::cerr << "Initing FeatureManager & ActionStandardSystem & generateTrainingExamples..." << std::endl;
     initTrain(trainGoldSet, trainSet);
 
-    std::cerr << "Excuting devset generateInstanceSetCache & readPretrainEmbeddings..." << std::endl;
+    std::cerr << "Excuting devset generateInstanceSetCache..." << std::endl;
     m_featManager->generateInstanceSetCache(devSet);
     std::cerr << "  Greedy train set size: " << trainExamplePtrs.size() << std::endl;
-    m_featManager->readPretrainEmbeddings(CConfig::strEmbeddingPath);
 
     const static int num_in = m_featManager->totalFeatSize;
     const static int num_hidden = CConfig::nHiddenSize;
@@ -261,10 +260,10 @@ void GreedyChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
 
     cerr << "Training init..." << endl;
     m_featManager.reset(new FeatureManager());
-    m_featManager->init(goldSet, CConfig::fInitRange);
+    m_featManager->init(goldSet, CConfig::fInitRange, true, CConfig::strEmbeddingPath);
 
     m_transitionSystem.reset(new ActionStandardSystem());
-    m_transitionSystem->makeTransition(m_featManager->getKnownLabels());
+    m_transitionSystem->init(goldSet);
 
     m_featManager->generateTrainingExamples(*(m_transitionSystem.get()), trainSet, goldSet, gExamples);
 
@@ -293,7 +292,6 @@ State* GreedyChunker::decode(Instance *inst, NNetPara<XPU> &paras, State *lattic
 
     lattice[0].clear();
 
-    InitTensorEngine<XPU>();
     for (int nRound = 1; nRound <= nMaxRound; nRound++){
         State *currentState = lattice + nRound - 1;
         State *target = lattice + nRound;
@@ -305,7 +303,7 @@ State* GreedyChunker::decode(Instance *inst, NNetPara<XPU> &paras, State *lattic
         pred.Resize(Shape2(1, num_out));
        
         std::vector<FeatureVector> featureVectors;
-        featureVectors.push_back(FeatureVector(fManager.featTypes, fManager.featEmbs));
+        featureVectors.resize(1);
         generateInputBatch(currentState, inst, featureVectors);
         fManager.returnInput(featureVectors, input, 1);
 
@@ -333,8 +331,6 @@ State* GreedyChunker::decode(Instance *inst, NNetPara<XPU> &paras, State *lattic
         tranSystem.move(*currentState, *target, trans);
         retval = target;
     }
-
-    ShutdownTensorEngine<XPU>();
 
     return retval;
 }

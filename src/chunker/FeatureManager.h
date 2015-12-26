@@ -11,13 +11,15 @@
 #include <string>
 #include <vector>
 #include <tuple>
+#include <memory>
 #include <tr1/unordered_map>
 
-#include "FeatureEmbedding.h"
 #include "mshadow/tensor.h"
 
+#include "FeatureExtractor.h"
+#include "ChunkerDataManager.h"
+
 #include "FeatureVector.h"
-#include "FeatureType.h"
 #include "ChunkedSentence.h"
 #include "ActionStandardSystem.h"
 #include "Instance.h"
@@ -26,66 +28,33 @@
 
 class FeatureManager {
 public:
-    typedef std::tuple<std::string, int, int, int> FeatureTypeArg;
-
-public:
-    FeatureType *labelFeature;
-    FeatureType *posFeature;
-
-    std::vector<FeatureType *> featTypes;
-    std::vector<FeatureEmbedding *> featEmbs;
-    std::vector<int> featSizeOfFeatType;
-    int featTypeNum;
-    int coreFeatNum;
+    ChunkerDataManager dataManager;
+    std::vector<std::shared_ptr<FeatureExtractor>> featExtractorPtrs;
     int totalFeatSize;
-    
-    const std::string WORDFEATSTR = "Word Feature";
-    int WORDFEATIDX = -1;
-    // const std::string POSFEATSTR  = "POS-tag Feature";
-    // int POSFEATIDX = -1;
-    // const std::string LABELFEATSTR = "Chunk-label Feature";
-    // int LABELFEATIDX = -1;
-    const std::string CAPFEATSTR = "Word-capital Feature";
-    int CAPFEATIDX = -1;
 
 public:
     FeatureManager() { }
-    ~FeatureManager() {
-        delete labelFeature;
-        delete posFeature;
-        for (int i = 0; i < featTypes.size(); i++) {
-            delete featTypes[i];
-        }
+    ~FeatureManager() { }
 
-        for (int i = 0; i < featEmbs.size(); i++) {
-            delete featEmbs[i];
-        }
-    }
-
-    void init(const ChunkedDataSet &goldSet, double initRange);
+    void init(const ChunkedDataSet &goldSet, double initRange, const bool readPretrainEmbs = false, const std::string &pretrainFile = "");
 
     void extractFeature(State &state, Instance &inst, FeatureVector &features);
 
-    void generateInstanceCache(Instance &inst);
-
-    const std::vector<std::string> getKnownLabels() const {
-        return labelFeature->getKnownFeatures();
-    }
+    void generateTrainingExamples(ActionStandardSystem &transitionSystem, InstanceSet &instSet, ChunkedDataSet &goldSet, GlobalExamples &gExamples);
 
     void generateInstanceSetCache(InstanceSet &instSet) {
         for (auto &inst : instSet) {
-            generateInstanceCache(inst);
+            dataManager.generateInstanceCache(inst);
         }
     }
-
-    int readPretrainEmbeddings(std::string &pretrainFile);
-
-    void generateTrainingExamples(ActionStandardSystem &transitionSystem, InstanceSet &instSet, ChunkedDataSet &goldSet, GlobalExamples &gExamples);
 
     /*
      * construct the input by x = beamIndex, y = featureLayerIndex
      */
 	void returnInput(std::vector<FeatureVector> &featVecs, TensorContainer<cpu, 2, double>& input, int beamSize);
+
+private:
+    int readPretrainedEmbeddings(const std::string &pretrainFile, const std::tr1::unordered_map<std::string, int> &word2IdxMap, FeatureEmbedding *fEmb);
 };
 
 #endif

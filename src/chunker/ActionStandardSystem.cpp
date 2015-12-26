@@ -13,6 +13,11 @@
 #define DEBUG2
 #endif
 
+void ActionStandardSystem::init(const ChunkedDataSet &goldSet) {
+    labelManager.makeDictionaries(goldSet);
+    makeTransition(labelManager.getKnownLabels());
+}
+
 void ActionStandardSystem::makeTransition(const std::vector<std::string> &knowLabels) {
     this->knowLabels = knowLabels;
 
@@ -49,7 +54,7 @@ int ActionStandardSystem::labelIdx2ActionIdx(const int actionType, const int lab
     return labelIdx;
 }
 
-int ActionStandardSystem::actionIdx2actionType(const int actionIdx) {
+int ActionStandardSystem::actionIdx2ActionType(const int actionIdx) {
     if (actionIdx == nOutside || actionIdx == nInside) {
         return actionIdx;
     } else {
@@ -58,7 +63,7 @@ int ActionStandardSystem::actionIdx2actionType(const int actionIdx) {
 }
 
 int ActionStandardSystem::actionIdx2LabelIdx(const int actionIdx) {
-    const int actionType = actionIdx2actionType(actionIdx);
+    const int actionType = actionIdx2ActionType(actionIdx);
 
     if (actionType == nOutside || actionType == nInside) {
         return actionType;
@@ -68,7 +73,7 @@ int ActionStandardSystem::actionIdx2LabelIdx(const int actionIdx) {
 }
 
 void ActionStandardSystem::move(const State &srcState, State &dstState, const CScoredTransition &transition) {
-    int actionType = actionIdx2actionType(transition.action);
+    int actionType = actionIdx2ActionType(transition.action);
 
     if (actionType == nOutside) {
         doOutsideMove(const_cast<State &>(srcState), dstState, transition);

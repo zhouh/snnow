@@ -9,38 +9,12 @@
 
 #include <vector>
 
-#include "FeatureType.h"
-#include "FeatureEmbedding.h"
-
 class FeatureVector {
 public:
-    const std::vector<FeatureType *> &featTypes;
-    const std::vector<FeatureEmbedding *> &featEmbs;
     std::vector<std::vector<int>> features;
 
-    FeatureVector(const std::vector<FeatureType *> &featureTypes, const std::vector<FeatureEmbedding *> &featureEmbs) : featTypes(featureTypes), featEmbs(featureEmbs) { 
-    
-    }
-
-    FeatureVector(const FeatureVector &featVec) : featTypes(featVec.featTypes), featEmbs(featVec.featEmbs), features(featVec.features) {
-
-    }
-
-    FeatureVector& operator= (const FeatureVector &featVec) {
-        if (this == &featVec) {
-            return *this;
-        }
-
-        this->features = featVec.features;
-
-        return *this;
-    }
-
+    FeatureVector() {}
     ~FeatureVector() {}
-
-    int size() {
-        return static_cast<int>(featTypes.size());
-    }
 
     void resize(int capacity) {
         features.resize(capacity);
@@ -50,7 +24,7 @@ public:
         return features[index];
     }
 
-    void push_back(std::vector<int> &feature) {
+    void push_back(std::vector<int> feature) {
         features.push_back(feature);
     }
 };

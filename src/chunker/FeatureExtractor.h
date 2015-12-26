@@ -1,170 +1,123 @@
 /*************************************************************************
-	> File Name: FeatureExtractor.h
+	> File Name: Feature.h
 	> Author: cheng chuan
 	> Mail: cc.square0@gmail.com 
-	> Created Time: Thu 19 Nov 2015 02:42:44 PM CST
+	> Created Time: Sat 26 Dec 2015 03:48:13 PM CST
  ************************************************************************/
 #ifndef _CHUNKER_FEATUREEXTRACTOR_H_
 #define _CHUNKER_FEATUREEXTRACTOR_H_
 
-#include <iostream>
 #include <string>
-#include <vector>
-#include <cctype>
-#include <tr1/unordered_map>
+#include <memory>
 
 #include "FeatureEmbedding.h"
-
-#include "ChunkedSentence.h"
-#include "ActionStandardSystem.h"
-#include "Instance.h"
-#include "Example.h"
+#include "DataManager.h"
 #include "State.h"
+#include "Instance.h"
 
-class FeatureExtractor{
-    std::vector<std::string> m_lKnownWords;
-    std::vector<std::string> m_lKnownTags;
-    std::vector<std::string> m_lKnownLabels;
-    std::tr1::unordered_map<std::string, int> m_mWord2Idx;
-    std::tr1::unordered_map<std::string, int> m_mTag2Idx;
-    std::tr1::unordered_map<std::string, int> m_mLabel2Idx;
+struct FeatureType {
+    const std::string typeName;
+    const int featSize;
+    const int featEmbSize;
 
-    std::vector<std::string> m_lKnownCapfeats;
-    std::tr1::unordered_map<std::string, int> m_mCapfeat2Idx;
+    FeatureType(const std::string &name, const int featureSize, const int featureEmbSize) : typeName(name), featSize(featureSize), featEmbSize(featureEmbSize) {}
+};
 
-    int wordNullIdx;
-    int wordUnkIdx;
-    int wordNumIdx;
-    int tagNullIdx;
-    int tagUnkIdx;
-    int labelNullIdx;
-    int labelUnkIdx;
-
-    int capfeatNullIdx;
-    int capfeatUnkIdx;
+class FeatureExtractor {
+public:
+    const FeatureType featType;
+    std::unique_ptr<FeatureEmbedding> fEmbPtr;
+    std::shared_ptr<DataManager> dataManagerPtr;
 
 public:
-    static std::string nullstr;
-    static std::string unknownstr;
-    static std::string numberstr;
+    FeatureExtractor(FeatureType &fType, std::shared_ptr<DataManager> dManagerPtr, FeatureEmbedding *fEmb) : featType(fType), dataManagerPtr(dManagerPtr), fEmbPtr(fEmb)
+    {
+    }
+    virtual ~FeatureExtractor() {}
 
-    static std::string noncapitalstr;
-    static std::string allcapitalstr;
-    static std::string firstlettercapstr;
-    static std::string hadonecapstr;
+    FeatureExtractor(const FeatureExtractor &fe) = delete;
+    FeatureExtractor& operator= (const FeatureExtractor &fe) = delete;
 
+    virtual std::vector<int> extract(State &state, Instance &inst) = 0;
+};
+
+class WordFeatureExtractor : public FeatureExtractor {
 public:
-    FeatureExtractor() {}
+    WordFeatureExtractor(FeatureType &fType, std::shared_ptr<DataManager> dManagerPtr, FeatureEmbedding *fEmb) : 
+    FeatureExtractor(fType, dManagerPtr, fEmb)
+    {
 
-    int size() {
-        return m_mWord2Idx.size() + m_mTag2Idx.size() + m_mLabel2Idx.size() + m_mCapfeat2Idx.size();
     }
+    ~WordFeatureExtractor() {}
+    
+    std::vector<int> extract(State &state, Instance &inst) {
+        std::vector<int> features;
 
-    void printDict() {
-        std::cerr << "knownwords size: " << m_lKnownWords.size() << std::endl;
-        std::cerr << "knowntags size: " << m_lKnownTags.size() << std::endl;
-        std::cerr << "knownlabels size: " << m_lKnownLabels.size() << std::endl;
-    }
-
-    int word2WordIdx(const std::string &s) {
-        if (isNumber(s)) {
-            return wordNumIdx;
-        }
-
-        auto it = m_mWord2Idx.find(s);
-
-        return (it == m_mWord2Idx.end()) ? wordUnkIdx : it->second;
-    }
-
-    int tag2TagIdx(const std::string &s) {
-        auto it = m_mTag2Idx.find(s);
-
-        return (it == m_mTag2Idx.end()) ? tagUnkIdx : it->second;
-    }
-
-    int label2LabelIdx(const std::string &s) {
-        auto it = m_mLabel2Idx.find(s);
-
-        if (it == m_mLabel2Idx.end()) {
-            std::cerr << "Chunk label not found: " << s << std::endl;
-            exit(1);
-        }
-
-        return it->second;
-    }
-
-    int word2CapfeatIdx(const std::string &s) {
-        bool isNoncap = true;
-        bool isAllcap = true;
-        bool isFirstCap = false;
-        bool isHadCap  = false;
-
-        if (isupper(s[0])) {
-            isFirstCap = true;
-        }
-
-        for (char ch : s) {
-            if (isupper(ch)) {
-                isHadCap = true;
-                isNoncap = false;
-            } else {
-                isAllcap = false;
+        auto getWordIndex = [&state, &inst, this](int index) -> int {
+            if (index < 0 || index >= state.m_nLen) {
+                return this->dataManagerPtr->nullIdx;
             }
-        }
 
-        if (isNoncap) {
-            return m_mCapfeat2Idx[noncapitalstr];
-        }
+            return inst.wordCache[index];
+        };
+        
+        int currentIndex = state.m_nIndex + 1;
+        int IDIdx = 0;
 
-        if (isAllcap) {
-            return m_mCapfeat2Idx[allcapitalstr];
-        }
+        features.resize(featType.featSize);
 
-        if (isFirstCap) {
-            return m_mCapfeat2Idx[firstlettercapstr];
-        }
+        int neg2UniWord   = getWordIndex(currentIndex - 2);
+        int neg1UniWord   = getWordIndex(currentIndex - 1);
+        int pos0UniWord   = getWordIndex(currentIndex);
+        int pos1UniWord   = getWordIndex(currentIndex + 1);
+        int pos2UniWord   = getWordIndex(currentIndex + 2);
+        features[IDIdx++] = neg2UniWord;
+        features[IDIdx++] = neg1UniWord;
+        features[IDIdx++] = pos0UniWord;
+        features[IDIdx++] = pos1UniWord;
+        features[IDIdx++] = pos2UniWord;
 
-        if (isHadCap) {
-            return m_mCapfeat2Idx[hadonecapstr];
-        }
-
-        std::cerr << "word2CapfeatIdx wrong: " << s << std::endl;
-        exit(1);
+        return features;
     }
+};
 
-    const std::vector<std::string>& getKnownLabels() const {
-        return m_lKnownLabels;
+class CapitalFeatureExtractor : public FeatureExtractor {
+public:
+    CapitalFeatureExtractor(FeatureType &fType, std::shared_ptr<DataManager> dManagerPtr, FeatureEmbedding *fEmb) : 
+        FeatureExtractor(fType, dManagerPtr, fEmb)
+    {
     }
+    ~CapitalFeatureExtractor() {}
+    
+    std::vector<int> extract(State &state, Instance &inst) {
+        std::vector<int> features;
 
-    static std::string processWord(const std::string &word) {
-        std::string low_word(word);
-
-        std::transform(low_word.begin(), low_word.end(), low_word.begin(), ::tolower);
-
-        return low_word;
-    }
-
-    static bool isNumber(const std::string &word) {
-        for (char ch : word) {
-            if (!isdigit(ch)){
-                return false;
+        auto getCapfeatIndex = [&state, &inst, this](int index) -> int {
+            if (index < 0 || index >= state.m_nLen) {
+                return this->dataManagerPtr->nullIdx;
             }
-        }
 
-        return true;
+            return inst.capfeatCache[index];
+        };
+
+        int currentIndex = state.m_nIndex + 1;
+        int IDIdx = 0;
+
+        features.resize(featType.featSize);
+
+        int pos0UniCap    = getCapfeatIndex(currentIndex);
+        //int neg2UniCap    = getCapfeatIndex(currentIndex - 2);
+        //int neg1UniCap    = getCapfeatIndex(currentIndex - 1);
+        //int pos1UniCap    = getCapfeatIndex(currentIndex + 1);
+        //int pos2UniCap    = getCapfeatIndex(currentIndex + 2);
+        features[IDIdx++] = pos0UniCap;
+        // features[IDIdx++] = neg2UniCap;
+        // features[IDIdx++] = neg1UniCap;
+        // features[IDIdx++] = pos1UniCap;
+        // features[IDIdx++] = pos2UniCap;
+
+        return features;
     }
-
-    void getDictionaries(const ChunkedDataSet &goldSet);
-
-    void generateInstanceCache(Instance &inst);
-
-    void generateInstanceSetCache(InstanceSet &instSet);
-
-    void extractFeature(State &state, Instance &inst, std::vector<int> &features);
-
-    void generateTrainingExamples(ActionStandardSystem &transitionSystem, InstanceSet &instSet, ChunkedDataSet &goldSet, GlobalExamples &gExamples);
-
-    int readPretrainEmbeddings(std::string &pretrainFile, FeatureEmbedding &fe);
 };
 
 #endif

@@ -17,19 +17,7 @@ public:
     FeatureVector features;
     std::vector<int> labels;
 
-    Example(FeatureVector &f, std::vector<int> &l) : features(f), labels(l){
-
-    }
-    Example(const Example &e) : features(e.features), labels(e.labels) {}
-    Example& operator=(const Example &e) {
-        if (this == &e) {
-            return *this;
-        }
-
-        this->features = e.features;
-        this->labels = e.labels;
-
-        return *this;
+    Example(const FeatureVector &f, const std::vector<int> &l) : features(f), labels(l){
     }
 
     ~Example() {}

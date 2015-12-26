@@ -18,13 +18,13 @@
 #include "FeatureManager.h"
 #include "ChunkedSentence.h"
 #include "ActionStandardSystem.h"
-#include "FeatureEmbedding.h"
 #include "Instance.h"
 
 class GreedyChunker {
 public:
     typedef std::vector<Example *> ExamplePtrs;
 private:
+    LabelManager labelManager;
     std::shared_ptr<ActionStandardSystem> m_transitionSystem;
     std::shared_ptr<FeatureManager> m_featManager;
 
