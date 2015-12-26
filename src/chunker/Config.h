@@ -29,10 +29,10 @@ public:
     static int nEvaluatePerIters;
     static int nThread;
 
-    static double fRegularizationRate;
-    static double fBPRate;
-    static double fInitRange;
-    static double fAdaEps;
+    static float fRegularizationRate;
+    static float fBPRate;
+    static float fInitRange;
+    static float fAdaEps;
 
     static bool bDropOut;
 };

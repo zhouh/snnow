@@ -154,7 +154,27 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
         // prepare mini-batch data for each threads
         std::random_shuffle(trainExamplePtrs.begin(), trainExamplePtrs.end());
         generateMultiThreadsMiniBatchData(multiThread_miniBatch_data);
-        UpdateGrads<XPU> batchCumulatedGrads(netsParas.stream, num_in, num_hidden, num_out);
+        
+/*
+ * used for multi-thread mini-batch training for temporary store
+ * gradients of each thread
+ */
+template<typename xpu>
+struct UpdateGrads{
+    TensorContainer<xpu, 1, real_t> cg_hbias;
+    TensorContainer<xpu, 2, real_t> cg_Wi2h, cg_Wh2o;
+
+    UpdateGrads(Stream<xpu> *stream, int num_in, int num_hidden, int num_out){
+        cg_hbias.set_stream(stream);
+        cg_Wi2h.set_stream(stream);
+        cg_Wh2o.set_stream(stream);
+
+        cg_Wi2h.Resize(Shape2(num_in, num_hidden), static_cast<real_t>(0.0));  
+        cg_Wh2o.Resize(Shape2(num_hidden, num_out), static_cast<real_t>(0.0)); 
+        cg_hbias.Resize(Shape1(num_hidden), static_cast<real_t>(0.0)); 
+    }
+};
+pdateGrads<XPU> batchCumulatedGrads(netsParas.stream, num_in, num_hidden, num_out);
 
 
 #pragma omp parallel
