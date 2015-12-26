@@ -45,165 +45,11 @@ struct mySqrt{
     }
 };
 
-/*
- * parameters of a neural net
- */
-template<typename xpu>
-struct NNetPara{
-  Stream<xpu> *stream = NewStream<xpu>();
-  TensorContainer<xpu, 2, real_t> Wi2h, Wh2o;
-  TensorContainer<xpu, 1, real_t> hbias;
-  TensorContainer<xpu, 2, real_t> eg2Wi2h, eg2Wh2o;
-  TensorContainer<xpu, 1, real_t> eg2Hbias;
-  // random seed generator
-  Random<xpu, real_t> rnd;  
-  
-
-  NNetPara(int batch_size, int num_in, int num_hidden, int num_out) : rnd(0) {
-
-    Wi2h.set_stream(stream);
-    Wh2o.set_stream(stream);
-    hbias.set_stream(stream);
-    Wi2h.Resize(Shape2(num_in, num_hidden), static_cast<real_t>(0.0));  
-    Wh2o.Resize(Shape2(num_hidden, num_out), static_cast<real_t>(0.0)); 
-    
-    rnd.SampleUniform(&Wi2h, -0.01, 0.01f);
-    rnd.SampleUniform(&Wh2o, -0.01, 0.01f);
-
-    
-    hbias.Resize(Shape1(num_hidden), static_cast<real_t>(0.0)); 
-    rnd.SampleUniform(&hbias, -0.01, 0.01f);
-
-    /*
-     * assert the tensor is not NaN
-     */
-    /*assert( !is2TensorNaN(Wi2h) );*/
-    //assert( !is2TensorNaN(Wh2o) );
-    //assert( !is1TensorNaN(hbias) );
-
-    eg2Wi2h.set_stream(stream);
-    eg2Wh2o.set_stream(stream);
-    eg2Hbias.set_stream(stream);
-    eg2Wi2h.Resize(Shape2(num_in, num_hidden), static_cast<real_t>(0.0));  
-    eg2Wh2o.Resize(Shape2(num_hidden, num_out), static_cast<real_t>(0.0)); 
-    eg2Hbias.Resize(Shape1(num_hidden), static_cast<real_t>(0.0)); 
-
-  }
-
-  void saveModel( std::ostream & os ){
-      
-      /*
-       * write the Wi2h
-       */
-      os << Wi2h.size(0) << "\t" << Wi2h.size( 1 ) << std::endl;
-      for( index_t i = 0; i < Wi2h.size( 0 ); i++ )
-          for( index_t j = 0; j < Wi2h.size( 1 ); j++ ){
-              os << Wi2h[ i ][ j ];
-              if( j == ( Wi2h.size( 1 ) - 1 ) )
-                  os << std::endl;
-              else
-                  os << " ";
-
-          }
-      
-      /*
-       * write the Wh2o
-       */
-      os << Wh2o.size(0) << "\t" << Wh2o.size( 1 ) << std::endl;
-      for( index_t i = 0; i < Wh2o.size( 0 ); i++ )
-          for( index_t j = 0; j < Wh2o.size( 1 ); j++ ){
-              os << Wh2o[ i ][ j ];
-              if( j == ( Wh2o.size( 1 ) - 1 ) )
-                  os << std::endl;
-              else
-                  os << " ";
-
-          }
-
-      /*
-       * write the hbias
-       */
-      os << hbias.size(0) << std::endl;
-      for( index_t i = 0; i < hbias.size( 0 ); i++ ){
-          os << hbias[ i ];
-          if(  i == ( hbias.size( 0 ) - 1 ) )
-              os << std::endl;
-          else
-              os << " ";
-
-      }
-  }
-
-  void loadModel( std::istream & is ){
-      
-      std::string line;
-      index_t size0, size1;
-      /*
-       * read Wi2h
-       */
-      getline( is, line );
-      std::istringstream iss(line);
-      iss >> size0 >> size1; 
-      for( index_t i = 0; i < size0; i++  ){
-          getline( is, line );
-          std::istringstream iss_j( line );
-          for( index_t j = 0; j < size1; j++ )
-              iss_j >> Wi2h[ i ][ j ];
-      }
-
-      /*
-      * read Wh2o
-      */
-      getline( is, line );
-      std::istringstream iss_wh2o(line);
-      iss_wh2o >> size0 >> size1; 
-      for( index_t i = 0; i < size0; i++  ){
-          getline( is, line );
-          std::istringstream iss_wh2o_j( line );
-          for( index_t j = 0; j < size1; j++ )
-              iss_wh2o_j >> Wh2o[ i ][ j ];
-      }
-
-      /*
-      * read hbias
-      */
-      getline( is, line );
-      std::istringstream iss_hbias(line);
-      iss_hbias >> size0; 
-      getline( is, line );
-      std::istringstream iss_hbias_j( line );
-      for( index_t i = 0; i < size0; i++  ){
-          iss_hbias_j >> hbias[ i ];
-      }
-  }
-
-};
-
-/*
- * used for multi-thread mini-batch training for temporary store
- * gradients of each thread
- */
-template<typename xpu>
-struct UpdateGrads{
-    TensorContainer<xpu, 1, real_t> cg_hbias;
-    TensorContainer<xpu, 2, real_t> cg_Wi2h, cg_Wh2o;
-
-    UpdateGrads(Stream<xpu> *stream, int num_in, int num_hidden, int num_out){
-        cg_hbias.set_stream(stream);
-        cg_Wi2h.set_stream(stream);
-        cg_Wh2o.set_stream(stream);
-
-        cg_Wi2h.Resize(Shape2(num_in, num_hidden), static_cast<real_t>(0.0));  
-        cg_Wh2o.Resize(Shape2(num_hidden, num_out), static_cast<real_t>(0.0)); 
-        cg_hbias.Resize(Shape1(num_hidden), static_cast<real_t>(0.0)); 
-    }
-};
-
 template<typename xpu>
 class NNet{
  public:
   // initialize the network
-  NNet(int batch_size, int num_in, int num_hidden, int num_out, NNetPara<xpu>* paras) {
+  NNet(int batch_size, int num_in, int num_hidden, int num_out, Model<xpu>* paras) {
     // setup stream
     this->paras = paras;
     ninput.set_stream(paras->stream);
@@ -213,10 +59,12 @@ class NNet{
     g_hbias.set_stream(paras->stream);
     g_Wi2h.set_stream(paras->stream);
     g_Wh2o.set_stream(paras->stream);
+    g_input.set_stream(paras->stream);
 
     g_Wh2o.Resize(paras->Wh2o.shape_, static_cast<real_t>(0.0));
     g_Wi2h.Resize(paras->Wi2h.shape_, static_cast<real_t>(0.0));
     g_hbias.Resize(paras->hbias.shape_, static_cast<real_t>(0.0));
+    g_input.Resize(Shape2(batch_size, num_in), static_cast<real_t>(0.0));
     // setup nodes
     ninput.Resize(Shape2(batch_size, num_in), static_cast<real_t>(0.0));
     nhidden.Resize(Shape2(batch_size, num_hidden), static_cast<real_t>(0.0));
@@ -233,10 +81,12 @@ class NNet{
     g_hbias.set_stream(paras->stream);
     g_Wi2h.set_stream(paras->stream);
     g_Wh2o.set_stream(paras->stream);
+    g_input.set_stream(paras->stream);
 
     g_Wh2o.Resize(paras->Wh2o.shape_, static_cast<real_t>(0.0));
     g_Wi2h.Resize(paras->Wi2h.shape_, static_cast<real_t>(0.0));
     g_hbias.Resize(paras->hbias.shape_, static_cast<real_t>(0.0));
+    g_input.Resize(net->ninput.shape_, static_cast<real_t>(0.0));
     // setup nodes
     ninput.Resize(net->ninput.shape_, static_cast<real_t>(0.0));
     nhidden.Resize( Shape2(net->nhidden.shape_), static_cast<real_t>(0.0) );
@@ -346,46 +196,22 @@ class NNet{
     // calc grad of layer 1
     g_hbias = sum_rows(nhidden);
     g_Wi2h  = dot(ninput.T(), nhidden);
+
+    g_input = dot(nhidden, paras->Wi2h.T());
  }
 
- /*
-  * synchronize the gradients for diffetent threads
-  */
- void SubsideGrads(UpdateGrads<xpu>& cumulatedGrads){
-    cumulatedGrads.cg_hbias = cumulatedGrads.cg_hbias + g_hbias;
-    cumulatedGrads.cg_Wi2h = cumulatedGrads.cg_Wi2h + g_Wi2h;
-    cumulatedGrads.cg_Wh2o = cumulatedGrads.cg_Wh2o + g_Wh2o;    
- }
 
- static void UpdateCumulateGrads(UpdateGrads<xpu>& cgrads, NNetPara<xpu>* paras){
-    // run SGD
-    
-    // l2 regularization
-    cgrads.cg_Wi2h += CConfig::fRegularizationRate * paras->Wi2h;
-    cgrads.cg_Wh2o += CConfig::fRegularizationRate * paras->Wh2o;
-    cgrads.cg_hbias += CConfig::fRegularizationRate * paras->hbias;
-
-    // update weight with adagrad
-    paras->eg2Wi2h += F<square>(cgrads.cg_Wi2h);
-    paras->eg2Wh2o += F<square>(cgrads.cg_Wh2o);
-    paras->eg2Hbias+= F<square>(cgrads.cg_hbias);
-    paras->Wi2h -= CConfig::fBPRate * ( cgrads.cg_Wi2h / F<mySqrt>( paras->eg2Wi2h + CConfig::fAdaEps ) );
-    paras->Wh2o -= CConfig::fBPRate * ( cgrads.cg_Wh2o / F<mySqrt>( paras->eg2Wh2o + CConfig::fAdaEps ) );
-    paras->hbias -= CConfig::fBPRate * ( cgrads.cg_hbias / F<mySqrt>( paras->eg2Hbias + CConfig::fAdaEps ) );
-
- }
-
- private:
+private:
 
  // neural network parameters
- NNetPara<xpu>* paras;
+ Model<xpu>* paras;
 
-  // nodes in neural net
-  TensorContainer<xpu, 2, real_t> ninput, nhidden, nhiddenbak, nout;
-  // hidden bias, gradient
-  TensorContainer<xpu, 1, real_t> g_hbias;
-  // weight gradient
-  TensorContainer<xpu, 2, real_t> g_Wi2h, g_Wh2o;
+ // nodes in neural net
+ TensorContainer<xpu, 2, real_t> ninput, nhidden, nhiddenbak, nout;
+ // hidden bias, gradient
+ TensorContainer<xpu, 1, real_t> g_hbias;
+ // weight gradient
+ TensorContainer<xpu, 2, real_t> g_Wi2h, g_Wh2o, g_input;
 };
 
 #endif

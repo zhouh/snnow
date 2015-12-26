@@ -36,13 +36,13 @@ int CConfig::nEvaluatePerIters = 20;
 
 int CConfig::nThread = 1;
 
-double CConfig::fRegularizationRate = 1e-8;
+float CConfig::fRegularizationRate = 1e-8;
 
-double CConfig::fBPRate = 0.1;
+float CConfig::fBPRate = 0.01;
 
-double CConfig::fInitRange = 0.1;
+float CConfig::fInitRange = 0.1;
 
-double CConfig::fAdaEps = 1e-6;
+float CConfig::fAdaEps = 1e-6;
 
 bool CConfig::bDropOut = false;
 
