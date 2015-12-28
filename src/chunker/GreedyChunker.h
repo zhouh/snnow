@@ -28,7 +28,9 @@ public:
 private:
     LabelManager labelManager;
     std::shared_ptr<ActionStandardSystem> m_transitionSystem;
-    std::shared_ptr<FeatureManager> m_featManager;
+    std::shared_ptr<DataManager> m_dataManagerPtr;
+    std::shared_ptr<FeatureEmbeddingManager> m_featEmbManagerPtr;
+    std::shared_ptr<FeatureManager> m_featManagerPtr;
 
     bool m_bTrain;
 

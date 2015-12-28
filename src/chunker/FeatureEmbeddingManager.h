@@ -8,6 +8,7 @@
 #define _CHUNKER_FEATUREEMBEDDINGMANAGER_H_
 
 #include <vector>
+#include <string>
 #include <assert.h>
 
 #include "FeatureType.h"
@@ -34,12 +35,12 @@ public:
     }
     ~FeatureEmbeddingManager() {}
 
-    void readPretrainedEmbeddings(const std::vector<bool> &bReadEmbs, const std::vector<std::string> &pretrainFiles) {
-        for (int i = 0; i < static_cast<int>(bReadEmbs.size()); i++){
-            if (bReadEmbs[i]) {
-                const std::string &pretrainFile = pretrainFiles[i];
+    void readPretrainedEmbeddings(const std::vector<std::pair<bool, std::string>> &isReadPretrainedEmbs) {
+        for (int i = 0; i < static_cast<int>(isReadPretrainedEmbs.siz()); i++) {
+            const std::pair<bool, std::string> &isRead = isReadPretrainedEmbs[i];
 
-                featEmbs.readPretrainedEmbeddings(pretrainFile, featDictPtrs[i]->m_mElement2Idx);
+            if (isRead.first) {
+                featEmbs[i]->readPretrainedEmbeddings(isRead.second, featDictPtrs[i]->m_mElement2Idx);
             }
         }
     }

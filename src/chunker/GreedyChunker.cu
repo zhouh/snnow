@@ -114,12 +114,12 @@ void display2Tensor( Tensor<cpu, 2, double> tensor ){
 void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, ChunkedDataSet &devGoldSet, InstanceSet &devSet) {
     std::cerr << "Initing FeatureManager & ActionStandardSystem & generateTrainingExamples..." << std::endl;
     initTrain(trainGoldSet, trainSet);
-
-    std::cerr << "Excuting devset generateInstanceSetCache..." << std::endl;
-    m_featManager->generateInstanceSetCache(devSet);
     std::cerr << "  Greedy train set size: " << trainExamplePtrs.size() << std::endl;
 
-    const static int num_in = m_featManager->totalFeatSize;
+    std::cerr << "Initing generateInstanceSetCache for devSet..." << std::endl;
+    initDev(devSet);
+
+    const static int num_in = m_featManagerPtr->totalFeatSize;
     const static int num_hidden = CConfig::nHiddenSize;
     const static int num_out = m_transitionSystem->nActNum;
     const static int batchSize = std::min(CConfig::nBatchSize, static_cast<int>(trainExamplePtrs.size()));
@@ -199,7 +199,7 @@ pdateGrads<XPU> batchCumulatedGrads(netsParas.stream, num_in, num_hidden, num_ou
 
                 std::vector<FeatureVector> featureVectors;
                 featureVectors.push_back(e->features);
-                m_featManager->returnInput(featureVectors, input, 1);
+                m_featManagerPtr->returnInput(featureVectors, input, 1);
 
                 nnet->Forward(input, pred, false);
 
@@ -274,18 +274,30 @@ pdateGrads<XPU> batchCumulatedGrads(netsParas.stream, num_in, num_hidden, num_ou
     ShutdownTensorEngine<XPU>();
 }
 
+void GreedyChunker::initDev(ChunkedDataSet &devSet) {
+    m_dataManagerPtr->generateInstanceSetCache(devSet);
+}
+
 void GreedyChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
     using std::cerr;
     using std::endl;
 
     cerr << "Training init..." << endl;
-    m_featManager.reset(new FeatureManager());
-    m_featManager->init(goldSet, CConfig::fInitRange, true, CConfig::strEmbeddingPath);
+    m_dataManagerPtr.reset(new DataManager());
+    m_dataManagerPtr->init(goldSet);
+
+    m_featManagerPtr.reset(new FeatureManager());
+    m_featManagerPtr->init(goldSet, m_dataManagerPtr);
+
+    m_featEmbManagerPtr->reset(new FeatureEmbeddingManager(m_featManagerPtr->getFeatureTypes,
+                m_featManagerPtr->getDictManagerPtrs,
+                CConfig::fInitRange));
+    m_featEmbManagerPtr->readPreTrainedEmbeddings(m_featManagerPtr->getIsReadPretrainedEmbs());
 
     m_transitionSystem.reset(new ActionStandardSystem());
     m_transitionSystem->init(goldSet);
 
-    m_featManager->generateTrainingExamples(*(m_transitionSystem.get()), trainSet, goldSet, gExamples);
+    m_dataManagerPtr->generateTrainingExamples(*(m_transitionSystem.get()), trainSet, goldSet, gExamples);
 
     for (auto &gExample : gExamples) {
         for (auto &example : gExample.examples) {
@@ -295,13 +307,13 @@ void GreedyChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
 }
 
 State* GreedyChunker::decode(Instance *inst, NNetPara<XPU> &paras, State *lattice) {
-    const static int num_in = m_featManager->totalFeatSize;
+    const static int num_in = m_featManagerPtr->totalFeatSize;
     const static int num_hidden = CConfig::nHiddenSize;
     const static int num_out = m_transitionSystem->nActNum;
 
     int nSentLen = inst->input.size();
     int nMaxRound = nSentLen;
-    FeatureManager &fManager = *(m_featManager.get());
+    FeatureManager &fManager = *(m_featManagerPtr.get());
     ActionStandardSystem &tranSystem = *(m_transitionSystem.get());
     std::shared_ptr<NNet<XPU>> nnet(new NNet<XPU>(1, num_in, num_hidden, num_out, &paras));
 
@@ -357,6 +369,6 @@ State* GreedyChunker::decode(Instance *inst, NNetPara<XPU> &paras, State *lattic
 
 void GreedyChunker::generateInputBatch(State *state, Instance *inst, std::vector<FeatureVector> &featvecs) {
     for (int i = 0; i < featvecs.size(); i++) {
-        m_featManager->extractFeature(*(state + i), *inst, featvecs[i]);
+        m_featManagerPtr->extractFeature(*(state + i), *inst, featvecs[i]);
     }
 }

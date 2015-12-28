@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <tuple>
+#include <pair>
 #include <memory>
 #include <tr1/unordered_map>
 
@@ -23,20 +24,19 @@
 #include "ChunkedSentence.h"
 #include "ActionStandardSystem.h"
 #include "Instance.h"
-#include "Example.h"
 #include "State.h"
 
 class FeatureManager {
 public:
-    DataManager dataManager;
     std::vector<std::shared_ptr<FeatureExtractor>> featExtractorPtrs;
+    std::vector<std::pair<bool, std::string>> isReadFeatPretrainedEmbs;
     int totalFeatSize;
 
 public:
     FeatureManager() { }
     ~FeatureManager() { }
 
-    void init(const ChunkedDataSet &goldSet, double initRange, const bool readPretrainEmbs = false, const std::string &pretrainFile = "");
+    void init(const ChunkedDataSet &goldSet, const std::shared_ptr<DataManager> &dataManagerPtr);
 
     void extractFeature(State &state, Instance &inst, FeatureVector &features);
 
@@ -44,24 +44,18 @@ public:
 
     std::vector<std::shared_ptr<DictManager>> getDictManagerPtrs();
 
-    void generateTrainingExamples(ActionStandardSystem &transitionSystem, InstanceSet &instSet, ChunkedDataSet &goldSet, GlobalExamples &gExamples);
-
-    void generateInstanceSetCache(InstanceSet &instSet) {
-        for (auto &inst : instSet) {
-            dataManager.generateInstanceCache(inst);
-        }
+    std::vector<std::pair<bool, std::string>> getIsReadPretrainedEmbs() {
+        return isReadFeatPretrainedEmbs;
     }
 
     /*
      * construct the input by x = beamIndex, y = featureLayerIndex
      */
 	void returnInput(std::vector<FeatureVector> &featVecs, TensorContainer<cpu, 2, double>& input, int beamSize);
+
 private:
     FeatureManager(const FeatureManager &fManager) = delete;
     FeatureManager& operator= (const FeatureManager &fManager) = delete;
-
-private:
-    int readPretrainedEmbeddings(const std::string &pretrainFile, const std::tr1::unordered_map<std::string, int> &word2IdxMap, FeatureEmbedding *fEmb);
 };
 
 #endif
