@@ -34,10 +34,12 @@ class Model{
      * parameters of feature embeddings
      */
     std::vector<TensorContainer<xpu, 2, real_t>> featEmbs;
+    std::vector<FeaturType> featTypes;
 
 
     Model(int batch_size, int num_in, int num_hidden, int num_out, 
             std::vector<FeatureType>& featTypes, bool bRndSample) : rnd(0) {
+        this->featTypes = featTypes;
 
         /*
          * set streams for data
@@ -69,7 +71,7 @@ class Model{
         for(int i = 0; i < featTypes.size(); i++){
 
             featEmbs[i].set_stream(stream);
-            featEmbs[i].Resize(Shape2(featTypes[i].totalFeatNum, featTypes[i].dim), static_cast<real_t>(0.0));
+            featEmbs[i].Resize(Shape2(featTypes[i].featSize, featTypes[i].featEmbSize), static_cast<real_t>(0.0));
         }
 
     }

@@ -8,7 +8,7 @@
 
 #include "FeatureManager.h"
 
-void FeatureManager::init(const ChunkedDataSet &goldSet, double initRange, const bool readPretrainEmbs, const std::string &pretrainFile ) {
+void FeatureManager::init(const ChunkedDataSet &goldSet, double initRange, const bool readPretrainEmbs, const DataManager &dataManager, const std::string &pretrainFile ) {
     int dicSize = 0;
     int featSize = 0;
     int featEmbSize = 0;
@@ -17,36 +17,49 @@ void FeatureManager::init(const ChunkedDataSet &goldSet, double initRange, const
 
     dataManager.makeDictionaries(goldSet);
 
-    std::string wordFeatDescription = ChunkerDataManager::WORDDESCRIPTION;
-    std::shared_ptr<DataManager> wordDataManager = dataManager.m_mDesc2dataManager[wordFeatDescription];
-    dicSize = wordDataManager->size();
+    std::string wordFeatDescription = DataManager::WORDDESCRIPTION;
+    std::shared_ptr<DictManager> wordDictManager = dataManager.m_mStr2DictManager[wordFeatDescription];
+    dicSize = wordDictManager->size();
     featSize = 5;
     featEmbSize = 50;
     FeatureType wordFeatType(wordFeatDescription, featSize, featEmbSize);
-    FeatureEmbedding *wordFeatEmb = new FeatureEmbedding(dicSize, featEmbSize, initRange);
-    if (readPretrainEmbs) {
-        readPretrainedEmbeddings(pretrainFile, wordDataManager->m_mElement2Idx, wordFeatEmb);
-    }
     featExtractorPtrs.push_back(std::shared_ptr<FeatureExtractor>(new WordFeatureExtractor(
                 wordFeatType,
-                wordDataManager,
-                wordFeatEmb
+                wordDictManager
                 )));
     totalFeatSize += featSize * featEmbSize;
 
-    std::string capFeatDescription = ChunkerDataManager::CAPDESCRIPTION;
-    std::shared_ptr<DataManager> capDataManager = dataManager.m_mDesc2dataManager[capFeatDescription];
-    dicSize = capDataManager->size();
+    std::string capFeatDescription = DataManager::CAPDESCRIPTION;
+    std::shared_ptr<DictManager> capDictManager = dataManager.m_mStr2DictManager[capFeatDescription];
+    dicSize = capDictManager->size();
     featSize = 1;
     featEmbSize = 5;
     FeatureType capFeatType(capFeatDescription, featSize, featEmbSize);
-    FeatureEmbedding *capFeatEmb = new FeatureEmbedding(dicSize, featEmbSize, initRange);
     featExtractorPtrs.push_back(std::shared_ptr<FeatureExtractor>(new CapitalFeatureExtractor(
                 capFeatType,
-                capDataManager,
-                capFeatEmb
+                capDictManager
                 )));
     totalFeatSize += featSize * featEmbSize;
+}
+
+std::vector<FeatureType> FeatureManager::getFeatureTypes() {
+    std::vector<FeatureType> featTypes;
+
+    for (auto &fe : featExtractorPtrs) {
+        featTypes.push_back(fe->featType);
+    }
+
+    return featTypes;
+}
+
+std::vector<std::shared_ptr<DictManager>> FeatureManager::getDictManagerPtrs() {
+    std::vector<std::shared_ptr<DictManager> dictPtrs;
+
+    for (auto &fe : featExtractorPtrs) {
+        dictPtrs.push_back(fe->dictManagerPtr);
+    }
+
+    return dictPtrs;
 }
 
 void FeatureManager::extractFeature(State &state, Instance &inst, FeatureVector &featVec) {

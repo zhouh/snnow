@@ -14,6 +14,8 @@
 
 #include "NNet.h"
 #include "Config.h"
+#include "DataManager.h"
+#include "FeatureEmbeddingManager.h"
 #include "FeatureVector.h"
 #include "FeatureManager.h"
 #include "ChunkedSentence.h"

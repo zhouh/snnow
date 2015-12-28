@@ -11,39 +11,32 @@
 #include <memory>
 
 #include "FeatureEmbedding.h"
-#include "DataManager.h"
+#include "DictManager.h"
 #include "State.h"
 #include "Instance.h"
-
-struct FeatureType {
-    const std::string typeName;
-    const int featSize;
-    const int featEmbSize;
-
-    FeatureType(const std::string &name, const int featureSize, const int featureEmbSize) : typeName(name), featSize(featureSize), featEmbSize(featureEmbSize) {}
-};
+#include "FeatureType.h"
 
 class FeatureExtractor {
 public:
     const FeatureType featType;
-    std::unique_ptr<FeatureEmbedding> fEmbPtr;
-    std::shared_ptr<DataManager> dataManagerPtr;
+    std::shared_ptr<DictManager> dictManagerPtr;
 
 public:
-    FeatureExtractor(FeatureType &fType, std::shared_ptr<DataManager> dManagerPtr, FeatureEmbedding *fEmb) : featType(fType), dataManagerPtr(dManagerPtr), fEmbPtr(fEmb)
+    FeatureExtractor(FeatureType &fType, std::shared_ptr<DictManager> dManagerPtr) : featType(fType), dictManagerPtr(dManagerPtr)
     {
     }
     virtual ~FeatureExtractor() {}
 
+    virtual std::vector<int> extract(State &state, Instance &inst) = 0;
+
+private:
     FeatureExtractor(const FeatureExtractor &fe) = delete;
     FeatureExtractor& operator= (const FeatureExtractor &fe) = delete;
-
-    virtual std::vector<int> extract(State &state, Instance &inst) = 0;
 };
 
 class WordFeatureExtractor : public FeatureExtractor {
 public:
-    WordFeatureExtractor(FeatureType &fType, std::shared_ptr<DataManager> dManagerPtr, FeatureEmbedding *fEmb) : 
+    WordFeatureExtractor(FeatureType &fType, std::shared_ptr<DictManager> dManagerPtr, FeatureEmbedding *fEmb) : 
     FeatureExtractor(fType, dManagerPtr, fEmb)
     {
 
@@ -55,7 +48,7 @@ public:
 
         auto getWordIndex = [&state, &inst, this](int index) -> int {
             if (index < 0 || index >= state.m_nLen) {
-                return this->dataManagerPtr->nullIdx;
+                return this->dictManagerPtr->nullIdx;
             }
 
             return inst.wordCache[index];
@@ -83,7 +76,7 @@ public:
 
 class CapitalFeatureExtractor : public FeatureExtractor {
 public:
-    CapitalFeatureExtractor(FeatureType &fType, std::shared_ptr<DataManager> dManagerPtr, FeatureEmbedding *fEmb) : 
+    CapitalFeatureExtractor(FeatureType &fType, std::shared_ptr<DictManager> dManagerPtr, FeatureEmbedding *fEmb) : 
         FeatureExtractor(fType, dManagerPtr, fEmb)
     {
     }
@@ -94,7 +87,7 @@ public:
 
         auto getCapfeatIndex = [&state, &inst, this](int index) -> int {
             if (index < 0 || index >= state.m_nLen) {
-                return this->dataManagerPtr->nullIdx;
+                return this->dictManagerPtr->nullIdx;
             }
 
             return inst.capfeatCache[index];

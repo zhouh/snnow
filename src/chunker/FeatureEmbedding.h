@@ -17,6 +17,8 @@
 
 #include "mshadow/tensor.h"
 
+#define DEBUG
+
 using namespace mshadow;
 
 class FeatureEmbedding {
@@ -44,7 +46,7 @@ public:
         iss >> size0;
         iss >> size1; 
 
-        for( int i = 0; i < size0; i++  ){
+g       for( int i = 0; i < size0; i++  ){
             getline( is, line );
             std::istringstream iss_j( line );
             for( int j = 0; j < size1; j++ )
@@ -86,10 +88,53 @@ public:
             featEmbeddings[featIndex][i] = preTrain[i];
         }
     }
-public:
-    std::vector<std::vector<double>> featEmbeddings;
-    int dictSize;
-    int embeddingSize;
-};
+
+    int readPretrainedEmbeddings(const std::string &pretrainFile, const std::tr1::unordered_map<std::string, int> &str2IdxMap) {
+        std::tr1::unordered_map<std::string, int> pretrainWords;
+        std::vector<std::vector<double>> pretrainEmbs;
+        std::string line;
+        std::ifstream in(pretrainFile);
+        getline(in, line); //TODO dirrent from zhouh
+     
+        int index = 0;
+        while (getline(in, line)) {
+            if (line.empty()) {
+                continue;
+            }
+     
+            std::istringstream iss(line);
+            std::vector<double> embedding;
+     
+            std::string word;
+            double d;
+            iss >> word;
+            while (iss >> d) {
+                embedding.push_back(d);
+            }
+     
+            pretrainEmbs.push_back(embedding);
+            pretrainWords[word] = index++;
+        }
+     
+    #ifdef DEBUG
+        std::cerr << "  pretrainWords's size: " << pretrainEmbs.size() << std::endl;
+    #endif
+    
+        for (auto &wordPair : str2IdxMap) {
+            auto ret = pretrainWords.find(wordPair.first);
+    
+            if (pretrainWords.end() != ret) {
+                getPreTrain(wordPair.second, pretrainEmbs[ret->second]);
+            }
+        }
+    
+        return static_cast<int>(pretrainWords.size());
+    }
+    
+    public:
+        std::vector<std::vector<double>> featEmbeddings;
+        int dictSize;
+        int embeddingSize;
+    };
 
 #endif

@@ -2,109 +2,52 @@
 	> File Name: DataManager.h
 	> Author: cheng chuan
 	> Mail: cc.square0@gmail.com 
-	> Created Time: Thu 24 Dec 2015 03:24:57 PM CST
+	> Created Time: Sat 26 Dec 2015 12:53:45 PM CST
  ************************************************************************/
 #ifndef _CHUNKER_DATAMANAGER_H_
 #define _CHUNKER_DATAMANAGER_H_
 
-#include <iostream>
 #include <vector>
 #include <string>
 #include <cctype>
 #include <tr1/unordered_map>
 #include <unordered_set>
+#include <memory>
 
+#include "Instance.h"
+#include "DictManager.h"
 #include "ChunkedSentence.h"
 
-#define DEBUG
-
-class DataManager {
+class DataManager{
 public:
-    std::vector<std::string> m_lKnownElements;
-    std::tr1::unordered_map<std::string, int> m_mElement2Idx;
-
-    int nullIdx;
-    int unkIdx;
-
-    static const std::string nullstr;
-    static const std::string unknownstr;
+    std::tr1::unordered_map<std::string, std::shared_ptr<DictManager>> m_mStr2DictManager;
 
 public:
-    DataManager() {}
-    virtual ~DataManager() {}
+    static const std::string WORDDESCRIPTION;
+    static const std::string POSDESCRIPTION;
+    // static const std::string LABELDESCRIPTION;
+    static const std::string CAPDESCRIPTION;
 
-    int size() {
-        return static_cast<int>(m_mElement2Idx.size());
+public:
+    DataManager() {
+        m_mStr2DictManager[WORDDESCRIPTION] = std::shared_ptr<DictManager>(new WordDataManager());
+        m_mStr2DictManager[POSDESCRIPTION] = std::shared_ptr<DictManager>(new POSDataManager());
+        // m_mStr2DictManager[LABELDESCRIPTION] = std::shared_ptr<DictManager>(new LabelDataManager());
+        m_mStr2DictManager[CAPDESCRIPTION] = std::shared_ptr<DictManager>(new CapitalDataManager());
+    }
+    ~DataManager() {}
+
+    void makeDictionaries(const ChunkedDataSet &goldSet) {
+        for (auto &it : m_mStr2DictManager) {
+            it.second->makeDictionaries(goldSet);
+        }
     }
 
-    const std::vector<std::string>& getKnownElements() const {
-        return m_lKnownElements;
-    }
+    void generateInstanceCache(Instance &inst);
 
-    virtual int element2Idx(const std::string &s) {
-        auto it = m_mElement2Idx.find(s);
-
-        return (it == m_mElement2Idx.end()) ? unkIdx: it->second;
-    }
-
-    virtual void makeDictionaries(const ChunkedDataSet &goldSet) = 0;
-
-    void printDict() {
-        std::cerr << "known feature size: " << m_lKnownElements.size() << std::endl;
-    }
-};
-
-class WordDataManager : public DataManager {
-public:
-    int numberIdx;
-
-    static const std::string numberstr;
-
-public:
-    WordDataManager() {}
-    ~WordDataManager() {}
-
-    void makeDictionaries(const ChunkedDataSet &goldSet);
-
-    int element2Idx(const std::string &s);
-
-    static std::string processWord(const std::string &word);
-
-    static bool isNumber(const std::string &word);
-};
-
-class POSDataManager : public DataManager {
-public:
-    POSDataManager() {}
-    ~POSDataManager() {}
-
-    void makeDictionaries(const ChunkedDataSet &goldSet);
-};
-
-class LabelDataManager : public DataManager {
-public:
-    LabelDataManager() { }
-    ~LabelDataManager() {}
-
-    int element2Idx(const std::string &s);
-
-    void makeDictionaries(const ChunkedDataSet &goldSet);
-};
-
-class CapitalDataManager : public DataManager {
-public:
-    static const std::string noncapitalstr;
-    static const std::string allcapitalstr;
-    static const std::string firstlettercapstr;
-    static const std::string hadonecapstr;
-
-public:
-    CapitalDataManager() {}
-    ~CapitalDataManager() {}
-
-    int element2Idx(const std::string &s);
-
-    void makeDictionaries(const ChunkedDataSet &goldSet);
+private:
+    DataManager(const DataManager &dManager)  = delete;
+    DataManager& operator= (const DataManager &dManager) = delete;
 };
 
 #endif

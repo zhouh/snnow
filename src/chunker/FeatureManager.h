@@ -17,7 +17,7 @@
 #include "mshadow/tensor.h"
 
 #include "FeatureExtractor.h"
-#include "ChunkerDataManager.h"
+#include "DataManager.h"
 
 #include "FeatureVector.h"
 #include "ChunkedSentence.h"
@@ -28,7 +28,7 @@
 
 class FeatureManager {
 public:
-    ChunkerDataManager dataManager;
+    DataManager dataManager;
     std::vector<std::shared_ptr<FeatureExtractor>> featExtractorPtrs;
     int totalFeatSize;
 
@@ -39,6 +39,10 @@ public:
     void init(const ChunkedDataSet &goldSet, double initRange, const bool readPretrainEmbs = false, const std::string &pretrainFile = "");
 
     void extractFeature(State &state, Instance &inst, FeatureVector &features);
+
+    std::vector<FeatureType> getFeatureTypes();
+
+    std::vector<std::shared_ptr<DictManager>> getDictManagerPtrs();
 
     void generateTrainingExamples(ActionStandardSystem &transitionSystem, InstanceSet &instSet, ChunkedDataSet &goldSet, GlobalExamples &gExamples);
 
@@ -52,6 +56,9 @@ public:
      * construct the input by x = beamIndex, y = featureLayerIndex
      */
 	void returnInput(std::vector<FeatureVector> &featVecs, TensorContainer<cpu, 2, double>& input, int beamSize);
+private:
+    FeatureManager(const FeatureManager &fManager) = delete;
+    FeatureManager& operator= (const FeatureManager &fManager) = delete;
 
 private:
     int readPretrainedEmbeddings(const std::string &pretrainFile, const std::tr1::unordered_map<std::string, int> &word2IdxMap, FeatureEmbedding *fEmb);
