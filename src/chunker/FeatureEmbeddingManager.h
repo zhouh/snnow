@@ -16,7 +16,7 @@
 
 class FeatureEmbeddingManager {
 public:
-    std::vector<FeatureEmbedding> featEmbs;
+    std::vector<std::shared_ptr<FeatureEmbedding>> featEmbs;
     std::vector<FeatureType> featTypes;
     std::vector<std::shared_ptr<DictManger>> featDictPtrs;
 
@@ -44,6 +44,27 @@ public:
             }
         }
     }
+
+    /**
+     * #TODO fill the function
+     * convert the input gradients obtained from the neural network
+     * to the feature embedding gradients according to the corresponding feature vector
+     */
+    static void inputGradient2FeatEmbGradient(std::vector<std::shared_ptr<FeatureEmbedding>>& featEmbs, FeatureVector& fv, TensorContainer<1, real_t>& netInputGradient){
+
+        int updateIndex = 0;
+        for(int j = 0; j < fv.features.size(); i++){
+            
+            FeatureType ft = featureTypes[j];
+            auto oneFeatTypeVector = fv.features[j];
+
+            for(int i = 0; i < oneFeatTypeVector.size(); i++){
+                featEmbs[j]->data[oneFeatTypeVector[i]][dim] += netInputGradient[ updateIndex ];
+                updateIndex += ft.featEmbSize;
+            }
+        }
+    }
+
 
 private:
     FeatureEmbeddingManager(const FeatureEmbeddingManager &fEmbManager) = delete;

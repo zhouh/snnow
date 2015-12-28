@@ -9,7 +9,6 @@
 
 #include <string>
 
-
 class CConfig {
 public:
     static std::string strTrainPath;
