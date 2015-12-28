@@ -15,7 +15,7 @@
 
 class FeatureEmbeddingManager {
 public:
-    std::vector<FeatureEmbedding> featEmbs;
+    std::vector<std::shared_ptr<FeatureEmbedding>> featEmbs;
     std::vector<FeatureType> featTypes;
     std::vector<std::shared_ptr<DictManger>> featDictPtrs;
 
@@ -34,15 +34,26 @@ public:
     }
     ~FeatureEmbeddingManager() {}
 
-    void readPretrainedEmbeddings(const std::vector<bool> &bReadEmbs, const std::vector<std::string> &pretrainFiles) {
-        for (int i = 0; i < static_cast<int>(bReadEmbs.size()); i++){
-            if (bReadEmbs[i]) {
-                const std::string &pretrainFile = pretrainFiles[i];
+    /**
+     * #TODO fill the function
+     * convert the input gradients obtained from the neural network
+     * to the feature embedding gradients according to the corresponding feature vector
+     */
+    void inputGradient2FeatEmbGradient(std::vector<std::shared_ptr<FeatureEmbedding>>& featEmbs, FeatureVector& fv, TensorContainer<1, real_t>& netInputGradient){
 
-                featEmbs.readPretrainedEmbeddings(pretrainFile, featDictPtrs[i]->m_mElement2Idx);
+        int updateIndex = 0;
+        for(int j = 0; j < fv.features.size(); i++){
+            
+            FeatureType ft = featureTypes[j];
+            auto oneFeatTypeVector = fv.features[j];
+
+            for(int i = 0; i < oneFeatTypeVector.size(); i++){
+                featEmbs[j]->data[oneFeatTypeVector[i]][dim] += netInputGradient[ updateIndex ];
+                updateIndex += ft.featEmbSize;
             }
         }
     }
+
 
 private:
     FeatureEmbeddingManager(const FeatureEmbeddingManager &fEmbManager) = delete;

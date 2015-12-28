@@ -33,13 +33,10 @@ class Model{
     /*
      * parameters of feature embeddings
      */
-    std::vector<TensorContainer<xpu, 2, real_t>> featEmbs;
-    std::vector<FeaturType> featTypes;
-
+    std::vector< std::shared_ptr<FeatureEmbedding> > featEmbs;
 
     Model(int batch_size, int num_in, int num_hidden, int num_out, 
             std::vector<FeatureType>& featTypes, bool bRndSample) : rnd(0) {
-        this->featTypes = featTypes;
 
         /*
          * set streams for data
@@ -59,8 +56,8 @@ class Model{
         // if the model is the gradient square, we just need to set them 0
         if(bRndSample){ 
             rnd.SampleUniform(&Wi2h, -1.0 * CConfig::fInitRange, CConfig::fInitRange);
-            rnd.SampleUniform(&Wh2o, -0.01, 0.01f);
-            rnd.SampleUniform(&hbias, -0.01, 0.01f);
+            rnd.SampleUniform(&Wh2o, -1.0 * CConfig::fInitRange, CConfig::fInitRange);
+            rnd.SampleUniform(&hbias, -1.0 * CConfig::fInitRange, CConfig::fInitRange);
         }
 
         /*
@@ -70,8 +67,14 @@ class Model{
         featEmbs.resize(featTypes.size());
         for(int i = 0; i < featTypes.size(); i++){
 
-            featEmbs[i].set_stream(stream);
-            featEmbs[i].Resize(Shape2(featTypes[i].featSize, featTypes[i].featEmbSize), static_cast<real_t>(0.0));
+            std::shared_ptr<FeatureEmbedding> featEmb;
+            featEmb.set(new FeatureEmbedding(featTypes[i]));
+
+            if(bRndSample)
+                featEmb->init(CConfig::fInitRange);
+
+            if(featTypes.typeName == "word")
+                featEmb->readPreTrain(CConfig::strEmbeddingPath);
         }
 
     }
@@ -85,7 +88,7 @@ class Model{
         hbias = 0.0;
 
         for(int i = 0; i < featEmbs.size(); i++)
-            featEmbs[i] = 0.0;
+            featEmbs[i]->setZero();
 
     }
 
@@ -100,21 +103,21 @@ class Model{
         gradients->Wh2o += CConfig::fRegularizationRate * Wh2o;
         gradients->hbias += CConfig::fRegularizationRate * hbias;
         for(int i = 0; i < featEmbs.size(); i++)
-            gradients->featEmbs[i] += CConfig::fRegularizationRate * featEmbs[i];
+            gradients->featEmbs[i]->data += CConfig::fRegularizationRate * featEmbs[i]->data;
 
         // update adagrad gradient square sums
         adaGradSquares->Wi2h += F<square>(gradients->Wi2h);
         adaGradSquares->Wh2o += F<square>(gradients->Wh2o);
         adaGradSquares->hbias+= F<square>(gradients->hbias);
         for(int i = 0; i < gradients->featEmbs.size(); i++)
-            adaGradSquares->FeatEmbs += F<square>(gradients->featEmbs);
+            adaGradSquares->featEmbs->data += F<square>(gradients->featEmbs>data);
 
         // update this weight
         Wi2h -= CConfig::fBPRate * ( gradients->Wi2h / F<mySqrt>( adaGradSquares->Wi2h + CConfig::fAdaEps ) );
         Wh2o -= CConfig::fBPRate * ( gradients->Wh2o / F<mySqrt>( adaGradSquares->Wh2o + CConfig::fAdaEps ) );
         hbias -= CConfig::fBPRate * ( gradients->hbias / F<mySqrt>( adaGradSquares->hbias + CConfig::fAdaEps ) );
         for(int i = 0; i < gradients->featEmbs.size(); i++)
-            featEmbs[i] -= CConfig::fBPRate * ( gradients->featEmbs[i] / F<mySqrt>( adaGradSquares->FeatEmbs[i] + CConfig::fAdaEps ) );
+            featEmbs[i]->data -= CConfig::fBPRate * ( gradients->featEmbs[i]->data / F<mySqrt>( adaGradSquares->FeatEmbs[i]->data + CConfig::fAdaEps ) );
 
         gradients->setZeros(); // set zero for that the cumulated gradients will be reused in the next update
     }
@@ -127,19 +130,13 @@ class Model{
         Wh2o += model->Wh2o;
         hbias += model->hbias;
         for(int i = 0; i < featEmbs.size(); i++)
-            featEmbs[i] +=  model->featEmbs[i];
+            featEmbs[i]->data +=  model->featEmbs[i]->data;
 
     }
 
     /**
-     * #TODO fill the function
-     * convert the input gradients obtained from the neural network
-     * to the feature embedding gradients according to the corresponding feature vector
+     * The save and read model module need to be rewrite
      */
-    void inputGradient2FeatEmbGradient(FeatureVector& fv, TensorContainer<1, real_t> netInputGradient){
-        
-    }
-
     void saveModel( std::ostream & os ){
 
         /*
