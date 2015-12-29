@@ -30,7 +30,7 @@ GreedyChunker::GreedyChunker(bool isTrain) {
 
 GreedyChunker::~GreedyChunker() { } 
 
-double GreedyChunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, NNetPara<XPU> &netsParas) {
+double GreedyChunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, Model<XPU> &modelParas) {
     auto longestInst = *std::max_element(devInstances.begin(), devInstances.end(), [](Instance &inst1, Instance &inst2) { return inst1.size() < inst2.size();} );
     State *lattice = new State[longestInst.size() + 1];
 
@@ -41,7 +41,7 @@ double GreedyChunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSe
         Instance &currentInstance = devInstances[inst];
         predDevSet.push_back(ChunkedSentence(currentInstance.input));
 
-        State* predState = decode(&currentInstance, netsParas, lattice);
+        State* predState = decode(&currentInstance, modelParas, lattice);
 
         ChunkedSentence &predSent = predDevSet[inst];
 
@@ -59,8 +59,8 @@ double GreedyChunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSe
     return std::get<2>(res);
 }
 
-void GreedyChunker::printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &devGoldSet, NNetPara<XPU> &netsPara, double batchObjLoss, double posClassificationRate, double &bestDevFB1) {
-    double currentFB1 = chunk(devSet, devGoldSet, netsPara);
+void GreedyChunker::printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &devGoldSet, Model<XPU> &modelParas, double batchObjLoss, double posClassificationRate, double &bestDevFB1) {
+    double currentFB1 = chunk(devSet, devGoldSet, modelParas);
     if (currentFB1 > bestDevFB1) {
         bestDevFB1 = currentFB1;
     }
@@ -96,13 +96,13 @@ void GreedyChunker::generateMultiThreadsMiniBatchData(std::vector<ExamplePtrs> &
     }
 }
 
-void display1Tensor( Tensor<cpu, 1, real_t> & tensor ){
+void display1Tensor( Tensor<XPU, 1, real_t> & tensor ){
     for(int i = 0; i < tensor.size(0); i++)
         std::cerr<<tensor[i]<<" ";
     std::cerr<<std::endl;
 }
 
-void display2Tensor( Tensor<cpu, 2, double> tensor ){
+void display2Tensor( Tensor<XPU, 2, double> tensor ){
     std::cerr<<"size 0 :" << tensor.size(0)<<" size 1: "<<tensor.size(1)<<std::endl;
     for(int i = 0; i < tensor.size(0); i++){
        for(int j = 0; j < tensor.size(1); j++)
@@ -130,7 +130,11 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
 
     InitTensorEngine<XPU>();
 
-    NNetPara<XPU> netsParas(1, num_in, num_hidden, num_out);
+    auto featureTypes = m_featManagerPtr->getFeatureTypes();
+
+    Model<XPU> modelParas(1, num_in, num_hidden, num_out, featureTypes, true);
+    m_featEmbManagerPtr->readPretrainedEmbeddings(modelParas);
+    Model<XPU> adaGradSquares(1, num_in, num_hidden, num_out, featureTypes, false);
 
     double bestDevFB1 = -1.0;
 
@@ -141,7 +145,7 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
         if (iter % CConfig::nEvaluatePerIters == 0) {
             double posClassificationRate = 100 * static_cast<double>(batchCorrectSize) / batchSize;
 
-            printEvaluationInfor(devSet, devGoldSet, netsParas, batchObjLoss, posClassificationRate, bestDevFB1);
+            printEvaluationInfor(devSet, devGoldSet, modelParas, batchObjLoss, posClassificationRate, bestDevFB1);
         }
         batchCorrectSize = 0;
         batchObjLoss = 0.0;
@@ -153,8 +157,9 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
         // prepare mini-batch data for each threads
         std::random_shuffle(trainExamplePtrs.begin(), trainExamplePtrs.end());
         generateMultiThreadsMiniBatchData(multiThread_miniBatch_data);
+        Model<XPU> batchCumulatedGrads(1, num_in, num_hidden, num_out, featureTypes, false);
         
-#pragma omp parallel
+// #pragma omp parallel
         {
             int threadIndex = omp_get_thread_num();
             auto currentThreadData = multiThread_miniBatch_data[threadIndex];
@@ -162,22 +167,22 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
             int threadCorrectSize = 0;
             double threadObjLoss = 0.0;
 
-            UpdateGrads<XPU> cumulatedGrads(netsParas.stream, num_in, num_hidden, num_out);
-            std::shared_ptr<NNet<XPU>> nnet(new NNet<XPU>(1, num_in, num_hidden, num_out, &netsParas));
+            Model<XPU> cumulatedGrads(1, num_in, num_hidden, num_out, featureTypes, false);
+            std::shared_ptr<NNet<XPU>> nnet(new NNet<XPU>(1, num_in, num_hidden, num_out, &modelParas));
 
             for (unsigned inst = 0; inst < currentThreadData.size(); inst++) {
 
                 Example *e = currentThreadData[inst];
 
-                TensorContainer<cpu, 2, real_t> input;
+                TensorContainer<XPU, 2, real_t> input;
                 input.Resize(Shape2(1, num_in));
 
-                TensorContainer<cpu, 2, real_t> pred;
+                TensorContainer<XPU, 2, real_t> pred;
                 pred.Resize(Shape2(1, num_out));
 
                 std::vector<FeatureVector> featureVectors;
                 featureVectors.push_back(e->features);
-                m_featManagerPtr->returnInput(featureVectors, input, 1);
+                m_featEmbManagerPtr->returnInput(featureVectors, modelParas.featEmbs, input, 1);
 
                 nnet->Forward(input, pred, false);
 
@@ -227,15 +232,13 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
                 }
 
                 nnet->Backprop(pred);
-                nnet->SubsideGrads(cumulatedGrads);
+                nnet->SubsideGradsTo(&cumulatedGrads, featureVectors);
             }
 
-#pragma omp barrier
-#pragma omp critical 
+// #pragma omp barrier
+// #pragma omp critical 
             {
-                batchCumulatedGrads.cg_hbias = batchCumulatedGrads.cg_hbias + cumulatedGrads.cg_hbias;
-                batchCumulatedGrads.cg_Wi2h = batchCumulatedGrads.cg_Wi2h + cumulatedGrads.cg_Wi2h;
-                batchCumulatedGrads.cg_Wh2o = batchCumulatedGrads.cg_Wh2o + cumulatedGrads.cg_Wh2o;
+                batchCumulatedGrads.mergeModel(&cumulatedGrads);
             }
 
 #pragma omp critical 
@@ -246,14 +249,14 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
         
         }  // end multi-processor
 
-        NNet<XPU>::UpdateCumulateGrads(batchCumulatedGrads, &netsParas);
+        modelParas.update(&batchCumulatedGrads, &adaGradSquares);
     }
 
     ShutdownTensorEngine<XPU>();
 }
 
-void GreedyChunker::initDev(ChunkedDataSet &devSet) {
-    m_dataManagerPtr->generateInstanceSetCache(devSet);
+void GreedyChunker::initDev(InstanceSet &devSet) {
+    Instance::generateInstanceSetCache(*(m_dictManagerPtr.get()), devSet);
 }
 
 void GreedyChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
@@ -261,21 +264,22 @@ void GreedyChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
     using std::endl;
 
     cerr << "Training init..." << endl;
-    m_dataManagerPtr.reset(new DataManager());
-    m_dataManagerPtr->init(goldSet);
+    m_dictManagerPtr.reset(new DictManager());
+    m_dictManagerPtr->init(goldSet);
 
     m_featManagerPtr.reset(new FeatureManager());
-    m_featManagerPtr->init(goldSet, m_dataManagerPtr);
+    m_featManagerPtr->init(goldSet, m_dictManagerPtr);
 
-    m_featEmbManagerPtr->reset(new FeatureEmbeddingManager(m_featManagerPtr->getFeatureTypes,
-                m_featManagerPtr->getDictManagerPtrs,
-                CConfig::fInitRange));
-    m_featEmbManagerPtr->readPreTrainedEmbeddings(m_featManagerPtr->getIsReadPretrainedEmbs());
+    m_featEmbManagerPtr.reset(new FeatureEmbeddingManager(
+                m_featManagerPtr->getFeatureTypes(),
+                m_featManagerPtr->getDictManagerPtrs(),
+                static_cast<real_t>(CConfig::fInitRange)));
+    // m_featEmbManagerPtr->readPreTrainedEmbeddings(m_featManagerPtr->getIsReadPretrainedEmbs()); //TODO
 
     m_transitionSystem.reset(new ActionStandardSystem());
     m_transitionSystem->init(goldSet);
 
-    m_dataManagerPtr->generateTrainingExamples(*(m_transitionSystem.get()), trainSet, goldSet, gExamples);
+    GlobalExample::generateTrainingExamples(*(m_transitionSystem.get()), *(m_dictManagerPtr.get()), *(m_featManagerPtr.get()), trainSet, goldSet, gExamples);
 
     for (auto &gExample : gExamples) {
         for (auto &example : gExample.examples) {
@@ -284,16 +288,15 @@ void GreedyChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
     }
 }
 
-State* GreedyChunker::decode(Instance *inst, NNetPara<XPU> &paras, State *lattice) {
+State* GreedyChunker::decode(Instance *inst, Model<XPU> &modelParas, State *lattice) {
     const static int num_in = m_featManagerPtr->totalFeatSize;
     const static int num_hidden = CConfig::nHiddenSize;
     const static int num_out = m_transitionSystem->nActNum;
 
     int nSentLen = inst->input.size();
     int nMaxRound = nSentLen;
-    FeatureManager &fManager = *(m_featManagerPtr.get());
     ActionStandardSystem &tranSystem = *(m_transitionSystem.get());
-    std::shared_ptr<NNet<XPU>> nnet(new NNet<XPU>(1, num_in, num_hidden, num_out, &paras));
+    std::shared_ptr<NNet<XPU>> nnet(new NNet<XPU>(1, num_in, num_hidden, num_out, &modelParas));
 
     State *retval = nullptr;
     for (int i = 0; i < nMaxRound + 1; ++i) {
@@ -306,16 +309,16 @@ State* GreedyChunker::decode(Instance *inst, NNetPara<XPU> &paras, State *lattic
         State *currentState = lattice + nRound - 1;
         State *target = lattice + nRound;
 
-        TensorContainer<cpu, 2, real_t> input;
+        TensorContainer<XPU, 2, real_t> input;
         input.Resize(Shape2(1, num_in));
 
-        TensorContainer<cpu, 2, real_t> pred;
+        TensorContainer<XPU, 2, real_t> pred;
         pred.Resize(Shape2(1, num_out));
        
         std::vector<FeatureVector> featureVectors;
         featureVectors.resize(1);
         generateInputBatch(currentState, inst, featureVectors);
-        fManager.returnInput(featureVectors, input, 1);
+        m_featEmbManagerPtr->returnInput(featureVectors, modelParas.featEmbs, input, 1);
 
         nnet->Forward(input, pred, false);
         

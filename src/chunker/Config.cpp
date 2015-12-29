@@ -38,7 +38,7 @@ int CConfig::nThread = 1;
 
 float CConfig::fRegularizationRate = 1e-8;
 
-float CConfig::fBPRate = 0.01;
+float CConfig::fBPRate = 0.1;
 
 float CConfig::fInitRange = 0.1;
 

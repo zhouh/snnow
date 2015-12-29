@@ -5,20 +5,37 @@
   > Created Time: 26/12/15 15:03:18
  ************************************************************************/
 
+#ifndef _CHUNKER_MODEL_H_
+#define _CHUNKER_MODEL_H_
+
 #include "mshadow/tensor.h"
-#include "NNet.h"
+#include "FeatureEmbedding.h"
+#include "FeatureType.h"
+
 // this namespace contains all data structures, functions
 using namespace mshadow;
 // this namespace contains all operator overloads
 using namespace mshadow::expr;
+
+struct square{
+    MSHADOW_XINLINE static real_t Map(real_t a){
+        return  a * a;
+    }
+};
+
+struct mySqrt{
+    MSHADOW_XINLINE static real_t Map(real_t a){
+        return  sqrt(a);
+    }
+};
 
 /*
  * parameters of a neural net
  */
 template<typename xpu>
 class Model{
+public:
     Stream<xpu> *stream = NewStream<xpu>();
-
     /*
      * parameters for a neural network
      */
@@ -33,11 +50,11 @@ class Model{
     /*
      * parameters of feature embeddings
      */
-    std::vector< std::shared_ptr<FeatureEmbedding> > featEmbs;
+    std::vector< std::shared_ptr<FeatureEmbedding<xpu>> > featEmbs;
+    std::vector< FeatureType > featTypes;
 
     Model(int batch_size, int num_in, int num_hidden, int num_out, 
-            std::vector<FeatureType>& featTypes, bool bRndSample) : rnd(0) {
-
+            std::vector<FeatureType>& featureTypes, bool bRndInitialize = false) : rnd(0), featTypes(featureTypes) {
         /*
          * set streams for data
          */
@@ -54,9 +71,9 @@ class Model{
 
 
         // if the model is the gradient square, we just need to set them 0
-        if(bRndSample){ 
-            rnd.SampleUniform(&Wi2h, -1.0 * CConfig::fInitRange, CConfig::fInitRange);
-            rnd.SampleUniform(&Wh2o, -1.0 * CConfig::fInitRange, CConfig::fInitRange);
+        if(bRndInitialize){ 
+            rnd.SampleUniform(&Wi2h,  -1.0 * CConfig::fInitRange, CConfig::fInitRange);
+            rnd.SampleUniform(&Wh2o,  -1.0 * CConfig::fInitRange, CConfig::fInitRange);
             rnd.SampleUniform(&hbias, -1.0 * CConfig::fInitRange, CConfig::fInitRange);
         }
 
@@ -66,17 +83,14 @@ class Model{
          */
         featEmbs.resize(featTypes.size());
         for(int i = 0; i < featTypes.size(); i++){
+            featEmbs[i].reset(new FeatureEmbedding<xpu>(featTypes[i]));
 
-            std::shared_ptr<FeatureEmbedding> featEmb;
-            featEmb.set(new FeatureEmbedding(featTypes[i]));
+            auto &featEmb = featEmbs[i];
 
-            if(bRndSample)
+            if(bRndInitialize) {
                 featEmb->init(CConfig::fInitRange);
-
-            if(featTypes.typeName == "word")
-                featEmb->readPreTrain(CConfig::strEmbeddingPath);
-        }
-
+            }
+        } 
     }
 
     /**
@@ -89,7 +103,6 @@ class Model{
 
         for(int i = 0; i < featEmbs.size(); i++)
             featEmbs[i]->setZero();
-
     }
 
     /**
@@ -97,48 +110,45 @@ class Model{
      * with adaGrad Updating and l2-regularization
      */
     void update(Model<xpu>* gradients, Model<xpu>* adaGradSquares){
-
         // l2 regularization
-        gradients->Wi2h += CConfig::fRegularizationRate * Wi2h;
-        gradients->Wh2o += CConfig::fRegularizationRate * Wh2o;
+        gradients->Wi2h  += CConfig::fRegularizationRate * Wi2h;
+        gradients->Wh2o  += CConfig::fRegularizationRate * Wh2o;
         gradients->hbias += CConfig::fRegularizationRate * hbias;
         for(int i = 0; i < featEmbs.size(); i++)
             gradients->featEmbs[i]->data += CConfig::fRegularizationRate * featEmbs[i]->data;
 
         // update adagrad gradient square sums
-        adaGradSquares->Wi2h += F<square>(gradients->Wi2h);
-        adaGradSquares->Wh2o += F<square>(gradients->Wh2o);
-        adaGradSquares->hbias+= F<square>(gradients->hbias);
-        for(int i = 0; i < gradients->featEmbs.size(); i++)
-            adaGradSquares->featEmbs->data += F<square>(gradients->featEmbs>data);
+        adaGradSquares->Wi2h  += F<square>(gradients->Wi2h);
+        adaGradSquares->Wh2o  += F<square>(gradients->Wh2o);
+        adaGradSquares->hbias += F<square>(gradients->hbias);
+         for(int i = 0; i < gradients->featEmbs.size(); i++)
+             adaGradSquares->featEmbs[i]->data += F<square>(gradients->featEmbs[i]->data);
 
         // update this weight
-        Wi2h -= CConfig::fBPRate * ( gradients->Wi2h / F<mySqrt>( adaGradSquares->Wi2h + CConfig::fAdaEps ) );
-        Wh2o -= CConfig::fBPRate * ( gradients->Wh2o / F<mySqrt>( adaGradSquares->Wh2o + CConfig::fAdaEps ) );
+        Wi2h  -= CConfig::fBPRate * ( gradients->Wi2h  / F<mySqrt>( adaGradSquares->Wi2h + CConfig::fAdaEps  ) );
+        Wh2o  -= CConfig::fBPRate * ( gradients->Wh2o  / F<mySqrt>( adaGradSquares->Wh2o + CConfig::fAdaEps  ) );
         hbias -= CConfig::fBPRate * ( gradients->hbias / F<mySqrt>( adaGradSquares->hbias + CConfig::fAdaEps ) );
         for(int i = 0; i < gradients->featEmbs.size(); i++)
-            featEmbs[i]->data -= CConfig::fBPRate * ( gradients->featEmbs[i]->data / F<mySqrt>( adaGradSquares->FeatEmbs[i]->data + CConfig::fAdaEps ) );
+            featEmbs[i]->data -= CConfig::fBPRate * ( gradients->featEmbs[i]->data / F<mySqrt>( adaGradSquares->featEmbs[i]->data + CConfig::fAdaEps ) );
 
-        gradients->setZeros(); // set zero for that the cumulated gradients will be reused in the next update
+        gradients->setZero(); // set zero for that the cumulated gradients will be reused in the next update
     }
 
     /**
      * merge two models, used for merge model gradients
      */
-    void mergeMode(Model * model){
-        Wi2h += model->Wi2h;
-        Wh2o += model->Wh2o;
+    void mergeModel(Model<xpu> * model){
+        Wi2h  += model->Wi2h;
+        Wh2o  += model->Wh2o;
         hbias += model->hbias;
         for(int i = 0; i < featEmbs.size(); i++)
             featEmbs[i]->data +=  model->featEmbs[i]->data;
-
     }
 
     /**
      * The save and read model module need to be rewrite
      */
     void saveModel( std::ostream & os ){
-
         /*
          * write the Wi2h
          */
@@ -182,7 +192,6 @@ class Model{
     }
 
     void loadModel( std::istream & is ){
-
         std::string line;
         index_t size0, size1;
         /*
@@ -223,5 +232,6 @@ class Model{
             iss_hbias_j >> hbias[ i ];
         }
     }
-
 };
+
+#endif

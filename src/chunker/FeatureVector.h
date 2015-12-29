@@ -16,6 +16,10 @@ public:
     FeatureVector() {}
     ~FeatureVector() {}
 
+    int size() {
+        return features.size();
+    }
+
     void resize(int capacity) {
         features.resize(capacity);
     }

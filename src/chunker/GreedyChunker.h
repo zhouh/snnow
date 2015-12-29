@@ -10,11 +10,16 @@
 #include <iostream>
 #include <memory>
 
-#define XPU gpu
+#define XPU cpu
+
+typedef double real_t;
 
 #include "NNet.h"
+
+#include "Example.h"
+
 #include "Config.h"
-#include "DataManager.h"
+#include "DictManager.h"
 #include "FeatureEmbeddingManager.h"
 #include "FeatureVector.h"
 #include "FeatureManager.h"
@@ -28,7 +33,7 @@ public:
 private:
     LabelManager labelManager;
     std::shared_ptr<ActionStandardSystem> m_transitionSystem;
-    std::shared_ptr<DataManager> m_dataManagerPtr;
+    std::shared_ptr<DictManager> m_dictManagerPtr;
     std::shared_ptr<FeatureEmbeddingManager> m_featEmbManagerPtr;
     std::shared_ptr<FeatureManager> m_featManagerPtr;
 
@@ -45,19 +50,21 @@ public:
 
     void train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, ChunkedDataSet &devGoldSet, InstanceSet &devSet);
 
-    double chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, NNetPara<XPU> &netsPara);
+    double chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, Model<XPU> &modelParas);
 
 private:
+    void initDev(InstanceSet &devSet);
+
     void initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet);
 
-    State *decode(Instance *inst, NNetPara<XPU> &paras, State *lattice);
+    State *decode(Instance *inst, Model<XPU> &modelParas, State *lattice);
 
     /* generate the feature vector in all the beam states,
      * and return the input layer of neural network in batch.
     */
     void generateInputBatch(State *state, Instance *inst, std::vector<FeatureVector> &featvecs); 
 
-    void printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &devGoldSet, NNetPara<XPU> &netsPara, double batchObjLoss, double posClassificationRate, double &bestDevFB1);
+    void printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &devGoldSet, Model<XPU> &modelParas, double batchObjLoss, double posClassificationRate, double &bestDevFB1);
 
     void generateMultiThreadsMiniBatchData(std::vector<ExamplePtrs> &multiThread_miniBatch_data);
 };

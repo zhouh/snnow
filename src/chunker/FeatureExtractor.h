@@ -11,7 +11,7 @@
 #include <memory>
 
 #include "FeatureEmbedding.h"
-#include "DictManager.h"
+#include "Dictionary.h"
 #include "State.h"
 #include "Instance.h"
 #include "FeatureType.h"
@@ -19,10 +19,10 @@
 class FeatureExtractor {
 public:
     const FeatureType featType;
-    std::shared_ptr<DictManager> dictManagerPtr;
+    std::shared_ptr<Dictionary> dictPtr;
 
 public:
-    FeatureExtractor(FeatureType &fType, std::shared_ptr<DictManager> dManagerPtr) : featType(fType), dictManagerPtr(dManagerPtr)
+    FeatureExtractor(FeatureType &fType, std::shared_ptr<Dictionary> dictPtr) : featType(fType), dictPtr(dictPtr)
     {
     }
     virtual ~FeatureExtractor() {}
@@ -36,8 +36,8 @@ private:
 
 class WordFeatureExtractor : public FeatureExtractor {
 public:
-    WordFeatureExtractor(FeatureType &fType, std::shared_ptr<DictManager> dManagerPtr, FeatureEmbedding *fEmb) : 
-    FeatureExtractor(fType, dManagerPtr, fEmb)
+    WordFeatureExtractor(FeatureType &fType, std::shared_ptr<Dictionary> dictPtr) : 
+    FeatureExtractor(fType, dictPtr)
     {
 
     }
@@ -48,7 +48,7 @@ public:
 
         auto getWordIndex = [&state, &inst, this](int index) -> int {
             if (index < 0 || index >= state.m_nLen) {
-                return this->dictManagerPtr->nullIdx;
+                return this->dictPtr->nullIdx;
             }
 
             return inst.wordCache[index];
@@ -76,8 +76,8 @@ public:
 
 class CapitalFeatureExtractor : public FeatureExtractor {
 public:
-    CapitalFeatureExtractor(FeatureType &fType, std::shared_ptr<DictManager> dManagerPtr, FeatureEmbedding *fEmb) : 
-        FeatureExtractor(fType, dManagerPtr, fEmb)
+    CapitalFeatureExtractor(FeatureType &fType, std::shared_ptr<Dictionary> dictPtr) : 
+        FeatureExtractor(fType, dictPtr)
     {
     }
     ~CapitalFeatureExtractor() {}
@@ -87,7 +87,7 @@ public:
 
         auto getCapfeatIndex = [&state, &inst, this](int index) -> int {
             if (index < 0 || index >= state.m_nLen) {
-                return this->dictManagerPtr->nullIdx;
+                return this->dictPtr->nullIdx;
             }
 
             return inst.capfeatCache[index];

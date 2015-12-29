@@ -11,14 +11,15 @@
 
 class FeatureType {
 public:
-    const std::string typeName;
-    const int featSize;
-    const int featEmbSize;
+    std::string typeName;
+    int featSize;
+    int dictSize;
+    int featEmbSize;
 
 public:
-    FeatureType(const std::string &name, const int featureSize, const int featureEmbSize) : typeName(name), featSize(featureSize), featEmbSize(featureEmbSize) {}
+    FeatureType(const std::string &name, const int featureSize, const int dictionarySize, const int featureEmbSize) : typeName(name), featSize(featureSize), dictSize(dictionarySize), featEmbSize(featureEmbSize) {}
 
-    FeatureType(const FeatureType &fType) : typeName(fType.typeName), featSize(fType.featSize), featEmbSize(fType.featEmbSize) {}
+    FeatureType(const FeatureType &fType) : typeName(fType.typeName), featSize(fType.featSize), dictSize(fType.dictSize), featEmbSize(fType.featEmbSize) {}
 
     FeatureType& operator= (const FeatureType &fType) {
         if (this == &fType) {
@@ -27,6 +28,7 @@ public:
 
         typeName = fType.typeName;
         featSize = fType.featSize;
+        dictSize = fType.dictSize;
         featEmbSize = fType.featEmbSize;
 
         return *this;
