@@ -2,6 +2,7 @@ BASE_DIR = ../..
 OBJ_DIR = $(BASE_DIR)/OBJ
 INCLUDE_DIR = $(BASE_DIR)/src/include
 CHUNKER_DIR = $(BASE_DIR)/src/chunker
+CHUNKER_COMMON_DIR = $(CHUNKER_DIR)/common
 
 export CC = gcc
 export CXX = g++
@@ -9,70 +10,86 @@ export NVCC = nvcc
 include $(BASE_DIR)/make/config.mk
 include $(BASE_DIR)/make/mshadow.mk
 
-export CFLAGS = -g -std=c++11 -I$(INCLUDE_DIR)/ -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
+export CFLAGS = -O3 -std=c++11 -I$(INCLUDE_DIR) -I$(CHUNKER_COMMON_DIR) -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
 export LDFLAGS = -lm -L$(CUDA_HOME)/lib64 $(MSHADOW_LDFLAGS)
-export NVCCFLAGS = -g -G -std=c++11 --use_fast_math -ccbin $(CXX) $(MSHADOW_NVCCFLAGS)
+export NVCCFLAGS = -O3  -G -std=c++11 --use_fast_math -ccbin $(CXX) $(MSHADOW_NVCCFLAGS)
 
-BIN = $(BASE_DIR)/bin/chunk
+GREEDY_CHUNKER_DIR = $(CHUNKER_DIR)/greedychunker
+BEAM_CHUNKER_DIR = $(CHUNKER_DIR)/beamchunker
+
+GREEDY_CUOBJ = $(OBJ_DIR)/greedychunker/GreedyChunker.o
+BEAM_CUOBJ = $(OBJ_DIR)/beamchunker/BeamChunker.o
+
+GREEDY_BIN = $(BASE_DIR)/bin/greedychunk
+BEAM_BIN = $(BASE_DIR)/bin/beamchunk
+
 # OBJ = $(OBJ_DIR)/Config.o $(OBJ_DIR)/Dictionary.o $(OBJ_DIR)/DictManager.o $(OBJ_DIR)/FeatureManager.o $(OBJ_DIR)/Beam.o $(OBJ_DIR)/ActionStandardSystem.o 
 # OBJ = $(OBJ_DIR)/Config.o $(OBJ_DIR)/Dictionary.o $(OBJ_DIR)/DictManager.o $(OBJ_DIR)/FeatureManager.o $(OBJ_DIR)/ActionStandardSystem.o 
-OBJ = $(OBJ_DIR)/Config.o $(OBJ_DIR)/Dictionary.o $(OBJ_DIR)/DictManager.o $(OBJ_DIR)/FeatureManager.o $(OBJ_DIR)/ActionStandardSystem.o
+COMMON_OBJ = $(OBJ_DIR)/common/Config.o $(OBJ_DIR)/common/Evalb.o $(OBJ_DIR)/common/Dictionary.o $(OBJ_DIR)/common/DictManager.o $(OBJ_DIR)/common/FeatureManager.o $(OBJ_DIR)/common/ActionStandardSystem.o
+CUDA_COMMON_OBJ = $(OBJ_DIR)/common/FeatureEmbeddingManager.o 
 # CUOBJ = $(OBJ_DIR)/Chunker.o
-CUOBJ = $(OBJ_DIR)/GreedyChunker.o
-CUBIN = 
 .PHONY: clean all
 
-all: $(BIN) $(OBJ) $(CUBIN) $(CUOBJ)
-# all: $(BIN) $(OBJ)
+# all: directoires $(GREEDY_BIN)
+all: directoires $(BEAM_BIN)
 
-$(BIN) : $(CHUNKER_DIR)/chunk.cpp $(CUOBJ) $(OBJ)
-# $(BIN) : $(OBJ)
+directoires:
+	mkdir -p $(OBJ_DIR)/common $(OBJ_DIR)/greedychunker $(OBJ_DIR)/beamchunker
 
-# $(OBJ_DIR)/chunk.o : $(CHUNKER_DIR)/chunk.cpp $(CHUNKER_DIR)/Chunker.h $(CHUNKER_DIR)/State.h $(CHUNKER_DIR)/Instance.h $(CHUNKER_DIR)/ChunkedSentence.h 
+$(GREEDY_BIN) : $(GREEDY_CHUNKER_DIR)/chunk.cpp $(GREEDY_CUOBJ) $(COMMON_OBJ) $(CUDA_COMMON_OBJ)
+$(BEAM_BIN) : $(BEAM_CHUNKER_DIR)/chunk.cpp $(BEAM_CUOBJ) $(COMMON_OBJ) $(CUDA_COMMON_OBJ) $(BEAM_CHUNKER_DIR)/Beam.o
 
-$(OBJ_DIR)/Config.o : $(CHUNKER_DIR)/Config.h $(CHUNKER_DIR)/Config.cpp
+$(OBJ_DIR)/common/Config.o : $(CHUNKER_COMMON_DIR)/Config.h $(CHUNKER_COMMON_DIR)/Config.cpp
 
-$(OBJ_DIR)/Dictionary.o : $(CHUNKER_DIR)/Dictionary.cpp $(CHUNKER_DIR)/Dictionary.h $(CHUNKER_DIR)/ChunkedSentence.h
+$(OBJ_DIR)/common/Evalb.o : $(CHUNKER_COMMON_DIR)/Evalb.h $(CHUNKER_COMMON_DIR)/Evalb.cpp $(CHUNKER_COMMON_DIR)/LabeledSequence.h
 
-$(OBJ_DIR)/DictManager.o : $(CHUNKER_DIR)/DictManager.cpp $(CHUNKER_DIR)/DictManager.h $(CHUNKER_DIR)/Dictionary.h $(CHUNKER_DIR)/ChunkedSentence.h
+$(OBJ_DIR)/common/Dictionary.o : $(CHUNKER_COMMON_DIR)/Dictionary.cpp $(CHUNKER_COMMON_DIR)/Dictionary.h $(CHUNKER_COMMON_DIR)/LabeledSequence.h
 
-$(OBJ_DIR)/FeatureManager.o : $(CHUNKER_DIR)/FeatureManager.cpp $(CHUNKER_DIR)/FeatureManager.h
+$(OBJ_DIR)/common/DictManager.o : $(CHUNKER_COMMON_DIR)/DictManager.cpp $(CHUNKER_COMMON_DIR)/DictManager.h $(CHUNKER_COMMON_DIR)/Dictionary.h $(CHUNKER_COMMON_DIR)/LabeledSequence.h
+
+$(OBJ_DIR)/common/FeatureManager.o : $(CHUNKER_COMMON_DIR)/FeatureManager.cpp $(CHUNKER_COMMON_DIR)/FeatureManager.h $(CHUNKER_COMMON_DIR)/FeatureExtractor.h $(CHUNKER_COMMON_DIR)/Dictionary.h $(CHUNKER_COMMON_DIR)/DictManager.h $(CHUNKER_COMMON_DIR)/State.h $(CHUNKER_COMMON_DIR)/Instance.h $(CHUNKER_COMMON_DIR)/FeatureType.h $(CHUNKER_COMMON_DIR)/FeatureVector.h $(CHUNKER_COMMON_DIR)/LabeledSequence.h
+
+$(OBJ_DIR)/common/FeatureEmbeddingManager.o : $(CHUNKER_COMMON_DIR)/FeatureEmbeddingManager.cu $(CHUNKER_COMMON_DIR)/FeatureEmbeddingManager.h $(CHUNKER_COMMON_DIR)/FeatureEmbedding.h $(CHUNKER_COMMON_DIR)/FeatureVector.h $(CHUNKER_COMMON_DIR)/FeatureType.h $(CHUNKER_COMMON_DIR)/Dictionary.h $(CHUNKER_COMMON_DIR)/Model.h $(CHUNKER_COMMON_DIR)/NNet.h $(CHUNKER_COMMON_DIR)/Config.h $(CHUNKER_COMMON_DIR)/chunker.h
  
-# $(OBJ_DIR)/Beam.o : $(CHUNKER_DIR)/Beam.cpp $(CHUNKER_DIR)/Beam.h $(CHUNKER_DIR)/State.h
+$(OBJ_DIR)/common/ActionStandardSystem.o : $(CHUNKER_COMMON_DIR)/ActionStandardSystem.cpp $(CHUNKER_COMMON_DIR)/ActionStandardSystem.h $(CHUNKER_COMMON_DIR)/State.h $(CHUNKER_COMMON_DIR)/Instance.h $(CHUNKER_COMMON_DIR)/LabeledSequence.h
 
-$(OBJ_DIR)/ActionStandardSystem.o : $(CHUNKER_DIR)/ActionStandardSystem.cpp $(CHUNKER_DIR)/ActionStandardSystem.h $(CHUNKER_DIR)/State.h
-
-# $(OBJ_DIR)/Chunker.o : $(CHUNKER_DIR)/Chunker.cu $(CHUNKER_DIR)/Chunker.h \
-# 	$(CHUNKER_DIR)/Config.h \
-# 	$(CHUNKER_DIR)/Evalb.h \
-# 	$(CHUNKER_DIR)/State.h $(CHUNKER_DIR)/Instance.h $(CHUNKER_DIR)/ChunkedSentence.h $(CHUNKER_DIR)/Example.h \
-# 	$(CHUNKER_DIR)/Beam.h $(CHUNKER_DIR)/BeamDecoder.h \
-# 	$(CHUNKER_DIR)/Dictionary.h $(CHUNKER_DIR)/DictManager.h \
-# 	$(CHUNKER_DIR)/FeatureManager.h $(CHUNKER_DIR)/FeatureVector.h $(CHUNKER_DIR)/FeatureEmbedding.h $(CHUNKER_DIR)/FeatureExtractor.h \
-# 	$(CHUNKER_DIR)/FeatureEmbedding.h \
-# 	$(INCLUDE_DIR)/NNet.h $(INCLUDE_DIR)/TNNets.h \
-# 	$(INCLUDE_DIR)/mshadow/tensor.h $(INCLUDE_DIR)/Dict.h $(INCLUDE_DIR)/mshadow/*.h $(INCLUDE_DIR)/mshadow/extension/*.h
-
-$(OBJ_DIR)/GreedyChunker.o : $(CHUNKER_DIR)/GreedyChunker.cu $(CHUNKER_DIR)/GreedyChunker.h \
-	$(CHUNKER_DIR)/Config.h \
-	$(CHUNKER_DIR)/Evalb.h \
-	$(CHUNKER_DIR)/State.h $(CHUNKER_DIR)/Instance.h $(CHUNKER_DIR)/ChunkedSentence.h $(CHUNKER_DIR)/Example.h \
-	$(CHUNKER_DIR)/Dictionary.h $(CHUNKER_DIR)/DictManager.h \
-	$(CHUNKER_DIR)/FeatureManager.h $(CHUNKER_DIR)/FeatureVector.h $(CHUNKER_DIR)/FeatureEmbedding.h $(CHUNKER_DIR)/FeatureExtractor.h \
-	$(CHUNKER_DIR)/FeatureEmbedding.h $(CHUNKER_DIR)/Model.h \
-	$(INCLUDE_DIR)/mshadow/tensor.h $(INCLUDE_DIR)/Dict.h $(INCLUDE_DIR)/mshadow/*.h $(INCLUDE_DIR)/mshadow/extension/*.h
- 
-$(BIN) :
-	$(CXX) $(CFLAGS) -o $@ $(filter %.cpp %.o %.c, $^) $(LDFLAGS)
-
-$(OBJ) :
+$(BEAM_CHUNKER_DIR)/Beam.o : $(BEAM_CHUNKER_DIR)/Beam.cpp $(BEAM_CHUNKER_DIR)/Beam.h
 	$(CXX) -c $(CFLAGS) $(firstword $(filter %.cpp %.c, $^) ) -o $@
 
-$(CUOBJ) :
+COMMON_HEADER = $(CHUNKER_COMMON_DIR)/Config.h $(CHUNKER_COMMON_DIR)/chunker.h \
+	$(CHUNKER_COMMON_DIR)/Evalb.h \
+	$(CHUNKER_COMMON_DIR)/LabeledSequence.h $(CHUNKER_COMMON_DIR)/Instance.h $(CHUNKER_COMMON_DIR)/State.h $(CHUNKER_COMMON_DIR)/Example.h \
+	$(CHUNKER_COMMON_DIR)/Dictionary.h $(CHUNKER_COMMON_DIR)/DictManager.h \
+	$(CHUNKER_COMMON_DIR)/FeatureVector.h $(CHUNKER_COMMON_DIR)/FeatureExtractor.h $(CHUNKER_COMMON_DIR)/FeatureManager.h \
+	$(CHUNKER_COMMON_DIR)/FeatureEmbedding.h $(CHUNKER_COMMON_DIR)/Model.h $(CHUNKER_COMMON_DIR)/NNet.h $(CHUNKER_COMMON_DIR)/FeatureEmbeddingManager.h \
+	$(CHUNKER_COMMON_DIR)/ActionStandardSystem.h \
+	$(INCLUDE_DIR)/mshadow/tensor.h $(INCLUDE_DIR)/mshadow/*.h $(INCLUDE_DIR)/mshadow/extension/*.h
+
+
+$(GREEDY_CUOBJ) : $(GREEDY_CHUNKER_DIR)/GreedyChunker.cu $(GREEDY_CHUNKER_DIR)/GreedyChunker.h $(COMMON_HEADER)
+
+$(BEAM_CUOBJ) : $(BEAM_CHUNKER_DIR)/BeamChunker.cu $(BEAM_CHUNKER_DIR)/BeamChunker.h $(COMMON_HEADER) $(BEAM_CHUNKER_DIR)/Beam.h $(BEAM_CHUNKER_DIR)/BeamDecoder.h
+
+$(GREEDY_BIN) :
+	$(CXX) $(CFLAGS) -o $@ $(filter %.cpp %.o %.c, $^) $(LDFLAGS)
+
+$(BEAM_BIN) :
+	$(CXX) $(CFLAGS) -o $@ $(filter %.cpp %.o %.c, $^) $(LDFLAGS)
+
+$(COMMON_OBJ) :
+	$(CXX) -c $(CFLAGS) $(firstword $(filter %.cpp %.c, $^) ) -o $@
+
+$(CUDA_COMMON_OBJ) :
+	$(NVCC) -g -c -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" $(filter %.cu, $^)
+
+$(GREEDY_CUOBJ) :
+	$(NVCC) -g -c -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" $(filter %.cu, $^)
+
+$(BEAM_CUOBJ) :
 	$(NVCC) -g -c -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" $(filter %.cu, $^)
 
 $(CUBIN) :
 	$(NVCC) -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" -Xlinker "$(LDFLAGS)" $(filter %.cu %.cpp %.o, $^)
 
 clean:
-	rm $(OBJ) $(BIN) $(CUBIN) $(CUOBJ)
+	rm $(COMMON_OBJ) $(GREEDY_BIN) $(GREEDY_CUBIN) $(GREEDY_CUOBJ)
