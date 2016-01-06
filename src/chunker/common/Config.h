@@ -29,7 +29,8 @@ public:
     static int nHiddenSize;
 
     static int nRound;
-    static int nBatchSize;
+    static int nGreedyBatchSize;
+    static int nBeamBatchSize;
     static int nEvaluatePerIters;
     static int nThread;
 
@@ -39,6 +40,7 @@ public:
     static float fAdaEps;
 
     static bool bDropOut;
+    static float fDropoutProb;
 
     friend std::ostream& operator<< (std::ostream &os, const CConfig &config);
 };

@@ -79,7 +79,7 @@ void GreedyChunker::printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &de
 }
 
 void GreedyChunker::generateMultiThreadsMiniBatchData(std::vector<ExamplePtrs> &multiThread_miniBatch_data) {
-    int exampleNumOfThread = std::min(CConfig::nBatchSize, static_cast<int>(trainExamplePtrs.size())) / CConfig::nThread;
+    int exampleNumOfThread = std::min(CConfig::nGreedyBatchSize, static_cast<int>(trainExamplePtrs.size())) / CConfig::nThread;
     // int exampleNumOfThread = static_cast<int>(trainExamplePtrs.size()) / CConfig::nThread;
 
     auto sp = trainExamplePtrs.begin();
@@ -123,14 +123,15 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
     const static int num_in = m_featEmbManagerPtr->getTotalFeatEmbSize();
     const static int num_hidden = CConfig::nHiddenSize;
     const static int num_out = m_transSystemPtr->getActNumber();
-    const static int batchSize = std::min(CConfig::nBatchSize, static_cast<int>(trainExamplePtrs.size()));
+    const static int batchSize = std::min(CConfig::nGreedyBatchSize, static_cast<int>(trainExamplePtrs.size()));
     // const static int batchSize = static_cast<int>(trainExamplePtrs.size());
 
     omp_set_num_threads(CConfig::nThread);
 
     srand(0);
 
-    InitTensorEngine<XPU>();
+    InitTensorEngine<XPU>(1);
+
     Stream<XPU> *stream = NewStream<XPU>();
 
     auto featureTypes = m_featManagerPtr->getFeatureTypes();
@@ -145,7 +146,7 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
     std::cerr << "[end]" << std::endl;
 
     Model<XPU> modelParas(1, num_in, num_hidden, num_out, featureTypes, stream, true);
-    // m_featEmbManagerPtr->readPretrainedEmbeddings(modelParas);
+    m_featEmbManagerPtr->readPretrainedEmbeddings(modelParas);
 
     Model<XPU> adaGradSquares(1, num_in, num_hidden, num_out, featureTypes, stream, false);
 

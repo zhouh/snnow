@@ -34,23 +34,25 @@ int CConfig::nPOSEmbeddingDim = 10;
 
 int CConfig::nHiddenSize = 300;
 
-int CConfig::nRound = 2000; 
+int CConfig::nRound = 1000; 
 
-int CConfig::nBatchSize = 10000;
+int CConfig::nBeamBatchSize = 1000;
+int CConfig::nGreedyBatchSize = 10000;
 
 int CConfig::nEvaluatePerIters = 20;
 
-int CConfig::nThread = 1;
+int CConfig::nThread = 10;
 
-float CConfig::fRegularizationRate = 1e-7;
+float CConfig::fRegularizationRate = 1e-8;
 
-float CConfig::fBPRate = 0.1;
+float CConfig::fBPRate = 0.01;
 
 float CConfig::fInitRange = 0.1;
 
 float CConfig::fAdaEps = 1e-6;
 
-bool CConfig::bDropOut = false;
+bool CConfig::bDropOut = true;
+float CConfig::fDropoutProb = 0.5;
 
 std::ostream& operator<< (std::ostream &os, const CConfig &config) {
     std::cerr << "train path:\t" << CConfig::strTrainPath << std::endl;
@@ -69,12 +71,14 @@ std::ostream& operator<< (std::ostream &os, const CConfig &config) {
     std::cerr << "beam size:\t" << CConfig::nBeamSize << std::endl;
 
     std::cerr << "round size:\t" << CConfig::nRound << std::endl;
-    std::cerr << "batch size:\t" << CConfig::nBatchSize << std::endl;
+    std::cerr << "greedybatch size:\t" << CConfig::nGreedyBatchSize << std::endl;
+    std::cerr << "beambatch size:\t" << CConfig::nBeamBatchSize << std::endl;
     std::cerr << "hidden size:\t" << CConfig::nHiddenSize << std::endl;
     std::cerr << "regular rate:\t" << CConfig::fRegularizationRate << std::endl;
     std::cerr << "BP rate:\t" << CConfig::fBPRate << std::endl;
     std::cerr << "init range:\t" << CConfig::fInitRange << std::endl;
     std::cerr << "adagrad eps:\t" << CConfig::fAdaEps << std::endl;
 
-    std::cerr << "drop out:\t" << CConfig::bDropOut << std::endl;
+    std::cerr << "dropout:\t" << CConfig::bDropOut << std::endl;
+    std::cerr << "dropout prob:\t" << CConfig::fDropoutProb << std::endl;
 }

@@ -1,5 +1,5 @@
-#ifndef _CHUNKER_COMMON_NNET_H_
-#define _CHUNKER_COMMON_NNET_H_
+#ifndef SNNOW_NNET_H
+#define SNNOW_NNET_H
 
 // this implements a simple two layer neural net
 #include <vector>
@@ -7,9 +7,6 @@
 #include <sstream>
 
 #include "chunker.h"
-
-// header file to use mshadow
-#include "mshadow/tensor.h"
 
 #include "Model.h"
 #include "FeatureVector.h"
@@ -91,8 +88,8 @@ public:
             TensorContainer<xpu,2, real_t> mask;
             mask.set_stream(paras->stream);
             mask.Resize(nhidden.shape_);
-            //paras->rnd.SampleUniform(&mask, 0.0f, 1.0f);
-            // F<threshold>(mask, CConfig::fDropoutProb);
+            paras->rnd.SampleUniform(&mask, 0.0, 1.0);
+            F<threshold>(mask, CConfig::fDropoutProb);
             nhidden = nhidden * mask;
         } //dropout
   
@@ -154,7 +151,6 @@ public:
         cumulatedGradsPtr->Wh2o  += g_Wh2o;
         cumulatedGradsPtr->hbias += g_hbias;
 
-#ifndef WITHOUT_FINE_TUNE
         for (int i = 0; i < static_cast<int>(fvs.size()); i++) {
             FeatureVector &fv = fvs[i];
 
@@ -181,12 +177,11 @@ public:
                 // }
             }
         }
-#endif
     }
   
 private:
     // neural network parameters
-    Model<XPU>* paras;
+    Model<xpu>* paras;
   
     // nodes in neural net
     TensorContainer<xpu, 2, real_t> ninput, nhidden, nhiddenbak, nout;
@@ -197,5 +192,7 @@ private:
 
     TensorContainer<cpu, 2, real_t> cpu_g_input;
 };
+// template<typename xpu>
+// Random<xpu, real_t> NNet<xpu>::rnd(0);
 
 #endif

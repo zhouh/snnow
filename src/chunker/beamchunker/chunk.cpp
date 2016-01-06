@@ -9,8 +9,6 @@
 #include <string>
 #include <vector>
 
-#include "mshadow/tensor.h"
-
 #include "Config.h"
 #include "LabeledSequence.h"
 #include "Instance.h"
@@ -91,7 +89,7 @@ int main(int argc, char *argv[]) {
         count++;
     }
 
-    Chunker chunker(true);
+    BeamChunker chunker(true);
     cerr << "Dev sentences number: " << count << endl;
     cerr << "------------------------------------" << endl;
 

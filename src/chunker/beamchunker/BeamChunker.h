@@ -1,5 +1,5 @@
 /*************************************************************************
-	> File Name: Chunker.h
+	> File Name: BeamChunker.h
 	> Author: cheng chuan
 	> Mail: cc.square0@gmail.com 
 	> Created Time: Thu 19 Nov 2015 02:39:07 PM CST
@@ -12,9 +12,6 @@
 #include "chunker.h"
 #include "Config.h"
 
-#include "Model.h"
-#include "NNet.h"
-
 #include "Beam.h"
 #include "BeamDecoder.h"
 
@@ -24,7 +21,7 @@
 #include "LabeledSequence.h"
 #include "ActionStandardSystem.h"
 
-class Chunker{
+class BeamChunker{
 private:
     LabelManager labelManager;
     std::shared_ptr<ActionStandardSystem> m_transSystemPtr;
@@ -34,14 +31,13 @@ private:
 
     int m_nBeamSize;
     bool m_bTrain;
-    bool m_bEarlyUpdate;
 
     GlobalExamples gExamples;
 public:
-    Chunker();
-    Chunker(bool isTrain);
+    BeamChunker();
+    BeamChunker(bool isTrain);
 
-    ~Chunker();
+    ~BeamChunker();
 
     void train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, ChunkedDataSet &devGoldSet,  InstanceSet &devSet);
 
@@ -52,8 +48,8 @@ private:
 
     void initDev(InstanceSet &devSet);
 
-    Chunker(const Chunker &chuker) = delete;
-    Chunker& operator= (const Chunker &chunker) = delete;
+    BeamChunker(const BeamChunker &chuker) = delete;
+    BeamChunker& operator= (const BeamChunker &chunker) = delete;
 };
 
 #endif

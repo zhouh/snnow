@@ -13,7 +13,6 @@
 #include "Config.h"
 #include "chunker.h"
 
-#include "Model.h"
 #include "NNet.h"
 
 #include "LabeledSequence.h"

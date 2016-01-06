@@ -5,8 +5,10 @@
   > Created Time: 26/12/15 15:03:18
  ************************************************************************/
 
-#ifndef _CHUNKER_COMMON_MODEL_H_
-#define _CHUNKER_COMMON_MODEL_H_
+#ifndef _CHUNKER_MODEL_H_
+#define _CHUNKER_MODEL_H_
+
+#include <memory>
 
 #include "mshadow/tensor.h"
 
@@ -49,7 +51,7 @@ public:
     /*
      * random seed generator
      */
-    Random<xpu, real_t> rnd;  
+    Random<xpu, real_t> rnd; 
 
     /*
      * parameters of feature embeddings
@@ -107,10 +109,8 @@ public:
         Wh2o = 0.0;
         hbias = 0.0;
 
-#ifndef WITHOUT_FINE_TUNE
         for(int i = 0; i < featEmbs.size(); i++)
             featEmbs[i]->setZero();
-#endif
     }
 
     real_t norm2() {
@@ -177,28 +177,22 @@ public:
         gradients->Wi2h  += CConfig::fRegularizationRate * Wi2h;
         gradients->Wh2o  += CConfig::fRegularizationRate * Wh2o;
         gradients->hbias += CConfig::fRegularizationRate * hbias;
-#ifndef WITHOUT_FINE_TUNE
         for(int i = 0; i < featEmbs.size(); i++)
             gradients->featEmbs[i]->data += CConfig::fRegularizationRate * featEmbs[i]->data;
-#endif
 
         // update adagrad gradient square sums
         adaGradSquares->Wi2h  += F<square>(gradients->Wi2h);
         adaGradSquares->Wh2o  += F<square>(gradients->Wh2o);
         adaGradSquares->hbias += F<square>(gradients->hbias);
-#ifndef WITHOUT_FINE_TUNE
         for(int i = 0; i < gradients->featEmbs.size(); i++)
             adaGradSquares->featEmbs[i]->data += F<square>(gradients->featEmbs[i]->data);
-#endif
 
         // update this weight
         Wi2h  -= CConfig::fBPRate * ( gradients->Wi2h  / F<mySqrt>( adaGradSquares->Wi2h + CConfig::fAdaEps  ) );
         Wh2o  -= CConfig::fBPRate * ( gradients->Wh2o  / F<mySqrt>( adaGradSquares->Wh2o + CConfig::fAdaEps  ) );
         hbias -= CConfig::fBPRate * ( gradients->hbias / F<mySqrt>( adaGradSquares->hbias + CConfig::fAdaEps ) );
-#ifndef WITHOUT_FINE_TUNE
         for(int i = 0; i < gradients->featEmbs.size(); i++)
             featEmbs[i]->data -= CConfig::fBPRate * ( gradients->featEmbs[i]->data / F<mySqrt>( adaGradSquares->featEmbs[i]->data + CConfig::fAdaEps ) );
-#endif
 
         gradients->setZero(); // set zero for that the cumulated gradients will be reused in the next update
     }
@@ -210,10 +204,8 @@ public:
         Wi2h  += model->Wi2h;
         Wh2o  += model->Wh2o;
         hbias += model->hbias;
-#ifndef WITHOUT_FINE_TUNE
         for(int i = 0; i < featEmbs.size(); i++)
             featEmbs[i]->data +=  model->featEmbs[i]->data;
-#endif
     }
 
     /**
@@ -304,5 +296,7 @@ public:
         }
     }
 };
+// template<typename xpu>
+// Random<xpu, real_t>  Model<xpu>::rnd(0);
 
 #endif

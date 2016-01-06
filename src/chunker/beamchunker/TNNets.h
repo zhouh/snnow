@@ -10,6 +10,9 @@
 #include "chunker.h"
 
 #include "NNet.h"
+
+#include "Beam.h"
+#include "State.h"
 #include "FeatureVector.h"
 
 /**
@@ -107,7 +110,7 @@ public:
            for(auto iter = trainingData.begin(); iter != trainingData.end(); iter++, i++){
                //( *iter )->source->printActionSequence();
                //std::cout<<"action :\t"<<(*iter)->action<<std::endl;
-               grads[ ( *iter )->source->beamIdx ][ ( *iter )->action ] += updateParas[i] / CConfig::nBatchSize;
+               grads[ ( *iter )->source->beamIdx ][ ( *iter )->action ] += updateParas[i] / CConfig::nBeamBatchSize;
                if( backRound != 0 ){ // last time updating, do not need to prepare for next iteration
                     ( *iter )->action = ( *iter )->source->last_action;
                     ( *iter )->source = ( *iter )->source->previous_;

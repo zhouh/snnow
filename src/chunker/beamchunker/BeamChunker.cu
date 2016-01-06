@@ -1,5 +1,5 @@
 /*************************************************************************
-	> File Name: Chunker.cpp
+	> File Name: BeamChunker.cpp
 	> Author: cheng chuan
 	> Mail: cc.square0@gmail.com 
 	> Created Time: Thu 19 Nov 2015 03:59:17 PM CST
@@ -14,39 +14,26 @@
 
 #include "Config.h"
 
-#include "BeamChunker.h"
 #include "TNNets.h"
+#include "BeamChunker.h"
 #include "Evalb.h"
 
 #include "Example.h"
 
-#define DEBUG
-
-#ifdef DEBUG
-// #define DEBUG1
-// #define DEBUG2
-// #define DEBUG4
-// #define DEBUG5
-#define CHECKNETVALUES
-#endif
-
-Chunker::Chunker() {
+BeamChunker::BeamChunker() {
     m_nBeamSize = CConfig::nBeamSize;
     m_bTrain = false;
-    m_bEarlyUpdate = false;
 }
 
-Chunker::Chunker(bool isTrain) {
+BeamChunker::BeamChunker(bool isTrain) {
     m_nBeamSize = CConfig::nBeamSize;
     m_bTrain = isTrain;
-    m_bEarlyUpdate = false;
 }
 
-Chunker::~Chunker() {
-
+BeamChunker::~BeamChunker() {
 }
     
-double Chunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, Model<XPU> &modelParas) {
+double BeamChunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, Model<XPU> &modelParas) {
     const int num_in = m_featEmbManagerPtr->getTotalFeatEmbSize();
     const int num_hidden = CConfig::nHiddenSize;
     const int num_out = m_transSystemPtr->getActNumber();
@@ -82,7 +69,7 @@ double Chunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, Mod
     return std::get<2>(res);
 }
 
-void Chunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, ChunkedDataSet &devGoldSet, InstanceSet &devSet) {
+void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, ChunkedDataSet &devGoldSet, InstanceSet &devSet) {
     std::cerr << "[trainingSet involved initing]Initing DictManager &  FeatureManager & ActionStandardSystem & generateTrainingExamples..." << std::endl;
     initTrain(trainGoldSet, trainSet);
 
@@ -92,7 +79,7 @@ void Chunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chunked
     const int num_in = m_featEmbManagerPtr->getTotalFeatEmbSize();
     const int num_hidden = CConfig::nHiddenSize;
     const int num_out = m_transSystemPtr->getActNumber();
-    const int batch_size = std::min(CConfig::nBatchSize, static_cast<int>(gExamples.size()));
+    const int batch_size = std::min(CConfig::nBeamBatchSize, static_cast<int>(gExamples.size()));
 
     const int beam_size = CConfig::nBeamSize;
 
@@ -114,7 +101,7 @@ void Chunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chunked
 
     Stream<XPU> *stream = NewStream<XPU>();
     Model<XPU> modelParas(beam_size, num_in, num_hidden, num_out, featureTypes, stream, true);
-    // m_featEmbManagerPtr->readPretrainedEmbeddings(modelParas);
+    m_featEmbManagerPtr->readPretrainedEmbeddings(modelParas);
     Model<XPU> adaGradSquares(beam_size, num_in, num_hidden, num_out, featureTypes, stream, false);
 
     double bestDevFB1 = -1.0;
@@ -195,11 +182,11 @@ void Chunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chunked
     ShutdownTensorEngine<XPU>();
 }
 
-void Chunker::initDev(InstanceSet &devSet) {
+void BeamChunker::initDev(InstanceSet &devSet) {
     Instance::generateInstanceSetCache(*(m_dictManagerPtr.get()), devSet);
 }
 
-void Chunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
+void BeamChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
     using std::cerr;
     using std::endl;
 
@@ -223,5 +210,4 @@ void Chunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
     GlobalExample::generateTrainingExamples(*(m_transSystemPtr.get()), *(m_featManagerPtr.get()), trainSet, goldSet, gExamples);
 
     std::cerr << std::endl << "  train set size: " << trainSet.size() << std::endl;
-    std::cerr << "  dev gold set size: " << goldSet.size() << std::endl;
 }
