@@ -95,4 +95,4 @@ $(CUBIN) :
 	$(NVCC) -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" -Xlinker "$(LDFLAGS)" $(filter %.cu %.cpp %.o, $^)
 
 clean:
-	rm $(COMMON_OBJ) $(GREEDY_BIN) $(GREEDY_CUBIN) $(GREEDY_CUOBJ) $(OBJ_DIR)/*.o $(OBJ_DIR)/greedychunker/*.o $(OBJ_DIR)/beamchunker/*.o $(OBJ_DIR)/common/*.o
+	rm $(OBJ_DIR)/*.o $(OBJ_DIR)/greedychunker/*.o $(OBJ_DIR)/beamchunker/*.o $(OBJ_DIR)/common/*.o

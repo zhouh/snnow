@@ -41,9 +41,10 @@ public:
     // initialize the network
     NNet(int batch_size, int num_in, int num_hidden, int num_out, Model<xpu>* paras) {
         // setup stream
-        stream = NewStream<xpu>();
+        // stream = NewStream<xpu>();
 
         this->paras = paras;
+        stream = paras->stream;
 
         ninput.set_stream(stream);
         nhidden.set_stream(stream);
@@ -54,19 +55,20 @@ public:
         g_Wh2o.set_stream(stream);
         g_input.set_stream(stream);
   
-        g_Wh2o.Resize(paras->Wh2o.shape_);
-        g_Wi2h.Resize(paras->Wi2h.shape_);
-        g_hbias.Resize(paras->hbias.shape_);
-        g_input.Resize(Shape2(batch_size, num_in));
-        cpu_g_input.Resize(g_input.shape_);
+        g_Wh2o.Resize(paras->Wh2o.shape_, static_cast<real_t>(0.0));
+        g_Wi2h.Resize(paras->Wi2h.shape_, static_cast<real_t>(0.0));
+        g_hbias.Resize(paras->hbias.shape_, static_cast<real_t>(0.0));
+        g_input.Resize(Shape2(batch_size, num_in), static_cast<real_t>(0.0));
+        cpu_g_input.Resize(g_input.shape_, static_cast<real_t>(0.0));
         // setup nodes
-        ninput.Resize(Shape2(batch_size, num_in));
-        nhidden.Resize(Shape2(batch_size, num_hidden));
-        nhiddenbak.Resize(nhidden.shape_);
-        nout.Resize(Shape2(batch_size, num_out));
+        ninput.Resize(Shape2(batch_size, num_in), static_cast<real_t>(0.0));
+        nhidden.Resize(Shape2(batch_size, num_hidden), static_cast<real_t>(0.0));
+        nhiddenbak.Resize(nhidden.shape_, static_cast<real_t>(0.0));
+        nout.Resize(Shape2(batch_size, num_out), static_cast<real_t>(0.0));
     }
   
-    ~NNet() {}
+    // ~NNet() { DeleteStream(stream); }
+    ~NNet() {  }
     // forward propagation
     void Forward(const Tensor<cpu, 2, real_t>& inbatch,
            Tensor<cpu, 2, real_t> &oubatch, bool bDropOut){

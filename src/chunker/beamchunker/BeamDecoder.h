@@ -53,6 +53,15 @@ public:
                 int beamSize, 
                 bool bTrain);
 
+    BeamDecoder(Instance *inst, 
+                std::shared_ptr<ActionStandardSystem> transitionSystemPtr, 
+                std::shared_ptr<FeatureManager> featureMangerPtr,
+                std::shared_ptr<FeatureEmbeddingManager> featureEmbManagerPtr, 
+                int beamSize, 
+                State *lattice,
+                State **lattice_index,
+                bool bTrain);
+
     ~BeamDecoder();
 
     void generateLabeledSequence(TNNets &tnnets, LabeledSequence &predictedSent);

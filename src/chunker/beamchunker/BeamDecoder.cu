@@ -29,43 +29,50 @@ BeamDecoder::BeamDecoder(Instance *inst,
     this->bTrain = bTrain;
 
     bEarlyUpdate = false;
-    
+   
     lattice = new State[nMaxLatticeSize];
     lattice_index = new State *[nMaxRound + 2];
 }
 
+BeamDecoder::BeamDecoder(Instance *inst, 
+            std::shared_ptr<ActionStandardSystem> transitionSystemPtr, 
+            std::shared_ptr<FeatureManager> featureMangerPtr,
+            std::shared_ptr<FeatureEmbeddingManager> featureEmbManagerPtr, 
+            int beamSize, 
+            State *lattice,
+            State **lattice_index,
+            bool bTrain) : 
+            m_transSystemPtr(transitionSystemPtr),
+            m_featManagerPtr(featureMangerPtr),
+            m_featEmbManagerPtr(featureEmbManagerPtr),
+            beam(beamSize) {
+    nSentLen = inst->input.size();
+    nMaxRound = nSentLen;
+
+    nMaxLatticeSize = (beamSize + 1) * nMaxRound;
+    nRound = 0;
+
+    this->inst = inst;
+    this->bTrain = bTrain;
+
+    bEarlyUpdate = false;
+   
+    this->lattice = lattice;
+    this->lattice_index = lattice_index; 
+    // lattice = new State[nMaxLatticeSize];
+    // lattice_index = new State *[nMaxRound + 2];
+}
+
 BeamDecoder::~BeamDecoder() {
-    delete []lattice;
-    delete []lattice_index;
+    if (!bTrain) {
+        delete []lattice;
+        delete []lattice_index;
+    }
 }
 
 void BeamDecoder::generateLabeledSequence(TNNets &tnnets, LabeledSequence &predictedSent) {
-    // std::cerr << "[input]: " << std::endl;
-    // std::cerr << predictedSent << std::endl;
 
     State *predState = decode(tnnets);
-
-    // std::cerr << std::endl;
-    // std::cerr << "current beam size: " << beam.currentBeamSize << std::endl;
-    // std::cerr << predictedSent;
-
-    // std::vector<int> predictedActions;
-    // State *ptr = predState;
-    // if (ptr == nullptr) {
-    //     std::cerr << "predstate is nullptr!" << std::endl;
-    // }
-    // int i = 1;
-    // while (ptr != nullptr && ptr->last_action != -1) {
-    //     i++;
-    //     predictedActions.push_back(ptr->last_action);
-    //     ptr = ptr->previous_;
-    // }
-    // std::cerr << "decoded path length: " << i << std::endl;
-    // std::cerr << "[pred action sequences]: ";
-    // for (int i = 0; i < predictedActions.size(); i++) {
-    //     std::cerr << predictedActions[predictedActions.size() - 1 - i] << " ";
-    // }
-    // std::cerr << std::endl;
 
     m_transSystemPtr->generateOutput(*predState, predictedSent);
 }

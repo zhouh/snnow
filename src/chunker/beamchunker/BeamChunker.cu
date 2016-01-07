@@ -37,36 +37,50 @@ std::pair<double, double> BeamChunker::chunk(InstanceSet &devInstances, ChunkedD
     const int num_in = m_featEmbManagerPtr->getTotalFeatEmbSize();
     const int num_hidden = CConfig::nHiddenSize;
     const int num_out = m_transSystemPtr->getActNumber();
-    const int beam_size = CConfig::nBeamSize;
+    const int beam_size = m_nBeamSize;
     static int chunkRound = 1;
-
-    TNNets tnnets(beam_size, num_in, num_hidden, num_out, &modelParas, false);
 
     clock_t start, end;
     start = clock();
-    ChunkedDataSet predictDevSet;
-    for (unsigned inst = 0; inst < static_cast<unsigned>(devInstances.size()); inst++) {
-        LabeledSequence predictSent(devInstances[inst].input);
+    ChunkedDataSet predictDevSet(goldDevSet.size());
 
-        BeamDecoder decoder(&(devInstances[inst]), 
-                            m_transSystemPtr,
-                            m_featManagerPtr,
-                            m_featEmbManagerPtr,
-                            m_nBeamSize, 
-                            false);
+    std::vector<ChunkedDataSet> threadPredictDevSets(CConfig::nThread);
+#pragma omp parallel num_threads(CConfig::nThread)
+    {
+        TNNets tnnets(beam_size, num_in, num_hidden, num_out, &modelParas, false);
 
-        decoder.generateLabeledSequence(tnnets, predictSent);
+        int threadIndex = omp_get_thread_num();
+        ChunkedDataSet &threadPredictDevSet = threadPredictDevSets[threadIndex];
 
-        predictDevSet.push_back(predictSent);
+        for (unsigned inst = threadIndex; inst < static_cast<unsigned>(devInstances.size()); inst += CConfig::nThread) {
+            LabeledSequence predictSent(devInstances[inst].input);
+
+            BeamDecoder decoder(&(devInstances[inst]), 
+                                m_transSystemPtr,
+                                m_featManagerPtr,
+                                m_featEmbManagerPtr,
+                                m_nBeamSize, 
+                                false);
+
+            decoder.generateLabeledSequence(tnnets, predictSent);
+
+            threadPredictDevSet.push_back(predictSent);
+        }
+    }
+
+    for (int i = 0; i < CConfig::nThread; i++) {
+        for (int j = 0; j < threadPredictDevSets[i].size(); j++) {
+            predictDevSet[i + j * CConfig::nThread] = threadPredictDevSets[i][j];
+        }
     }
     end = clock();
 
     double time_used = (double)(end - start) / CLOCKS_PER_SEC;
-    std::cerr << "[" << chunkRound << "] totally chunk " << devInstances.size() << " sentences, time: " << time_used << " average: " << devInstances.size() / time_used << " sentences/second!" << std::endl; chunkRound++;
+    std::cerr << "[" << chunkRound << "] totally chunk " << devInstances.size() << " sentences, \ttime: " << time_used << " \taverage: " << devInstances.size() / time_used << " sentences/second!" << std::endl; chunkRound++;
 
     auto res = Evalb::eval(predictDevSet, goldDevSet);
     double FB1 = std::get<2>(res);
-    res = Evalb::eval(predictDevSet, goldDevSet);
+    res = Evalb::eval(predictDevSet, goldDevSet, true);
     double NPFB1 = std::get<2>(res);
 
     return std::make_pair(FB1, NPFB1);
@@ -103,12 +117,10 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
     const int num_out = m_transSystemPtr->getActNumber();
     const int batch_size = std::min(CConfig::nBeamBatchSize, static_cast<int>(gExamples.size()));
 
-    omp_set_num_threads(CConfig::nThread);
-
     srand(0);
 
     InitTensorEngine<XPU>();
-    std::vector<Stream<XPU> *> streams(CConfig::nThread + 1);
+    Stream<XPU> *sstream = NewStream<XPU>();
 
     auto featureTypes = m_featManagerPtr->getFeatureTypes();
     std::cerr << "[begin]featureTypes:" << std::endl;
@@ -120,12 +132,14 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
     }
     std::cerr << "[end]" << std::endl;
 
-    Model<XPU> modelParas(num_in, num_hidden, num_out, featureTypes, streams[0], true);
+    Model<XPU> modelParas(num_in, num_hidden, num_out, featureTypes, sstream, true);
     m_featEmbManagerPtr->readPretrainedEmbeddings(modelParas);
-    Model<XPU> adaGradSquares(num_in, num_hidden, num_out, featureTypes, streams[0], false);
+    Model<XPU> adaGradSquares(num_in, num_hidden, num_out, featureTypes, sstream, false);
 
     double bestDevFB1 = -1.0;
     double bestDevNPFB1 = -1.0;
+    clock_t start, end;
+    start = clock();
     for (int iter = 1; iter <= CConfig::nRound; iter++) {
         if (iter % CConfig::nEvaluatePerIters == 0) {
             auto res = chunk(devSet, devGoldSet, modelParas);
@@ -142,28 +156,31 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
             auto sp = std::cerr.precision();
             std::cerr.flags(std::ios::fixed);
             std::cerr.precision(2);
-            std::cerr << "current iteration FB1-score  : " << std::setiosflags(std::ios::fixed) << std::setprecision(2) << currentFB1 << "\t   best FB1-score: " << bestDevFB1 << std::endl;
+            std::cerr << "current iteration FB1-score  : " << std::setiosflags(std::ios::fixed) << std::setprecision(2) << currentFB1 << "\t best FB1-score: " << bestDevFB1 << std::endl;
             std::cerr << "current iteration NPFB1-score: " << std::setiosflags(std::ios::fixed) << std::setprecision(2) << currentNPFB1 << "\t best NPFB1-score: " << bestDevNPFB1 << std::endl;
             std::cerr.flags(sf);
             std::cerr.precision(sp);
         }
 
-        clock_t start, end;
-        start = clock();
 
         // random shuffle the training instances in the container,
         // and assign them for each thread
         std::vector<std::vector<GlobalExample *>> multiThread_miniBatch_data;
         generateMultiThreadsMiniBatchData(multiThread_miniBatch_data);
 
-        Model<XPU> batchCumulatedGrads(num_in, num_hidden, num_out, featureTypes, streams[0], false);
+        Model<XPU> batchCumulatedGrads(num_in, num_hidden, num_out, featureTypes, sstream, false);
         // begin to multi thread Training
-#pragma omp parallel
+#pragma omp parallel num_threads(CConfig::nThread)
         {
             int threadIndex = omp_get_thread_num();
             auto currentThreadData = multiThread_miniBatch_data[threadIndex];
+            auto longestge = *std::max_element(currentThreadData.begin(), currentThreadData.end(), [](GlobalExample *ge1, GlobalExample *ge2) { return ge1->instance.input.size() < ge2->instance.input.size();} );
+            int nMaxRound = longestge->instance.input.size();
+            int nMaxLatticeSize = (m_nBeamSize + 1) * nMaxRound;
+            State *lattice = new State[nMaxLatticeSize];
+            State ** lattice_index = new State *[nMaxRound + 2];
 
-            Model<XPU> cumulatedGrads(num_in, num_hidden, num_out, featureTypes, streams[threadIndex + 1], false);
+            Model<XPU> cumulatedGrads(num_in, num_hidden, num_out, featureTypes, sstream, false);
 
             // for evary instance in this mini-batch
             for (unsigned inst = 0; inst < currentThreadData.size(); inst++) {
@@ -179,6 +196,8 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
                                     m_featManagerPtr,
                                     m_featEmbManagerPtr,
                                     m_nBeamSize, 
+                                    lattice,
+                                    lattice_index,
                                     true);
 
                 State * predState = decoder.decode(tnnets, example);
@@ -189,18 +208,23 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
 #pragma omp barrier
 #pragma omp critical
             batchCumulatedGrads.mergeModel(&cumulatedGrads);
+
+            delete []lattice;
+            delete []lattice_index;
         } // end multi-processor
 
         modelParas.update(&batchCumulatedGrads, &adaGradSquares);
 
-        end = clock();
         if (iter % CConfig::nEvaluatePerIters == 0) {
+            end = clock();
             double time_used = (double)(end - start) / CLOCKS_PER_SEC;
+            start = clock();
 
-            std::cerr << "[" << iter << "] totally train " << batch_size << " sentences, time: " << time_used << " average: " << batch_size / time_used << " sentences/second!" << std::endl; 
+            std::cerr << "[" << iter << "] totally train " << batch_size * CConfig::nEvaluatePerIters << " sentences, \ttime: " << time_used << " \taverage: " << batch_size * CConfig::nEvaluatePerIters / time_used << " sentences/second!" << std::endl; 
         }
     } // end total iteration
 
+    DeleteStream(sstream);
     ShutdownTensorEngine<XPU>();
 }
 

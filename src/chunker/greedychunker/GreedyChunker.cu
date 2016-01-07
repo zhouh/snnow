@@ -33,7 +33,10 @@ GreedyChunker::~GreedyChunker() { }
 std::pair<double, double> GreedyChunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, Model<XPU> &modelParas) {
     static int chunkRound = 1;
     static auto longestInst = *std::max_element(devInstances.begin(), devInstances.end(), [](Instance &inst1, Instance &inst2) { return inst1.size() < inst2.size();} );
-    State *lattice = new State[longestInst.size() + 1];
+    std::vector<State *> lattices(CConfig::nThread);
+    for (int i = 0; i < lattices.size(); i++) {
+        lattices[i] = new State[longestInst.size() + 1];
+    }
 
     clock_t start, end;
     start = clock();
@@ -41,19 +44,30 @@ std::pair<double, double> GreedyChunker::chunk(InstanceSet &devInstances, Chunke
     for (unsigned inst = 0; inst < devInstances.size(); inst++) {
         Instance &currentInstance = devInstances[inst];
         predDevSet.push_back(LabeledSequence(currentInstance.input));
+    }
 
-        State* predState = decode(&currentInstance, modelParas, lattice);
+#pragma omp parallel num_threads(CConfig::nThread)
+    {
+        int threadIndex =  omp_get_thread_num();
 
-        LabeledSequence &predSent = predDevSet[inst];
+        for (unsigned inst = threadIndex; inst < devInstances.size(); inst += CConfig::nThread) {
+            Instance &currentInstance = devInstances[inst];
 
-        m_transSystemPtr->generateOutput(*predState, predSent);
+            State* predState = decode(&currentInstance, modelParas, lattices[threadIndex]);
+
+            LabeledSequence &predSent = predDevSet[inst];
+
+            m_transSystemPtr->generateOutput(*predState, predSent);
+        }
     }
     end = clock();
 
     double time_used = (double)(end - start) / CLOCKS_PER_SEC;
     std::cerr << "[" << chunkRound << "] totally chunk " << devInstances.size() << " sentences, time: " << time_used << " average: " << devInstances.size() / time_used << " sentences/second!" << std::endl; chunkRound++;
 
-    delete []lattice;
+    for (int i = 0; i< lattices.size(); i++) {
+        delete []lattices[i];
+    }
 
     auto res = Evalb::eval(predDevSet, goldDevSet);
     double FB1 = std::get<2>(res);
@@ -137,13 +151,12 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
     const static int batchSize = std::min(CConfig::nGreedyBatchSize, static_cast<int>(trainExamplePtrs.size()));
     // const static int batchSize = static_cast<int>(trainExamplePtrs.size());
 
-    omp_set_num_threads(CConfig::nThread);
-
     srand(0);
 
+    Stream<XPU> *sstream = NewStream<XPU>();
     std::vector<Stream<XPU> *> streams(CConfig::nThread + 1);
     for (int i = 0; i < streams.size(); i++) {
-        streams[i] = NewStream<XPU>();
+        streams[i] = sstream;
     }
     InitTensorEngine<XPU>();
 
@@ -190,7 +203,7 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
 
         Model<XPU> batchCumulatedGrads(num_in, num_hidden, num_out, featureTypes, streams[0], false);
         
-#pragma omp parallel
+#pragma omp parallel num_threads(CConfig::nThread)
         {
             int threadIndex = omp_get_thread_num();
             auto currentThreadData = multiThread_miniBatch_data[threadIndex];
@@ -291,6 +304,9 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
         }
     }
 
+    // for (int i = 0; i < streams.size(); i++) {
+    //     DeleteStream(streams[i]);
+    // }
     ShutdownTensorEngine<XPU>();
 }
 
