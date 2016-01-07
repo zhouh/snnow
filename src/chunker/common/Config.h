@@ -18,6 +18,7 @@ public:
     static std::string strEmbeddingPath;
 
     static int nBeamSize;
+    static int nGPUBatchSize;
 
     static int nWordFeatureNum;
     static int nWordEmbeddingDim;
@@ -42,7 +43,12 @@ public:
     static bool bDropOut;
     static float fDropoutProb;
 
+    static void readConfiguration(const std::string &configPath);
+    static void saveConfiguration(const std::string &configPath);
     friend std::ostream& operator<< (std::ostream &os, const CConfig &config);
+
+private:
+    static std::pair<std::string, std::string> getNextAttribute(std::istream &is);
 };
 
 #endif

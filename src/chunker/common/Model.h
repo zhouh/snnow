@@ -59,7 +59,7 @@ public:
     std::vector< std::shared_ptr<FeatureEmbedding> > featEmbs;
     std::vector< FeatureType > featTypes;
 
-    Model(int batch_size, int num_in, int num_hidden, int num_out, 
+    Model(int num_in, int num_hidden, int num_out, 
             std::vector<FeatureType>& featureTypes, Stream<xpu> *stream, bool bRndInitialize = false) : rnd(0), featTypes(featureTypes) {
         /*
          * set streams for data

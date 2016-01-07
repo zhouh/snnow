@@ -41,16 +41,18 @@ public:
     // initialize the network
     NNet(int batch_size, int num_in, int num_hidden, int num_out, Model<xpu>* paras) {
         // setup stream
+        stream = NewStream<xpu>();
+
         this->paras = paras;
 
-        ninput.set_stream(paras->stream);
-        nhidden.set_stream(paras->stream);
-        nhiddenbak.set_stream(paras->stream);
-        nout.set_stream(paras->stream);
-        g_hbias.set_stream(paras->stream);
-        g_Wi2h.set_stream(paras->stream);
-        g_Wh2o.set_stream(paras->stream);
-        g_input.set_stream(paras->stream);
+        ninput.set_stream(stream);
+        nhidden.set_stream(stream);
+        nhiddenbak.set_stream(stream);
+        nout.set_stream(stream);
+        g_hbias.set_stream(stream);
+        g_Wi2h.set_stream(stream);
+        g_Wh2o.set_stream(stream);
+        g_input.set_stream(stream);
   
         g_Wh2o.Resize(paras->Wh2o.shape_);
         g_Wi2h.Resize(paras->Wi2h.shape_);
@@ -86,7 +88,7 @@ public:
   
         if(bDropOut){
             TensorContainer<xpu,2, real_t> mask;
-            mask.set_stream(paras->stream);
+            mask.set_stream(stream);
             mask.Resize(nhidden.shape_);
             paras->rnd.SampleUniform(&mask, 0.0, 1.0);
             F<threshold>(mask, CConfig::fDropoutProb);
@@ -182,6 +184,8 @@ public:
 private:
     // neural network parameters
     Model<xpu>* paras;
+
+    Stream<xpu> *stream;
   
     // nodes in neural net
     TensorContainer<xpu, 2, real_t> ninput, nhidden, nhiddenbak, nout;

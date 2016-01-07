@@ -10,9 +10,9 @@ export NVCC = nvcc
 include $(BASE_DIR)/make/config.mk
 include $(BASE_DIR)/make/mshadow.mk
 
-export CFLAGS = -g -std=c++11 -I$(INCLUDE_DIR) -I$(CHUNKER_COMMON_DIR) -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
+export CFLAGS = -O3 -std=c++11 -I$(INCLUDE_DIR) -I$(CHUNKER_COMMON_DIR) -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
 export LDFLAGS = -lm -L$(CUDA_HOME)/lib64 $(MSHADOW_LDFLAGS)
-export NVCCFLAGS = -g -G -std=c++11 --use_fast_math -ccbin $(CXX) $(MSHADOW_NVCCFLAGS)
+export NVCCFLAGS = -O3 -G -std=c++11 --use_fast_math -ccbin $(CXX) $(MSHADOW_NVCCFLAGS)
 
 GREEDY_CHUNKER_DIR = $(CHUNKER_DIR)/greedychunker
 BEAM_CHUNKER_DIR = $(CHUNKER_DIR)/beamchunker
@@ -29,8 +29,8 @@ CUDA_COMMON_OBJ = $(OBJ_DIR)/common/FeatureEmbeddingManager.o
 .PHONY: clean all
 
 # all: directoires $(GREEDY_BIN)
-# all: directoires $(BEAM_BIN)
-all: directoires $(GREEDY_BIN) $(BEAM_BIN)
+all: directoires $(BEAM_BIN)
+# all: directoires $(GREEDY_BIN) $(BEAM_BIN)
 
 directoires:
 	mkdir -p $(OBJ_DIR)/common $(OBJ_DIR)/greedychunker $(OBJ_DIR)/beamchunker
@@ -95,4 +95,4 @@ $(CUBIN) :
 	$(NVCC) -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" -Xlinker "$(LDFLAGS)" $(filter %.cu %.cpp %.o, $^)
 
 clean:
-	rm $(COMMON_OBJ) $(GREEDY_BIN) $(GREEDY_CUBIN) $(GREEDY_CUOBJ) $(OBJ_DIR)/*.o $(OBJ_DIR)/greedychunker/*.o $(OBJ_DIR)/beamchunker/*.o
+	rm $(COMMON_OBJ) $(GREEDY_BIN) $(GREEDY_CUBIN) $(GREEDY_CUOBJ) $(OBJ_DIR)/*.o $(OBJ_DIR)/greedychunker/*.o $(OBJ_DIR)/beamchunker/*.o $(OBJ_DIR)/common/*.o

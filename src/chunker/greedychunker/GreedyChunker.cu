@@ -30,9 +30,9 @@ GreedyChunker::GreedyChunker(bool isTrain) {
 
 GreedyChunker::~GreedyChunker() { } 
 
-double GreedyChunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, Model<XPU> &modelParas) {
+std::pair<double, double> GreedyChunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, Model<XPU> &modelParas) {
     static int chunkRound = 1;
-    auto longestInst = *std::max_element(devInstances.begin(), devInstances.end(), [](Instance &inst1, Instance &inst2) { return inst1.size() < inst2.size();} );
+    static auto longestInst = *std::max_element(devInstances.begin(), devInstances.end(), [](Instance &inst1, Instance &inst2) { return inst1.size() < inst2.size();} );
     State *lattice = new State[longestInst.size() + 1];
 
     clock_t start, end;
@@ -56,14 +56,23 @@ double GreedyChunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSe
     delete []lattice;
 
     auto res = Evalb::eval(predDevSet, goldDevSet);
+    double FB1 = std::get<2>(res);
+    res = Evalb::eval(predDevSet, goldDevSet, true);
+    double NPFB1 = std::get<2>(res);
 
-    return std::get<2>(res);
+    return std::make_pair(FB1, NPFB1);
 }
 
-void GreedyChunker::printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &devGoldSet, Model<XPU> &modelParas, double batchObjLoss, double posClassificationRate, double &bestDevFB1) {
-    double currentFB1 = chunk(devSet, devGoldSet, modelParas);
+void GreedyChunker::printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &devGoldSet, Model<XPU> &modelParas, double batchObjLoss, double posClassificationRate, double &bestDevFB1, double &bestDevNPFB1) {
+    auto res = chunk(devSet, devGoldSet, modelParas);
+
+    double currentFB1 = std::get<0>(res);
+    double currentNPFB1 = std::get<1>(res);
     if (currentFB1 > bestDevFB1) {
         bestDevFB1 = currentFB1;
+    }
+    if (currentNPFB1 > bestDevNPFB1) {
+        bestDevNPFB1 = currentNPFB1;
     }
 
     double loss = batchObjLoss;
@@ -72,15 +81,17 @@ void GreedyChunker::printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &de
     auto sp = std::cerr.precision();
     std::cerr.flags(std::ios::fixed);
     std::cerr.precision(2);
-    std::cerr << "current iteration FB1-score: " << currentFB1 << "\tbest FB1-score: " << bestDevFB1 << std::endl;
-    std::cerr << "current objective fun-score: " << loss << "\tclassfication rate: " << posClassificationRate << std::endl;
+    std::cerr << "current iteration FB1-score  : " << currentFB1 << "\tbest FB1-score  : " << bestDevFB1 << std::endl;
+    std::cerr << "current iteration NPFB1-score: " << currentNPFB1 << "\tbest NPFB1-score: " << bestDevNPFB1 << std::endl;
+    std::cerr << "current objective fun-score  : " << loss << "\tclassfication rate: " << posClassificationRate << std::endl;
     std::cerr.flags(sf);
     std::cerr.precision(sp);
 }
 
 void GreedyChunker::generateMultiThreadsMiniBatchData(std::vector<ExamplePtrs> &multiThread_miniBatch_data) {
-    int exampleNumOfThread = std::min(CConfig::nGreedyBatchSize, static_cast<int>(trainExamplePtrs.size())) / CConfig::nThread;
-    // int exampleNumOfThread = static_cast<int>(trainExamplePtrs.size()) / CConfig::nThread;
+    std::random_shuffle(trainExamplePtrs.begin(), trainExamplePtrs.end());
+
+    static int exampleNumOfThread = std::min(CConfig::nGreedyBatchSize, static_cast<int>(trainExamplePtrs.size())) / CConfig::nThread;
 
     auto sp = trainExamplePtrs.begin();
     auto ep = sp + exampleNumOfThread;
@@ -130,9 +141,11 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
 
     srand(0);
 
-    InitTensorEngine<XPU>(1);
-
-    Stream<XPU> *stream = NewStream<XPU>();
+    std::vector<Stream<XPU> *> streams(CConfig::nThread + 1);
+    for (int i = 0; i < streams.size(); i++) {
+        streams[i] = NewStream<XPU>();
+    }
+    InitTensorEngine<XPU>();
 
     auto featureTypes = m_featManagerPtr->getFeatureTypes();
 
@@ -145,12 +158,13 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
     }
     std::cerr << "[end]" << std::endl;
 
-    Model<XPU> modelParas(1, num_in, num_hidden, num_out, featureTypes, stream, true);
+    Model<XPU> modelParas(num_in, num_hidden, num_out, featureTypes, streams[0], true);
     m_featEmbManagerPtr->readPretrainedEmbeddings(modelParas);
 
-    Model<XPU> adaGradSquares(1, num_in, num_hidden, num_out, featureTypes, stream, false);
+    Model<XPU> adaGradSquares(num_in, num_hidden, num_out, featureTypes, streams[0], false);
 
     double bestDevFB1 = -1.0;
+    double bestDevNPFB1 = -1.0;
 
     int batchCorrectSize = 0;
     double batchObjLoss = 0.0;
@@ -161,19 +175,20 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
 
             // std::cerr << "2-norm: " << modelParas.norm2() << std::endl;
             // std::cerr << "2-embedding-norm: " << modelParas.embeddings_norm2() << std::endl;
-            printEvaluationInfor(devSet, devGoldSet, modelParas, batchObjLoss + 0.5 * CConfig::fRegularizationRate * modelParas.norm2(), posClassificationRate, bestDevFB1);
+            printEvaluationInfor(devSet, devGoldSet, modelParas, batchObjLoss + 0.5 * CConfig::fRegularizationRate * modelParas.norm2(), posClassificationRate, bestDevFB1, bestDevNPFB1);
         }
         batchCorrectSize = 0;
         batchObjLoss = 0.0;
 
+        clock_t start, end;
+        start = clock();
+
         // random shuffle the training instances in the container,
         // and assign them for each threads
         std::vector<ExamplePtrs> multiThread_miniBatch_data;
-
-        // prepare mini-batch data for each threads
-        std::random_shuffle(trainExamplePtrs.begin(), trainExamplePtrs.end());
         generateMultiThreadsMiniBatchData(multiThread_miniBatch_data);
-        Model<XPU> batchCumulatedGrads(1, num_in, num_hidden, num_out, featureTypes, stream, false);
+
+        Model<XPU> batchCumulatedGrads(num_in, num_hidden, num_out, featureTypes, streams[0], false);
         
 #pragma omp parallel
         {
@@ -183,71 +198,72 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
             int threadCorrectSize = 0;
             double threadObjLoss = 0.0;
 
-            Model<XPU> cumulatedGrads(1, num_in, num_hidden, num_out, featureTypes, stream, false);
-            std::shared_ptr<NNet<XPU>> nnet(new NNet<XPU>(1, num_in, num_hidden, num_out, &modelParas));
+            Model<XPU> cumulatedGrads(num_in, num_hidden, num_out, featureTypes, streams[threadIndex + 1], false);
+            std::shared_ptr<NNet<XPU>> nnet(new NNet<XPU>(CConfig::nGPUBatchSize, num_in, num_hidden, num_out, &modelParas));
 
-            TensorContainer<cpu, 2, real_t> input;
-            input.Resize(Shape2(1, num_in));
+            std::vector<FeatureVector> featureVectors(CConfig::nGPUBatchSize);
+            TensorContainer<cpu, 2, real_t> input(Shape2(CConfig::nGPUBatchSize, num_in));
 
-            TensorContainer<cpu, 2, real_t> pred;
-            pred.Resize(Shape2(1, num_out));
+            std::vector<std::vector<int>> validActsVec(CConfig::nGPUBatchSize);
+            TensorContainer<cpu, 2, real_t> pred(Shape2(CConfig::nGPUBatchSize, num_out));
 
-            for (unsigned inst = 0; inst < currentThreadData.size(); inst++) {
+            for (unsigned inst = 0; inst < currentThreadData.size(); inst += static_cast<unsigned>(CConfig::nGPUBatchSize)) {
                 input = 0.0;
                 pred  = 0.0;
-                Example *e = currentThreadData[inst];
+                for (unsigned insti = 0; insti < static_cast<unsigned >(CConfig::nGPUBatchSize); insti++) {
+                    Example *e = currentThreadData[inst + insti];
 
-                std::vector<FeatureVector> featureVectors;
-                featureVectors.push_back(e->features);
-                m_featEmbManagerPtr->returnInput(featureVectors, modelParas.featEmbs, input, 1);
+                    featureVectors[insti] = e->features;
+                    validActsVec[insti] = e->labels;
+                }
+                m_featEmbManagerPtr->returnInput(featureVectors, modelParas.featEmbs, input);
 
                 nnet->Forward(input, pred, false);
 
-                std::vector<int> validActs(e->labels);
+                for (unsigned insti = 0; insti < static_cast<unsigned>(CConfig::nGPUBatchSize); insti++) {
+                    int optAct = -1;
+                    int goldAct = -1;
 
-                int optAct = -1;
-                int goldAct = -1;
-                for (int i = 0; i < validActs.size(); i++) {
-                    assert (i >= 0 && i < pred.shape_[1]);
-                    if (validActs[i] >= 0) {
-                        if (optAct == -1 || pred[0][i] > pred[0][optAct]){
-                            optAct = i;
+                    std::vector<int> &validActs = validActsVec[insti];
+                    for (int i = 0; i < validActs.size(); i++) {
+                        if (validActs[i] >= 0) {
+                            if (optAct == -1 || pred[insti][i] > pred[insti][optAct]){
+                                optAct = i;
+                            }
+
+                            if (validActs[i] == 1) {
+                                goldAct = i;
+                            }
                         }
+                    }
+                    if (optAct == goldAct) {
+                        threadCorrectSize += 1;
+                    }
 
-                        if (validActs[i] == 1) {
-                            goldAct = i;
+                    real_t maxScore = pred[insti][optAct];
+                    real_t goldScore = pred[insti][goldAct];
+
+                    real_t sum = 0.0;
+                    for (int i = 0; i < validActs.size(); i++) {
+                        if (validActs[i] >= 0) {
+                            pred[insti][i] = std::exp(pred[insti][i] - maxScore);
+                            sum += pred[insti][i];
                         }
                     }
-                }
-                if (optAct == goldAct) {
-                    threadCorrectSize += 1;
-                }
 
-                real_t maxScore = pred[0][optAct];
-                real_t goldScore = pred[0][goldAct];
+                    threadObjLoss += (std::log(sum) - (goldScore - maxScore)) / batchSize;
 
-                real_t sum = 0.0;
-                for (int i = 0; i < validActs.size(); i++) {
-                    if (validActs[i] >= 0) {
-                        pred[0][i] = std::exp(pred[0][i] - maxScore);
-                        sum += pred[0][i];
+                    for (int i = 0; i < validActs.size(); i++) {
+                        if (validActs[i] >= 0) {
+                            pred[insti][i] = pred[insti][i] / sum;
+                        } else {
+                            pred[insti][i] = 0.0;
+                        }
                     }
+                    pred[insti][goldAct] -= 1.0;
                 }
 
-                threadObjLoss += (std::log(sum) - (goldScore - maxScore)) / batchSize;
-
-                for (int i = 0; i < validActs.size(); i++) {
-                    if (validActs[i] >= 0) {
-                        pred[0][i] = pred[0][i] / sum;
-                    } else {
-                        pred[0][i] = 0.0;
-                    }
-                }
-                pred[0][goldAct] -= 1.0;
-
-                for (int i = 0; i < validActs.size(); i++) {
-                    pred[0][i] /= batchSize;
-                }
+                pred /= static_cast<real_t>(batchSize);
 
                 nnet->Backprop(pred);
                 nnet->SubsideGradsTo(&cumulatedGrads, featureVectors);
@@ -255,9 +271,7 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
 
 #pragma omp barrier
 #pragma omp critical 
-            {
-                batchCumulatedGrads.mergeModel(&cumulatedGrads);
-            }
+            batchCumulatedGrads.mergeModel(&cumulatedGrads);
 
 #pragma omp critical 
             batchCorrectSize += threadCorrectSize;
@@ -268,6 +282,13 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
         }  // end multi-processor
 
         modelParas.update(&batchCumulatedGrads, &adaGradSquares);
+
+        end = clock();
+        if (iter % CConfig::nEvaluatePerIters == 0) 
+        {
+            double time_used = (double)(end - start) / CLOCKS_PER_SEC;
+            std::cerr << "[" << iter << "] totally train " << batchSize << " examples, time: " << time_used << " average: " << batchSize / time_used << " examples/second!" << std::endl; 
+        }
     }
 
     ShutdownTensorEngine<XPU>();
@@ -325,11 +346,8 @@ State* GreedyChunker::decode(Instance *inst, Model<XPU> &modelParas, State *latt
 
     lattice[0].clear();
 
-    TensorContainer<cpu, 2, real_t> input;
-    input.Resize(Shape2(1, num_in));
-
-    TensorContainer<cpu, 2, real_t> pred;
-    pred.Resize(Shape2(1, num_out));
+    TensorContainer<cpu, 2, real_t> input(Shape2(1, num_in));
+    TensorContainer<cpu, 2, real_t> pred(Shape2(1, num_out));
        
     for (int nRound = 1; nRound <= nMaxRound; nRound++){
         input = 0.0;
@@ -338,10 +356,10 @@ State* GreedyChunker::decode(Instance *inst, Model<XPU> &modelParas, State *latt
         State *currentState = lattice + nRound - 1;
         State *target = lattice + nRound;
 
-        std::vector<FeatureVector> featureVectors;
-        featureVectors.resize(1);
+        std::vector<FeatureVector> featureVectors(1);
+        // featureVectors[0].clear();
         generateInputBatch(currentState, inst, featureVectors);
-        m_featEmbManagerPtr->returnInput(featureVectors, modelParas.featEmbs, input, 1);
+        m_featEmbManagerPtr->returnInput(featureVectors, modelParas.featEmbs, input);
 
         nnet->Forward(input, pred, false);
         

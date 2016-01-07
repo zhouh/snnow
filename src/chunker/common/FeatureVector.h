@@ -20,6 +20,10 @@ public:
         return features.size();
     }
 
+    void clear() {
+        features.clear();
+    }
+
     void resize(int capacity) {
         features.resize(capacity);
     }

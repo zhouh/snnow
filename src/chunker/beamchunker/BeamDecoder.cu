@@ -116,7 +116,7 @@ State* BeamDecoder::decode(TNNets &tnnet, GlobalExample *gExample) {
         if (bTrain) {
             tnnet.addFeatVecs(featureVectors);
         }
-        m_featEmbManagerPtr->returnInput(featureVectors, tnnet.modelParas->featEmbs, input, CConfig::nBeamSize);
+        m_featEmbManagerPtr->returnInput(featureVectors, tnnet.modelParas->featEmbs, input);
 
         tnnet.Forward(input, pred);
 

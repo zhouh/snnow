@@ -40,10 +40,12 @@ public:
     ~BeamChunker();
 
     void train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, ChunkedDataSet &devGoldSet,  InstanceSet &devSet);
-
-    double chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, Model<XPU> &modelParas);
     
 private:
+    std::pair<double, double> chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, Model<XPU> &modelParas);
+
+    void generateMultiThreadsMiniBatchData(std::vector<std::vector<GlobalExample *>> &multiThread_miniBatch_data);
+
     void initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet);
 
     void initDev(InstanceSet &devSet);

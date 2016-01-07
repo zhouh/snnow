@@ -35,6 +35,7 @@ int main(int argc, char *argv[]) {
         std::cerr << argv[1] << std::endl;
     }
 
+    CConfig::readConfiguration("../../src/chunker/config/Configuration.ini");
 #ifdef PRINT_CONFIGURATION
     std::cerr << "[begin]Configuration setting:" << std::endl;
 

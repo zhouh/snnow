@@ -17,7 +17,7 @@ void FeatureEmbeddingManager::readPretrainedEmbeddings(Model<XPU> &model) {
     }
 }
 
-void FeatureEmbeddingManager::returnInput(std::vector<FeatureVector> &featVecs, std::vector<std::shared_ptr<FeatureEmbedding>> &featEmbs, TensorContainer<cpu, 2, real_t> &input, int beamSize){
+void FeatureEmbeddingManager::returnInput(std::vector<FeatureVector> &featVecs, std::vector<std::shared_ptr<FeatureEmbedding>> &featEmbs, TensorContainer<cpu, 2, real_t> &input){
     // TODO: if neccessary ?
 	// initialize the input
 	// input.Resize( Shape2( beamSize, totalFeatEmbSize ), static_cast<real_t>(0.0));
