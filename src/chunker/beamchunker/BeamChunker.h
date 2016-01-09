@@ -22,6 +22,8 @@
 #include "ActionStandardSystem.h"
 
 class BeamChunker{
+public:
+    typedef std::tuple<double, double, double> ChunkedResultType;
 private:
     LabelManager labelManager;
     std::shared_ptr<ActionStandardSystem> m_transSystemPtr;
@@ -42,7 +44,7 @@ public:
     void train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, ChunkedDataSet &devGoldSet,  InstanceSet &devSet);
     
 private:
-    std::pair<double, double> chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, Model<XPU> &modelParas);
+    std::pair<ChunkedResultType, ChunkedResultType> chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, Model<XPU> &modelParas);
 
     void generateMultiThreadsMiniBatchData(std::vector<std::vector<GlobalExample *>> &multiThread_miniBatch_data);
 

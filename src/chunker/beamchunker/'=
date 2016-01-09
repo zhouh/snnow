@@ -40,37 +40,27 @@ std::pair<BeamChunker::ChunkedResultType, BeamChunker::ChunkedResultType> BeamCh
     const int beam_size = m_nBeamSize;
 
     static int longestLen = (*std::max_element(devInstances.begin(), devInstances.end(), [](Instance &inst1, Instance &inst2){ return inst1.input.size() < inst2.input.size(); })).input.size();
-    static const int nMaxLatticeSize = (m_nBeamSize + 1) * longestLen;
-    int threads_num = CConfig::nThread;
-
-    std::vector<State *> lattices(threads_num);
-    std::vector<State **> lattice_indexes(threads_num);
-    for (int i = 0; i < threads_num; i++) {
+    std::vector<State *> lattices(CConfig::nThread);
+    std::vector<State **> lattice_indexes(CConfig::nThread);
+    for (int i = 0; i < CConfig::nThread; i++) {
         lattices[i] = new State[nMaxLatticeSize];
         lattice_indexes[i] = new State*[longestLen + 2];
     }
-    // std::vector<Model<XPU>> models;
-    // for (int i = 0; i < threads_num; i++) {
-    //     models.push_back(modelParas);
-    // }
-
     static int chunkRound = 1;
 
     clock_t start, end;
     start = clock();
     ChunkedDataSet predictDevSet(goldDevSet.size());
 
-    std::vector<ChunkedDataSet> threadPredictDevSets(threads_num);
-
-#pragma omp parallel num_threads(threads_num)
+    std::vector<ChunkedDataSet> threadPredictDevSets(CConfig::nThread);
+#pragma omp parallel num_threads(CConfig::nThread)
     {
-        int threadIndex = omp_get_thread_num();
-
-        // TNNets tnnets(beam_size, num_in, num_hidden, num_out, &models[threadIndex], false);
         TNNets tnnets(beam_size, num_in, num_hidden, num_out, &modelParas, false);
+
+        int threadIndex = omp_get_thread_num();
         ChunkedDataSet &threadPredictDevSet = threadPredictDevSets[threadIndex];
 
-        for (unsigned inst = threadIndex; inst < static_cast<unsigned>(devInstances.size()); inst += threads_num) {
+        for (unsigned inst = threadIndex; inst < static_cast<unsigned>(devInstances.size()); inst += CConfig::nThread) {
             LabeledSequence predictSent(devInstances[inst].input);
 
             BeamDecoder decoder(&(devInstances[inst]), 
@@ -87,14 +77,14 @@ std::pair<BeamChunker::ChunkedResultType, BeamChunker::ChunkedResultType> BeamCh
             threadPredictDevSet.push_back(predictSent);
         }
     }
-    for (int i = 0; i < threads_num; i++) {
+    for (int i = 0; i < CConfig::nThread; i++) {
         delete []lattices[i];
         delete []lattice_indexes[i];
     }
 
-    for (int i = 0; i < threads_num; i++) {
+    for (int i = 0; i < CConfig::nThread; i++) {
         for (int j = 0; j < threadPredictDevSets[i].size(); j++) {
-            predictDevSet[i + j * threads_num] = threadPredictDevSets[i][j];
+            predictDevSet[i + j * CConfig::nThread] = threadPredictDevSets[i][j];
         }
     }
     end = clock();
@@ -155,7 +145,7 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
     std::cerr << "[end]" << std::endl;
 
     Model<XPU> modelParas(num_in, num_hidden, num_out, featureTypes, sstream, true);
-    m_featEmbManagerPtr->readPretrainedEmbeddings(modelParas);
+    // m_featEmbManagerPtr->readPretrainedEmbeddings(modelParas);
     Model<XPU> adaGradSquares(num_in, num_hidden, num_out, featureTypes, sstream, false);
 
     auto longestSentence = *std::max_element(gExamples.begin(), gExamples.end(), [](GlobalExample &ge1, GlobalExample &ge2) { return ge1.instance.input.size() < ge2.instance.input.size();} );
@@ -166,16 +156,6 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
     for (int i = 0; i < CConfig::nThread; i++) {
         lattices[i] = new State[nMaxLatticeSize];
         lattice_indexes[i] = new State*[longestLen + 2];
-    }
-    std::vector<std::vector<NNet<XPU> *>> netss;
-    for (int i = 0; i < CConfig::nThread; i++) {
-        std::vector<NNet<XPU> *> nets(longestLen + 1);
-
-        for (int j = 0; j < nets.size(); j++) {
-            nets[j] = new NNet<XPU>(m_nBeamSize, num_in, num_hidden, num_out, &modelParas);
-        }
-
-        netss.push_back(nets);
     }
 
     ChunkedResultType bestDevFB1 = std::make_tuple(0.0, 0.0, -1.0);
@@ -197,8 +177,8 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
             auto sp = std::cerr.precision();
             std::cerr.flags(std::ios::fixed);
             std::cerr.precision(2);
-            std::cerr << "current iteration FB1-score  : " << std::setiosflags(std::ios::fixed) << std::setprecision(2) << std::get<0>(currentFB1) << "/" << std::get<1>(currentFB1) << "/" << std::get<2>(currentFB1) << "\t best FB1-score  : " << std::get<0>(bestDevFB1) << "/" << std::get<1>(bestDevFB1) << "/" << std::get<2>(bestDevFB1) << std::endl;
-            std::cerr << "current iteration NPFB1-score: " << std::setiosflags(std::ios::fixed) << std::setprecision(2) << std::get<0>(currentNPFB1) << "/" << std::get<1>(currentNPFB1) << "/" << std::get<2>(currentNPFB1) << "\t best NPFB1-score: " << std::get<0>(bestDevNPFB1)  << "/" << std::get<1>(bestDevNPFB1) << "/" << std::get<2>(bestDevNPFB1) << std::endl;
+            std::cerr << "current iteration FB1-score  : " << std::setiosflags(std::ios::fixed) << std::setprecision(2) << std::get<0>(currentFB1) << "/" << std::get<1>(currentFB1) << "/" << std::get<2>(currentFB1) << "\t best FB1-score: " << std::get<0>(bestDevFB1) << "/" << std::get<1>(bestDevFB1) << "/" << std::get<2>(bestDevFB1) << std::endl;
+            std::cerr << "current iteration NPFB1-score: " << std::setiosflags(std::ios::fixed) << std::setprecision(2) << std::get<0>(currentNPFB1) << "/" << std::get<1>(currentNPFB1) << "/" << std::get<2>(currentNPFB1) << "\t best NPFB1-score: " << std::get<0>(bestDevNPFB1)  << std::get<1>(bestDevNPFB1) << "/" << std::get<2>(bestDevNPFB1) << std::endl;
             std::cerr.flags(sf);
             std::cerr.precision(sp);
         }
@@ -225,7 +205,7 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
                 // fetch a to-be-trained instance
                 GlobalExample *example = currentThreadData[inst];
 
-                TNNets tnnets(m_nBeamSize, num_in, num_hidden, num_out, &modelParas, netss[threadIndex]);
+                TNNets tnnets(m_nBeamSize, num_in, num_hidden, num_out, &modelParas);
 
                 // decode and update
                 // std::cerr << "begin to decode!" << std::endl;
@@ -259,11 +239,6 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
         }
     } // end total iteration
 
-    for (int i = 0; i < CConfig::nThread; i++) {
-        for (int j = 0; j < netss[i].size(); j++) {
-            delete netss[i][j];
-        }
-    }
     for (int i = 0; i < CConfig::nThread; i++) {
         delete []lattices[i];
         delete []lattice_indexes[i];

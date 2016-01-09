@@ -64,11 +64,12 @@ public:
         /*
          * set streams for data
          */
+        // this->stream = NewStream<xpu>();
         this->stream = stream;
 
-        Wi2h.set_stream(stream);
-        Wh2o.set_stream(stream);
-        hbias.set_stream(stream);
+        Wi2h.set_stream(this->stream);
+        Wh2o.set_stream(this->stream);
+        hbias.set_stream(this->stream);
 
         /*
          * initialize the matries in neural net
@@ -99,6 +100,43 @@ public:
                 featEmb->init(CConfig::fInitRange);
             }
         } 
+    }
+
+    // Model(const Model<xpu> &model) : rnd(0), featTypes(model.featTypes), featEmbs(model.featEmbs){
+    //     this->stream = NewStream<xpu>();
+
+    //     Wi2h.set_stream(this->stream);
+    //     Wh2o.set_stream(this->stream);
+    //     hbias.set_stream(this->stream);
+
+    //     Wi2h = model.Wi2h;
+    //     Wh2o = model.Wh2o;
+    //     hbias = model.hbias;
+    // }
+
+    // Model<xpu>& operator=(const Model<xpu> &model) {
+    //     if (this == &model) {
+    //         return *this;
+    //     }
+
+    //     featTypes = model.featTypes;
+    //     featEmbs = model.featEmbs;
+
+    //     this->stream = NewStream<xpu>();
+
+    //     Wi2h.set_stream(this->stream);
+    //     Wh2o.set_stream(this->stream);
+    //     hbias.set_stream(this->stream);
+
+    //     Wi2h = model.Wi2h;
+    //     Wh2o = model.Wh2o;
+    //     hbias = model.hbias;
+
+    //     return *this;
+    // }
+
+    ~Model() {
+        // DeleteStream(stream);
     }
 
     /**

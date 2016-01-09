@@ -29,8 +29,8 @@ CUDA_COMMON_OBJ = $(OBJ_DIR)/common/FeatureEmbeddingManager.o
 .PHONY: clean all
 
 # all: directoires $(GREEDY_BIN)
-all: directoires $(BEAM_BIN)
-# all: directoires $(GREEDY_BIN) $(BEAM_BIN)
+# all: directoires $(BEAM_BIN)
+all: directoires $(GREEDY_BIN) $(BEAM_BIN)
 
 directoires:
 	mkdir -p $(OBJ_DIR)/common $(OBJ_DIR)/greedychunker $(OBJ_DIR)/beamchunker
@@ -68,9 +68,9 @@ COMMON_HEADER = $(CHUNKER_COMMON_DIR)/Config.h $(CHUNKER_COMMON_DIR)/chunker.h \
 
 $(GREEDY_CUOBJ) : $(GREEDY_CHUNKER_DIR)/GreedyChunker.cu $(GREEDY_CHUNKER_DIR)/GreedyChunker.h $(COMMON_HEADER)
 
-$(BEAM_CUOBJ) : $(BEAM_CHUNKER_DIR)/BeamChunker.cu $(BEAM_CHUNKER_DIR)/BeamChunker.h $(COMMON_HEADER) $(BEAM_CHUNKER_DIR)/Beam.h $(BEAM_CHUNKER_DIR)/BeamDecoder.h
+$(BEAM_CUOBJ) : $(BEAM_CHUNKER_DIR)/BeamChunker.cu $(BEAM_CHUNKER_DIR)/BeamChunker.h $(COMMON_HEADER) $(BEAM_CHUNKER_DIR)/Beam.h $(BEAM_CHUNKER_DIR)/BeamDecoder.h $(CHUNKER_COMMON_DIR)/chunker.h $(BEAM_CHUNKER_DIR)/TNNets.h
 
-$(OBJ_DIR)/beamchunker/BeamDecoder.o : $(BEAM_CHUNKER_DIR)/BeamDecoder.cu $(BEAM_CHUNKER_DIR)/BeamDecoder.h
+$(OBJ_DIR)/beamchunker/BeamDecoder.o : $(BEAM_CHUNKER_DIR)/BeamDecoder.cu $(BEAM_CHUNKER_DIR)/BeamDecoder.h $(BEAM_CHUNKER_DIR)/TNNets.h
 	$(NVCC) -g -c -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" $(filter %.cu, $^)
 
 $(GREEDY_BIN) :

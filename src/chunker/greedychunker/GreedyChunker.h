@@ -27,6 +27,7 @@
 class GreedyChunker {
 public:
     typedef std::vector<Example *> ExamplePtrs;
+    typedef std::tuple<double, double, double> ChunkedResultType;
 private:
     LabelManager labelManager;
     std::shared_ptr<ActionStandardSystem> m_transSystemPtr;
@@ -48,7 +49,7 @@ public:
     void train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, ChunkedDataSet &devGoldSet, InstanceSet &devSet);
 
 private:
-    std::pair<double, double> chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, Model<XPU> &modelParas);
+    std::pair<ChunkedResultType, ChunkedResultType> chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, Model<XPU> &modelParas);
 
     void initDev(InstanceSet &devSet);
 
@@ -61,7 +62,7 @@ private:
     */
     void generateInputBatch(State *state, Instance *inst, std::vector<FeatureVector> &featvecs); 
 
-    void printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &devGoldSet, Model<XPU> &modelParas, double batchObjLoss, double posClassificationRate, double &bestDevFB1, double &bestDevNPFB1);
+    void printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &devGoldSet, Model<XPU> &modelParas, double batchObjLoss, double posClassificationRate, ChunkedResultType &bestDevFB1, ChunkedResultType &bestDevNPFB1);
 
     void generateMultiThreadsMiniBatchData(std::vector<ExamplePtrs> &multiThread_miniBatch_data);
 

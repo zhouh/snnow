@@ -59,15 +59,11 @@ BeamDecoder::BeamDecoder(Instance *inst,
    
     this->lattice = lattice;
     this->lattice_index = lattice_index; 
-    // lattice = new State[nMaxLatticeSize];
-    // lattice_index = new State *[nMaxRound + 2];
+    // this->lattice = new State[nMaxLatticeSize];
+    // this->lattice_index = new State *[nMaxRound + 2];
 }
 
 BeamDecoder::~BeamDecoder() {
-    if (!bTrain) {
-        delete []lattice;
-        delete []lattice_index;
-    }
 }
 
 void BeamDecoder::generateLabeledSequence(TNNets &tnnets, LabeledSequence &predictedSent) {
@@ -112,7 +108,7 @@ State* BeamDecoder::decode(TNNets &tnnet, GlobalExample *gExample) {
         // with which, we can directly update parameters in the end other
         // than forwarding and updating!
         if (bTrain) {
-            tnnet.genNextStepNet();
+            tnnet.moveToNextNet();
         }
 
         // extract features and generate input embeddings

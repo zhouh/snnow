@@ -30,7 +30,7 @@ GreedyChunker::GreedyChunker(bool isTrain) {
 
 GreedyChunker::~GreedyChunker() { } 
 
-std::pair<double, double> GreedyChunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, Model<XPU> &modelParas) {
+std::pair<GreedyChunker::ChunkedResultType, GreedyChunker::ChunkedResultType> GreedyChunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, Model<XPU> &modelParas) {
     static int chunkRound = 1;
     static auto longestInst = *std::max_element(devInstances.begin(), devInstances.end(), [](Instance &inst1, Instance &inst2) { return inst1.size() < inst2.size();} );
     std::vector<State *> lattices(CConfig::nThread);
@@ -69,23 +69,21 @@ std::pair<double, double> GreedyChunker::chunk(InstanceSet &devInstances, Chunke
         delete []lattices[i];
     }
 
-    auto res = Evalb::eval(predDevSet, goldDevSet);
-    double FB1 = std::get<2>(res);
-    res = Evalb::eval(predDevSet, goldDevSet, true);
-    double NPFB1 = std::get<2>(res);
+    ChunkedResultType FB1 = Evalb::eval(predDevSet, goldDevSet);
+    ChunkedResultType NPFB1 = Evalb::eval(predDevSet, goldDevSet, true);
 
     return std::make_pair(FB1, NPFB1);
 }
 
-void GreedyChunker::printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &devGoldSet, Model<XPU> &modelParas, double batchObjLoss, double posClassificationRate, double &bestDevFB1, double &bestDevNPFB1) {
+void GreedyChunker::printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &devGoldSet, Model<XPU> &modelParas, double batchObjLoss, double posClassificationRate, ChunkedResultType &bestDevFB1, ChunkedResultType &bestDevNPFB1) {
     auto res = chunk(devSet, devGoldSet, modelParas);
 
-    double currentFB1 = std::get<0>(res);
-    double currentNPFB1 = std::get<1>(res);
-    if (currentFB1 > bestDevFB1) {
+    ChunkedResultType &currentFB1 = std::get<0>(res);
+    ChunkedResultType &currentNPFB1 = std::get<1>(res);
+    if (std::get<2>(currentFB1) > std::get<2>(bestDevFB1)) {
         bestDevFB1 = currentFB1;
     }
-    if (currentNPFB1 > bestDevNPFB1) {
+    if (std::get<2>(currentNPFB1) > std::get<2>(bestDevNPFB1)) {
         bestDevNPFB1 = currentNPFB1;
     }
 
@@ -95,8 +93,8 @@ void GreedyChunker::printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &de
     auto sp = std::cerr.precision();
     std::cerr.flags(std::ios::fixed);
     std::cerr.precision(2);
-    std::cerr << "current iteration FB1-score  : " << currentFB1 << "\tbest FB1-score  : " << bestDevFB1 << std::endl;
-    std::cerr << "current iteration NPFB1-score: " << currentNPFB1 << "\tbest NPFB1-score: " << bestDevNPFB1 << std::endl;
+    std::cerr << "current iteration FB1-score  : " << std::get<0>(currentFB1) << "/" << std::get<1>(currentFB1) << "/" << std::get<2>(currentFB1) << "\tbest FB1-score  : " << std::get<0>(bestDevFB1) << "/" << std::get<1>(bestDevFB1) << "/" << std::get<2>(bestDevFB1) << std::endl;
+    std::cerr << "current iteration NPFB1-score: " << std::get<0>(currentNPFB1) << "/" << std::get<1>(currentNPFB1) << "/" << std::get<2>(currentNPFB1) << "\tbest NPFB1-score: " << std::get<0>(bestDevNPFB1) << "/" << std::get<1>(bestDevNPFB1) << "/" << std::get<2>(bestDevNPFB1) << std::endl;
     std::cerr << "current objective fun-score  : " << loss << "\tclassfication rate: " << posClassificationRate << std::endl;
     std::cerr.flags(sf);
     std::cerr.precision(sp);
@@ -176,8 +174,8 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
 
     Model<XPU> adaGradSquares(num_in, num_hidden, num_out, featureTypes, streams[0], false);
 
-    double bestDevFB1 = -1.0;
-    double bestDevNPFB1 = -1.0;
+    ChunkedResultType bestDevFB1 = std::make_tuple(0.0, 0.0, -1.0);
+    ChunkedResultType bestDevNPFB1 = std::make_tuple(0.0, 0.0, -1.0);
 
     int batchCorrectSize = 0;
     double batchObjLoss = 0.0;

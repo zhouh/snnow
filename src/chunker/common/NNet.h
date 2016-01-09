@@ -93,7 +93,7 @@ public:
             mask.set_stream(stream);
             mask.Resize(nhidden.shape_);
             paras->rnd.SampleUniform(&mask, 0.0, 1.0);
-            F<threshold>(mask, CConfig::fDropoutProb);
+            mask = F<threshold>(mask, CConfig::fDropoutProb);
             nhidden = nhidden * mask;
         } //dropout
   

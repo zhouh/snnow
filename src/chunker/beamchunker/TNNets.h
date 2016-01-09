@@ -7,6 +7,8 @@
 #ifndef _CHUNKER_BEAMCHUNKER_TNNETS_H_
 #define _CHUNKER_BEAMCHUNKER_TNNETS_H_
 
+#include <assert.h>
+
 #include "chunker.h"
 
 #include "NNet.h"
@@ -32,26 +34,52 @@ public:
     int num_out;
     bool bTrain;
 
+    int netIdx;
+
 public:
+    TNNets( int batch_size, int num_in, int num_hidden, int num_out , Model<XPU> *para, std::vector<NNet<XPU> *> &nnets, bool bTrain = true): nets(nnets), modelParas(para){
+        assert (bTrain);
+
+        this->batch_size = batch_size;
+        this->num_in = num_in;
+        this->num_hidden = num_hidden;
+        this->num_out = num_out;
+        this->bTrain = bTrain;
+        netIdx = 0;
+    }
+
     TNNets( int batch_size, int num_in, int num_hidden, int num_out , Model<XPU> *para, bool bTrain = true): modelParas(para){
+        assert (!bTrain);
+
         this->batch_size = batch_size;
         this->num_in = num_in;
         this->num_hidden = num_hidden;
         this->num_out = num_out;
         //modelParas = para;
         this->bTrain = bTrain;
+
+        netIdx = 0;
         if( !bTrain )
             genNextStepNet(); // in testing, we only need one neural net for forwarding
     }
 
     ~TNNets(){
-        for( NNet<XPU>* p_net : nets )
-            delete p_net;
+        if (!bTrain) {
+            for( NNet<XPU>* p_net : nets )
+                delete p_net;
+        }
+    }
+
+    void moveToNextNet() {
+        netIdx++;
+
+        assert (netIdx < nets.size());
     }
 
     void genNextStepNet(){
         NNet<XPU> *net = new NNet<XPU>(batch_size, num_in, num_hidden, num_out, modelParas);
         nets.push_back(net);
+        netIdx++;
     }
    
     void addFeatVecs(std::vector<FeatureVector> &featVecs) {
@@ -60,7 +88,7 @@ public:
 
     void Forward(const Tensor<cpu, 2, real_t>& inbatch,
                   Tensor<cpu, 2, real_t> &oubatch){
-        nets[nets.size() - 1]->Forward(inbatch, oubatch, bTrain && CConfig::bDropOut);
+        nets[netIdx - 1]->Forward(inbatch, oubatch, bTrain && CConfig::bDropOut);
     }
 
     /*
@@ -101,7 +129,7 @@ public:
         *  Back propagation updating
         *  from last parsing state to the former states
         */
-       for(int backRound = nets.size() - 1; backRound >= 0; --backRound){
+       for(int backRound = netIdx - 1; backRound >= 0; --backRound){
            //std::cout<<"backRound:\t"<<backRound<<std::endl;
            TensorContainer<cpu, 2, real_t> grads;
            grads.Resize( Shape2( batch_size, num_out ) );
