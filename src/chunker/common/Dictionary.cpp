@@ -116,6 +116,8 @@ void LabelDictionary::makeDictionaries(const ChunkedDataSet &goldSet) {
 #endif
     int idx = 0;
 
+    // The following codes's order can not be changed, because 
+    // the ID is binded to ActionSystem's actionID system.
     for (auto &l : labelSet) {
         m_mElement2Idx[l] = idx++, m_lKnownElements.push_back(l);
     }

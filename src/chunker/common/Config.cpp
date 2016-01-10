@@ -39,6 +39,9 @@ int CConfig::nCapEmbeddingDim = 5;
 int CConfig::nPOSFeatureNum = 5;
 int CConfig::nPOSEmbeddingDim = 10;
 
+int CConfig::nLabelFeatureNum = 2;
+int CConfig::nLabelEmbeddingDim = 5;
+
 int CConfig::nHiddenSize = 300;
 
 int CConfig::nRound = 2000; 
@@ -117,6 +120,8 @@ void CConfig::readConfiguration(const std::string &configPath) {
     attributes.insert("nCapEmbeddingDim");
     attributes.insert("nPOSFeatureNum");
     attributes.insert("nPOSEmbeddingDim");
+    attributes.insert("nLabelFeatureNum");
+    attributes.insert("nLabelEmbeddingDim");
     attributes.insert("nHiddenSize");
     attributes.insert("nRound");
     attributes.insert("nGreedyBatchSize");
@@ -185,6 +190,10 @@ void CConfig::readConfiguration(const std::string &configPath) {
             nPOSFeatureNum = stoi(att.second);
         } else if (att.first == "nPOSEmbeddingDim") {
             nPOSEmbeddingDim = stoi(att.second);
+        } else if (att.first == "nLabelFeatureNum") {
+            nLabelFeatureNum = stoi(att.second);
+        } else if (att.first == "nLabelEmbeddingDim") {
+            nLabelEmbeddingDim = stoi(att.second);
         } else if (att.first == "nHiddenSize") {
             nHiddenSize = stoi(att.second);
         } else if (att.first == "nRound") {

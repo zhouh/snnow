@@ -161,4 +161,38 @@ public:
     }
 };
 
+class LabelFeatureExtractor : public FeatureExtractor {
+public:
+    LabelFeatureExtractor(const FeatureType &fType, const std::shared_ptr<Dictionary> &dictPtr) :
+        FeatureExtractor(fType, dictPtr) 
+    {
+    }
+    ~LabelFeatureExtractor() { }
+
+    std::vector<int> extract(const State &state, const Instance &inst) {
+        std::vector<int> features;
+
+        auto getLabelIndex = [&state, &inst,  this](int index) -> int {
+            if (index < 0) {
+                return this->dictPtr->nullIdx;
+            }
+
+            return state.frontLabels[index];
+        };
+
+        int currentIndex = state.m_nIndex + 1;
+        int IDIdx = 0;
+
+        features.resize(featType.featSize);
+
+        int neg2UniLabel  = getLabelIndex(currentIndex - 2);
+        int neg1UniLabel  = getLabelIndex(currentIndex - 1);
+
+        features[IDIdx++] = neg2UniLabel;
+        features[IDIdx++] = neg1UniLabel;
+
+        return features;
+    }
+};
+
 #endif

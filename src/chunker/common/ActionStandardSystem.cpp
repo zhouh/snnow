@@ -14,35 +14,11 @@
 #endif
 
 int LabelManager::label2Idx(const std::string &s) const {
-    auto it = m_mLabel2Idx.find(s);
-
-    if (it == m_mLabel2Idx.end()) {
-        std::cerr << "chunk label not found: " << s << std::endl;
-        exit(0);
-    }
-
-    return it->second;
+    return labelDict.element2Idx(s);
 }
 
 void LabelManager::makeDictionaries(const ChunkedDataSet &goldSet) {
-    using std::unordered_set;
-    using std::string;
-
-    unordered_set<string> labelSet;
-
-    for (auto &sent: goldSet) {
-        for (auto &cw : sent.getLabeledTerms()) {
-            labelSet.insert(cw.label);
-        }
-    }
-
-    std::cerr << "  labelSet size: " << labelSet.size() << std::endl;
-
-    int idx = 0;
-
-    for (auto &l : labelSet) {
-        m_mLabel2Idx[l] = idx++, m_lKnownLabels.push_back(l);
-    }
+    labelDict.makeDictionaries(goldSet);
 }
 
 void ActionStandardSystem::init(const ChunkedDataSet &goldSet) {
@@ -156,6 +132,7 @@ void ActionStandardSystem::generateOutput(const State &state, LabeledSequence &s
 void ActionStandardSystem::doOutsideMove(State &srcState, State &dstState, const CScoredTransition &transition) {
     dstState.m_nIndex = srcState.m_nIndex + 1;
     dstState.previous_ = &srcState;
+    dstState.frontLabels.push_back(actionIdx2LabelIdx(transition.action));
     dstState.last_action = const_cast<CScoredTransition &>(transition).action;
     dstState.m_nLen = srcState.m_nLen;
     dstState.score = const_cast<CScoredTransition &>(transition).score;
@@ -164,6 +141,7 @@ void ActionStandardSystem::doOutsideMove(State &srcState, State &dstState, const
 void ActionStandardSystem::doInsideMove(State &srcState, State &dstState, const CScoredTransition &transition) {
     dstState.m_nIndex = srcState.m_nIndex + 1;
     dstState.previous_ = &srcState;
+    dstState.frontLabels.push_back(actionIdx2LabelIdx(transition.action));
     dstState.last_action = const_cast<CScoredTransition &>(transition).action;
     dstState.m_nLen = srcState.m_nLen;
     dstState.score = const_cast<CScoredTransition &>(transition).score;
@@ -172,6 +150,7 @@ void ActionStandardSystem::doInsideMove(State &srcState, State &dstState, const 
 void ActionStandardSystem::doBeginMove(State &srcState, State &dstState, const CScoredTransition &transition) {
     dstState.m_nIndex = srcState.m_nIndex + 1;
     dstState.previous_ = &srcState;
+    dstState.frontLabels.push_back(actionIdx2LabelIdx(transition.action));
     dstState.last_action = const_cast<CScoredTransition &>(transition).action;
     dstState.m_nLen = srcState.m_nLen;
     dstState.score = const_cast<CScoredTransition &>(transition).score;

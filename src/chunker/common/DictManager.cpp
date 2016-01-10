@@ -8,6 +8,6 @@
 
 const std::string DictManager::WORDDESCRIPTION = "word";
 const std::string DictManager::POSDESCRIPTION = "pos";
-// const std::string DictManager::LABELDESCRIPTION = "label";
+const std::string DictManager::LABELDESCRIPTION = "label";
 const std::string DictManager::CAPDESCRIPTION  = "capital";
 

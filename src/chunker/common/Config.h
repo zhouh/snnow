@@ -26,6 +26,8 @@ public:
     static int nCapEmbeddingDim;
     static int nPOSFeatureNum;
     static int nPOSEmbeddingDim;
+    static int nLabelFeatureNum;
+    static int nLabelEmbeddingDim;
 
     static int nHiddenSize;
 
