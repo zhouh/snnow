@@ -65,7 +65,7 @@ std::string WordDictionary::replaceNumber(const std::string &word) {
         }
     }
     if (isNumber) {
-        ret += nullstr;
+        ret += numberstr;
     }
 
     return ret;
