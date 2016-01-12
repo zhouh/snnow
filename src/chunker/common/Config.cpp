@@ -14,6 +14,8 @@
 
 std::string CConfig::strEmbeddingPath("../../data/chunk/English/sen.emb");
 
+std::string CConfig::strWordTablePath("../../data/chunk/English/giga.dict");
+
 // std::string CConfig::strTrainPath("../../data/chunk/English/small.train");
 // std::string CConfig::strDevPath("../../data/chunk/English/small.train");
 // std::string CConfig::strTestPath("../../data/chunk/English/small.test");
@@ -65,8 +67,10 @@ bool CConfig::bDropOut = true;
 float CConfig::fDropoutProb = 0.5;
 
 bool CConfig::bFineTune = true;
-
+ 
 std::ostream& operator<< (std::ostream &os, const CConfig &config) {
+    std::cerr << "embedding path:   " << CConfig::strEmbeddingPath << std::endl;
+    std::cerr << "word table path:  " << CConfig::strWordTablePath << std::endl;
     std::cerr << "train path:       " << CConfig::strTrainPath << std::endl;
     std::cerr << "dev path:         " << CConfig::strDevPath << std::endl;
     std::cerr << "test path:        " << CConfig::strTestPath << std::endl;
@@ -115,6 +119,7 @@ void CConfig::readConfiguration(const std::string &configPath) {
 
     unordered_set<string> attributes;
     attributes.insert("strTrainPath");
+    attributes.insert("strWordTablePath");
     attributes.insert("strDevPath");
     attributes.insert("strTestPath");
     attributes.insert("strEmbeddingPath");
@@ -175,6 +180,8 @@ void CConfig::readConfiguration(const std::string &configPath) {
 
         if (att.first == "strTrainPath") {
             CConfig::strTrainPath = att.second;
+        } else if (att.first == "strWordTablePath") {
+            CConfig::strWordTablePath = att.second;
         } else if (att.first == "strDevPath") {
             CConfig::strDevPath = att.second;
         } else if (att.first == "strTestPath") {

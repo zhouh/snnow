@@ -12,10 +12,13 @@
 
 class CConfig {
 public:
+    static std::string strEmbeddingPath;
+
+    static std::string strWordTablePath;
+
     static std::string strTrainPath;
     static std::string strDevPath;
     static std::string strTestPath;
-    static std::string strEmbeddingPath;
 
     static int nBeamSize;
     static int nGPUBatchSize;

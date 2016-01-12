@@ -4,7 +4,11 @@
 	> Mail: cc.square0@gmail.com 
 	> Created Time: Fri 25 Dec 2015 03:26:31 PM CST
  ************************************************************************/
+#include <fstream>
+
 #include "Dictionary.h"
+#include "Config.h"
+
 #define DEBUG
 
 // Dictionary
@@ -17,11 +21,27 @@ void WordDictionary::makeDictionaries(const ChunkedDataSet &goldSet) {
     using std::unordered_set;
     using std::string;
 
+    unordered_set<string> wordTable;
+    std::ifstream is(CConfig::strWordTablePath);
+    string line;
+    while (!is.eof()) {
+        getline(is, line);
+
+        wordTable.insert(processWord(line));
+    }
+
+#ifdef DEBUG
+    std::cerr << "word table size: " << wordTable.size() << std::endl;
+#endif    
     unordered_set<string> wordSet;
 
     for (auto &sent : goldSet) {
         for (auto &cw : sent.getLabeledTerms()) {
-            wordSet.insert(processWord(cw.word));
+            string tword = processWord(cw.word);
+
+            if (wordTable.find(tword) != wordTable.end()) {
+                wordSet.insert(tword);
+            }
         }
     }
     int idx = 0;
