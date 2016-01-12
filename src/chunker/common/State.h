@@ -7,10 +7,13 @@
 #ifndef _CHUNKER_COMMON_STATE_H_
 #define _CHUNKER_COMMON_STATE_H_
 
+#include <vector>
+
 class State {
 public:
     int m_nIndex;
     State *previous_;
+    std::vector<int> frontLabels;
     int last_action;
     int m_nLen;
     int beamIdx;
@@ -25,7 +28,7 @@ public:
 
     ~State() {}
 
-    State(const State &s) {
+    State(const State &s) : frontLabels(s.frontLabels){
         m_nIndex = s.m_nIndex;
         previous_ = s.previous_;
         last_action = s.last_action;
@@ -42,6 +45,7 @@ public:
 
         this->m_nIndex = s.m_nIndex;
         this->previous_ = s.previous_;
+        frontLabels = s.frontLabels;
         this->last_action = s.last_action;
         this->m_nLen = s.m_nLen;
         this->score = s.score;
@@ -80,7 +84,7 @@ struct CScoredTransition {
     //! If this transition is gold
     bool bGold;
 
-    CScoredTransition(): source(NULL), action(-1), score(0), bGold(false) {}
+    CScoredTransition(): source(nullptr), action(-1), score(0), bGold(false) {}
 
     CScoredTransition(State *s, int a, double sc): source(s), action(a), score(sc), bGold(false) {}
 

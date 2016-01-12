@@ -53,7 +53,9 @@ public:
     virtual void makeDictionaries(const ChunkedDataSet &goldSet) = 0;
 
     void printDict() {
-        std::cerr << "known feature size: " << m_lKnownElements.size() << std::endl;
+        for (auto &s : m_lKnownElements) {
+            std::cerr << s << ": " << m_mElement2Idx[s] << std::endl;
+        }
     }
 
 private:
@@ -62,7 +64,7 @@ private:
 };
 
 class WordDictionary : public Dictionary {
-public:
+private:
     static const std::string numberstr;
 
 public:

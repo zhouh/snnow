@@ -16,6 +16,11 @@
 #include "DictManager.h"
 #include "LabeledSequence.h"
 
+#define DEBUG
+#ifdef DEBUG
+// #define PRINTFEATURE
+#endif
+
 class GlobalExample;
 
 typedef std::vector<GlobalExample> GlobalExamples;
@@ -78,11 +83,17 @@ public:
                 int goldAct = transitionSystem.standardMove(*state, gSent, labelIndexCache);
                 acts[j] = goldAct;
     
-                CScoredTransition tTrans(NULL, goldAct, 0);
+                CScoredTransition tTrans(nullptr, goldAct, 0);
                 transitionSystem.move(*state, *state, tTrans);
     
                 labels[goldAct] = 1;
-    
+#ifdef PRINTFEATURE
+                std::cerr << j << ": ";
+                for (auto fid : features[features.size() - 1]) {
+                    std::cerr << fid << " ";
+                }
+                std::cerr << std::endl;
+#endif
                 Example example(features, labels);
                 examples.push_back(example);
             }
@@ -92,5 +103,6 @@ public:
     }
 };
 
+#undef DEBUG
 
 #endif

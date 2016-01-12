@@ -9,10 +9,11 @@ export NVCC =nvcc
 include $(BASE_DIR)/make/config.mk
 include $(BASE_DIR)/make/mshadow.mk
 
-export CFLAGS = -g -O0 -std=c++11 -I$(INCLUDE_DIR)/ -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
-#export CFLAGS = -Wall -O3 -std=c++11 -I$(INCLUDE_DIR)/ -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
+#export CFLAGS = -g -std=c++11 -I$(INCLUDE_DIR)/ -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
+export CFLAGS = -Wall -O3 -std=c++11 -I$(INCLUDE_DIR)/ -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
 export LDFLAGS= -lm -L$(CUDA_HOME)/lib64 $(MSHADOW_LDFLAGS)
-export NVCCFLAGS =-g -G -O0 -std=c++11 --use_fast_math -ccbin $(CXX)  $(MSHADOW_NVCCFLAGS)
+#export NVCCFLAGS =-g -G -std=c++11 --use_fast_math -ccbin $(CXX)  $(MSHADOW_NVCCFLAGS)
+export NVCCFLAGS = -G -O3 -std=c++11 --use_fast_math -ccbin $(CXX)  $(MSHADOW_NVCCFLAGS)
 
 # specify tensor path
 BIN = $(BASE_DIR)/bin/parser

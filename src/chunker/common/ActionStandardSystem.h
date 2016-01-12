@@ -10,9 +10,8 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <tr1/unordered_map>
-#include <unordered_set>
 
+#include "Dictionary.h"
 #include "State.h"
 #include "LabeledSequence.h"
 #include "Instance.h"

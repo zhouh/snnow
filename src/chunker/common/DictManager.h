@@ -17,6 +17,8 @@
 #include "Dictionary.h"
 #include "LabeledSequence.h"
 
+#define DEBUG
+
 class DictManager{
 private:
     std::tr1::unordered_map<std::string, std::shared_ptr<Dictionary>> m_mStr2Dict;
@@ -24,7 +26,7 @@ private:
 public:
     static const std::string WORDDESCRIPTION;
     static const std::string POSDESCRIPTION;
-    // static const std::string LABELDESCRIPTION;
+    static const std::string LABELDESCRIPTION;
     static const std::string CAPDESCRIPTION;
 
 public:
@@ -34,10 +36,15 @@ public:
     void init(const ChunkedDataSet &goldSet) {
         m_mStr2Dict[WORDDESCRIPTION] = std::shared_ptr<Dictionary>(new WordDictionary());
         m_mStr2Dict[POSDESCRIPTION] = std::shared_ptr<Dictionary>(new POSDictionary());
-        // m_mStr2Dict[LABELDESCRIPTION] = std::shared_ptr<Dictionary>(new LabelDictionary());
+        m_mStr2Dict[LABELDESCRIPTION] = std::shared_ptr<Dictionary>(new LabelDictionary());
         m_mStr2Dict[CAPDESCRIPTION] = std::shared_ptr<Dictionary>(new CapitalDictionary());
 
         makeDictionaries(goldSet);
+
+#ifdef DEBUG
+        std::cerr << "Label dictionary: " << std::endl;
+        m_mStr2Dict[LABELDESCRIPTION]->printDict();
+#endif
     }
 
     void makeDictionaries(const ChunkedDataSet &goldSet) {
@@ -54,5 +61,7 @@ private:
     DictManager(const DictManager &dManager) = delete;
     DictManager& operator= (const DictManager &dManager) = delete;
 };
+
+#undef DEBUG
 
 #endif

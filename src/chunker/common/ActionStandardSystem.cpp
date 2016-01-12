@@ -132,6 +132,7 @@ void ActionStandardSystem::generateOutput(const State &state, LabeledSequence &s
 void ActionStandardSystem::doOutsideMove(State &srcState, State &dstState, const CScoredTransition &transition) {
     dstState.m_nIndex = srcState.m_nIndex + 1;
     dstState.previous_ = &srcState;
+    dstState.frontLabels.push_back(actionIdx2LabelIdx(transition.action));
     dstState.last_action = const_cast<CScoredTransition &>(transition).action;
     dstState.m_nLen = srcState.m_nLen;
     dstState.score = const_cast<CScoredTransition &>(transition).score;
@@ -140,6 +141,7 @@ void ActionStandardSystem::doOutsideMove(State &srcState, State &dstState, const
 void ActionStandardSystem::doInsideMove(State &srcState, State &dstState, const CScoredTransition &transition) {
     dstState.m_nIndex = srcState.m_nIndex + 1;
     dstState.previous_ = &srcState;
+    dstState.frontLabels.push_back(actionIdx2LabelIdx(transition.action));
     dstState.last_action = const_cast<CScoredTransition &>(transition).action;
     dstState.m_nLen = srcState.m_nLen;
     dstState.score = const_cast<CScoredTransition &>(transition).score;
@@ -148,6 +150,7 @@ void ActionStandardSystem::doInsideMove(State &srcState, State &dstState, const 
 void ActionStandardSystem::doBeginMove(State &srcState, State &dstState, const CScoredTransition &transition) {
     dstState.m_nIndex = srcState.m_nIndex + 1;
     dstState.previous_ = &srcState;
+    dstState.frontLabels.push_back(actionIdx2LabelIdx(transition.action));
     dstState.last_action = const_cast<CScoredTransition &>(transition).action;
     dstState.m_nLen = srcState.m_nLen;
     dstState.score = const_cast<CScoredTransition &>(transition).score;

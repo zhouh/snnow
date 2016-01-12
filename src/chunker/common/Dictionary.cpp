@@ -24,9 +24,6 @@ void WordDictionary::makeDictionaries(const ChunkedDataSet &goldSet) {
             wordSet.insert(processWord(cw.word));
         }
     }
-#ifdef DEBUG
-    std::cerr << "  wordSet size: " << wordSet.size() << std::endl;
-#endif
     int idx = 0;
 
     nullIdx = idx; m_mElement2Idx[nullstr] = idx++; m_lKnownElements.push_back(nullstr);
@@ -67,6 +64,9 @@ std::string WordDictionary::replaceNumber(const std::string &word) {
             isNumber = false;
             ret.push_back(ch);
         }
+    }
+    if (isNumber) {
+        ret += numberstr;
     }
 
     if (isNumber) {
@@ -128,6 +128,8 @@ void LabelDictionary::makeDictionaries(const ChunkedDataSet &goldSet) {
 #endif
     int idx = 0;
 
+    // The following codes's order can not be changed, because 
+    // the ID is binded to ActionSystem's actionID system.
     for (auto &l : labelSet) {
         m_mElement2Idx[l] = idx++, m_lKnownElements.push_back(l);
     }
@@ -189,8 +191,5 @@ void CapitalDictionary::makeDictionaries(const ChunkedDataSet &goldSet) {
     m_mElement2Idx[allcapitalstr] = idx++; m_lKnownElements.push_back(allcapitalstr);
     m_mElement2Idx[firstlettercapstr] = idx++; m_lKnownElements.push_back(firstlettercapstr);
     m_mElement2Idx[hadonecapstr] = idx++; m_lKnownElements.push_back(hadonecapstr);
-#ifdef DEBUG
-    std::cerr << "  labelSet size: " << m_lKnownElements.size() << std::endl;
-#endif
 }
 

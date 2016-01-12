@@ -144,7 +144,7 @@ public:
         // calc grad of layer 1
         g_hbias = sum_rows(nhidden);
         g_Wi2h  = dot(ninput.T(), nhidden);
- 
+
         if (CConfig::bFineTune) {
             g_input = dot(nhidden, paras->Wi2h.T());
             Copy(cpu_g_input, g_input, g_input.stream_);

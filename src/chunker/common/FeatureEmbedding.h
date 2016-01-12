@@ -25,8 +25,7 @@ using namespace mshadow;
 
 class FeatureEmbedding {
 public:
-    FeatureEmbedding(const FeatureType& featType) : dictSize(featType.dictSize), embeddingSize(featType.featEmbSize){
-        data.Resize(Shape2(dictSize, embeddingSize), static_cast<real_t>(0.0));  
+    FeatureEmbedding(const FeatureType& featType) : dictSize(featType.dictSize), embeddingSize(featType.featEmbSize), data(Shape2(dictSize, embeddingSize), static_cast<real_t>(0.0)){
     }
 
     ~FeatureEmbedding() {}

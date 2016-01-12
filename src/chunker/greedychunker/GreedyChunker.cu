@@ -152,10 +152,6 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
     srand(0);
 
     Stream<XPU> *sstream = NewStream<XPU>();
-    std::vector<Stream<XPU> *> streams(CConfig::nThread + 1);
-    for (int i = 0; i < streams.size(); i++) {
-        streams[i] = sstream;
-    }
     InitTensorEngine<XPU>();
 
     auto featureTypes = m_featManagerPtr->getFeatureTypes();
@@ -169,10 +165,10 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
     }
     std::cerr << "[end]" << std::endl;
 
-    Model<XPU> modelParas(num_in, num_hidden, num_out, featureTypes, streams[0], true);
-    m_featEmbManagerPtr->readPretrainedEmbeddings(modelParas);
+    Model<XPU> modelParas(num_in, num_hidden, num_out, featureTypes, sstream, true);
+    // m_featEmbManagerPtr->readPretrainedEmbeddings(modelParas);
 
-    Model<XPU> adaGradSquares(num_in, num_hidden, num_out, featureTypes, streams[0], false);
+    Model<XPU> adaGradSquares(num_in, num_hidden, num_out, featureTypes, sstream, false);
 
     ChunkedResultType bestDevFB1 = std::make_tuple(0.0, 0.0, -1.0);
     ChunkedResultType bestDevNPFB1 = std::make_tuple(0.0, 0.0, -1.0);
@@ -199,9 +195,9 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
         std::vector<ExamplePtrs> multiThread_miniBatch_data;
         generateMultiThreadsMiniBatchData(multiThread_miniBatch_data);
 
-        Model<XPU> batchCumulatedGrads(num_in, num_hidden, num_out, featureTypes, streams[0], false);
+        Model<XPU> batchCumulatedGrads(num_in, num_hidden, num_out, featureTypes, sstream, false);
         
-#pragma omp parallel num_threads(CConfig::nThread)
+// #pragma omp parallel num_threads(CConfig::nThread)
         {
             int threadIndex = omp_get_thread_num();
             auto currentThreadData = multiThread_miniBatch_data[threadIndex];
@@ -209,7 +205,7 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
             int threadCorrectSize = 0;
             double threadObjLoss = 0.0;
 
-            Model<XPU> cumulatedGrads(num_in, num_hidden, num_out, featureTypes, streams[threadIndex + 1], false);
+            Model<XPU> cumulatedGrads(num_in, num_hidden, num_out, featureTypes, sstream, false);
             std::shared_ptr<NNet<XPU>> nnet(new NNet<XPU>(CConfig::nGPUBatchSize, num_in, num_hidden, num_out, &modelParas));
 
             std::vector<FeatureVector> featureVectors(CConfig::nGPUBatchSize);
@@ -280,14 +276,14 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
                 nnet->SubsideGradsTo(&cumulatedGrads, featureVectors);
             }
 
-#pragma omp barrier
-#pragma omp critical 
+// #pragma omp barrier
+// #pragma omp critical 
             batchCumulatedGrads.mergeModel(&cumulatedGrads);
 
-#pragma omp critical 
+// #pragma omp critical 
             batchCorrectSize += threadCorrectSize;
 
-#pragma omp critical 
+// #pragma omp critical 
             batchObjLoss += threadObjLoss;
         
         }  // end multi-processor
@@ -302,9 +298,6 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
         }
     }
 
-    // for (int i = 0; i < streams.size(); i++) {
-    //     DeleteStream(streams[i]);
-    // }
     ShutdownTensorEngine<XPU>();
 }
 
@@ -327,6 +320,7 @@ void GreedyChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
                 m_featManagerPtr->getDictManagerPtrs(),
                 static_cast<real_t>(CConfig::fInitRange)));
 
+    std::cerr << "  total input embedding dim: " << m_featEmbManagerPtr->getTotalFeatEmbSize() << std::endl;
     m_transSystemPtr.reset(new ActionStandardSystem());
     m_transSystemPtr->init(goldSet);
 
