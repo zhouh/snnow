@@ -75,6 +75,11 @@ public:
                 int featIndex  = wordPair.second;
                 auto &preTrain = pretrainEmbs[ret->second];
 
+                if (!(featIndex >= 0 && featIndex < dictSize)) {
+                    std::cerr << "dictSize: " << dictSize << std::endl;
+                    std::cerr << "currWord: " << wordPair.first << std::endl;
+                    std::cerr << "featIndex: " << featIndex << std::endl;
+                }
                 assert (featIndex >= 0 && featIndex < dictSize);
                 assert (embeddingSize == static_cast<int>(preTrain.size()));
 

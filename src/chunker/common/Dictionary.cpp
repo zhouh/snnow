@@ -5,13 +5,14 @@
 	> Created Time: Fri 25 Dec 2015 03:26:31 PM CST
  ************************************************************************/
 #include "Dictionary.h"
+#define DEBUG
 
 // Dictionary
 const std::string Dictionary::nullstr = "-NULL-";
 const std::string Dictionary::unknownstr = "-UNKNOWN-";
 
 //WordDictionary
-const std::string WordDictionary::numberstr = "-NUMBER-";
+const std::string WordDictionary::numberstr = "NUMBER";
 void WordDictionary::makeDictionaries(const ChunkedDataSet &goldSet) {
     using std::unordered_set;
     using std::string;
@@ -28,7 +29,6 @@ void WordDictionary::makeDictionaries(const ChunkedDataSet &goldSet) {
 #endif
     int idx = 0;
 
-    numberIdx = idx; m_mElement2Idx[numberstr] = idx++; m_lKnownElements.push_back(numberstr);
     nullIdx = idx; m_mElement2Idx[nullstr] = idx++; m_lKnownElements.push_back(nullstr);
     unkIdx = idx; m_mElement2Idx[unknownstr] = idx++; m_lKnownElements.push_back(unknownstr);
     for (auto &w : wordSet) {
@@ -37,10 +37,6 @@ void WordDictionary::makeDictionaries(const ChunkedDataSet &goldSet) {
 }
 
 int WordDictionary::element2Idx(const std::string &s) const {
-    if (isNumber(s)) {
-        return numberIdx;
-    }
-
     auto it = m_mElement2Idx.find(s);
 
     return (it == m_mElement2Idx.end()) ? unkIdx : it->second;
@@ -51,17 +47,33 @@ std::string WordDictionary::processWord(const std::string &word) {
 
     std::transform(word.begin(), word.end(), low_word.begin(), ::tolower);
 
+    low_word = replaceNumber(low_word);
+
     return low_word;
 }
 
-bool WordDictionary::isNumber(const std::string &word) {
-    for (char ch : word){
-        if (!isdigit(ch)) {
-            return false;
+std::string WordDictionary::replaceNumber(const std::string &word) {
+    std::string ret;
+
+    bool isNumber = false;
+    for (char ch : word) {
+        if (isdigit(ch)) {
+            isNumber = true;
+        } else {
+            if (isNumber) {
+                ret += numberstr;
+            }
+
+            isNumber = false;
+            ret.push_back(ch);
         }
     }
 
-    return true;
+    if (isNumber) {
+        ret += numberstr;
+    }
+
+    return ret;
 }
 
 // POSDictionary

@@ -26,6 +26,8 @@ public:
     static int nCapEmbeddingDim;
     static int nPOSFeatureNum;
     static int nPOSEmbeddingDim;
+    static int nLabelFeatureNum;
+    static int nLabelEmbeddingDim;
 
     static int nHiddenSize;
 
@@ -42,6 +44,8 @@ public:
 
     static bool bDropOut;
     static float fDropoutProb;
+
+    static bool bFineTune;
 
     static void readConfiguration(const std::string &configPath);
     static void saveConfiguration(const std::string &configPath);

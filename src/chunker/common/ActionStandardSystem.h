@@ -16,31 +16,34 @@
 #include "State.h"
 #include "LabeledSequence.h"
 #include "Instance.h"
+#include "Dictionary.h"
 
 class LabelManager {
 private:
-    std::vector<std::string> m_lKnownLabels;
-    std::tr1::unordered_map<std::string, int> m_mLabel2Idx;
+    LabelDictionary labelDict;
 
 public:
     LabelManager() {}
     ~LabelManager() {}
 
     int size() {
-        return static_cast<int>(m_mLabel2Idx.size());
+        return labelDict.size();
     }
 
-    const std::vector<std::string>& getKnownLabels() const {
-        return m_lKnownLabels;
+    const std::vector<std::string> getKnownLabels() const {
+        std::vector<std::string> knownLabels;
+
+        for (const std::string &s : labelDict.getKnownElements()) {
+            if (s != LabelDictionary::nullstr && s != LabelDictionary::unknownstr) {
+                knownLabels.push_back(s);
+            }
+        }
+        return knownLabels;
     }
 
     int label2Idx(const std::string &s) const;
 
     void makeDictionaries(const ChunkedDataSet &goldSet);
-
-    void printDict() {
-        std::cerr << "known feature size: " << m_lKnownLabels.size() << std::endl;
-    }
 
 private:
     LabelManager(const LabelManager &lm) = delete;

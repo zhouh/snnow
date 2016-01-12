@@ -39,6 +39,9 @@ int CConfig::nCapEmbeddingDim = 5;
 int CConfig::nPOSFeatureNum = 5;
 int CConfig::nPOSEmbeddingDim = 10;
 
+int CConfig::nLabelFeatureNum = 2;
+int CConfig::nLabelEmbeddingDim = 5;
+
 int CConfig::nHiddenSize = 300;
 
 int CConfig::nRound = 2000; 
@@ -60,7 +63,9 @@ float CConfig::fAdaEps = 1e-6;
 
 bool CConfig::bDropOut = true;
 float CConfig::fDropoutProb = 0.5;
- 
+
+bool CConfig::bFineTune = true;
+
 std::ostream& operator<< (std::ostream &os, const CConfig &config) {
     std::cerr << "train path:       " << CConfig::strTrainPath << std::endl;
     std::cerr << "dev path:         " << CConfig::strDevPath << std::endl;
@@ -72,6 +77,8 @@ std::ostream& operator<< (std::ostream &os, const CConfig &config) {
     std::cerr << "POS feat dim:     " << CConfig::nPOSEmbeddingDim << std::endl;
     std::cerr << "cap feat num:     " << CConfig::nCapFeatureNum << std::endl;
     std::cerr << "cap feat dim:     " << CConfig::nCapEmbeddingDim << std::endl;
+    std::cerr << "label feat num:   " << CConfig::nLabelFeatureNum << std::endl;
+    std::cerr << "label feat dim:   " << CConfig::nLabelEmbeddingDim << std::endl;
 
     std::cerr << "thread num:       " << CConfig::nThread << std::endl;
 
@@ -117,6 +124,8 @@ void CConfig::readConfiguration(const std::string &configPath) {
     attributes.insert("nCapEmbeddingDim");
     attributes.insert("nPOSFeatureNum");
     attributes.insert("nPOSEmbeddingDim");
+    attributes.insert("nLabelFeatureNum");
+    attributes.insert("nLabelEmbeddingDim");
     attributes.insert("nHiddenSize");
     attributes.insert("nRound");
     attributes.insert("nGreedyBatchSize");
@@ -129,6 +138,7 @@ void CConfig::readConfiguration(const std::string &configPath) {
     attributes.insert("fAdaEps");
     attributes.insert("bDropOut");
     attributes.insert("fDropoutProb");
+    attributes.insert("bFineTune");
 
     std::ifstream is(configPath);
     while (!is.eof()) {
@@ -185,6 +195,10 @@ void CConfig::readConfiguration(const std::string &configPath) {
             nPOSFeatureNum = stoi(att.second);
         } else if (att.first == "nPOSEmbeddingDim") {
             nPOSEmbeddingDim = stoi(att.second);
+        } else if (att.first == "nLabelFeatureNum") {
+            nLabelFeatureNum = stoi(att.second);
+        } else if (att.first == "nLabelEmbeddingDim") {
+            nLabelEmbeddingDim = stoi(att.second);
         } else if (att.first == "nHiddenSize") {
             nHiddenSize = stoi(att.second);
         } else if (att.first == "nRound") {
@@ -213,16 +227,22 @@ void CConfig::readConfiguration(const std::string &configPath) {
             }
         } else if (att.first == "fDropoutProb") {
             fDropoutProb = stof(att.second);
+        } else if (att.first == "nFineTune") {
+            if (att.second == "true") {
+                bFineTune = true;
+            } else {
+                bFineTune = false;
+            }
         }
+    }
 
-        if (nGreedyBatchSize % nGPUBatchSize != 0) {
-            std::cerr << "nGreedyBatchSize: " << nGreedyBatchSize << " should by divisible by nGPUBatchSize: " << nGPUBatchSize << std::endl;
-            exit(0);
-        }
-        if (nGreedyBatchSize < nGPUBatchSize * nThread) {
-            std::cerr << "nGreedyBatchSize: " << nGreedyBatchSize << " should be more than nGPUBatchSize * nThread: " << nGPUBatchSize << " * " << nThread << ")" << std::endl;
-            exit(0);
-        }
+    if (nGreedyBatchSize % nGPUBatchSize != 0) {
+        std::cerr << "nGreedyBatchSize: " << nGreedyBatchSize << " should by divisible by nGPUBatchSize: " << nGPUBatchSize << std::endl;
+        exit(0);
+    }
+    if (nGreedyBatchSize < nGPUBatchSize * nThread) {
+        std::cerr << "nGreedyBatchSize: " << nGreedyBatchSize << " should be more than nGPUBatchSize * nThread: " << nGPUBatchSize << " * " << nThread << ")" << std::endl;
+        exit(0);
     }
 }
 

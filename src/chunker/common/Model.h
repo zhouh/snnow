@@ -215,22 +215,28 @@ public:
         gradients->Wi2h  += CConfig::fRegularizationRate * Wi2h;
         gradients->Wh2o  += CConfig::fRegularizationRate * Wh2o;
         gradients->hbias += CConfig::fRegularizationRate * hbias;
-        for(int i = 0; i < featEmbs.size(); i++)
-            gradients->featEmbs[i]->data += CConfig::fRegularizationRate * featEmbs[i]->data;
+        if (CConfig::bFineTune) {
+            for(int i = 0; i < featEmbs.size(); i++)
+                gradients->featEmbs[i]->data += CConfig::fRegularizationRate * featEmbs[i]->data;
+        }
 
         // update adagrad gradient square sums
         adaGradSquares->Wi2h  += F<square>(gradients->Wi2h);
         adaGradSquares->Wh2o  += F<square>(gradients->Wh2o);
         adaGradSquares->hbias += F<square>(gradients->hbias);
-        for(int i = 0; i < gradients->featEmbs.size(); i++)
-            adaGradSquares->featEmbs[i]->data += F<square>(gradients->featEmbs[i]->data);
+        if (CConfig::bFineTune) {
+            for(int i = 0; i < gradients->featEmbs.size(); i++)
+                adaGradSquares->featEmbs[i]->data += F<square>(gradients->featEmbs[i]->data);
+        }
 
         // update this weight
         Wi2h  -= CConfig::fBPRate * ( gradients->Wi2h  / F<mySqrt>( adaGradSquares->Wi2h + CConfig::fAdaEps  ) );
         Wh2o  -= CConfig::fBPRate * ( gradients->Wh2o  / F<mySqrt>( adaGradSquares->Wh2o + CConfig::fAdaEps  ) );
         hbias -= CConfig::fBPRate * ( gradients->hbias / F<mySqrt>( adaGradSquares->hbias + CConfig::fAdaEps ) );
-        for(int i = 0; i < gradients->featEmbs.size(); i++)
-            featEmbs[i]->data -= CConfig::fBPRate * ( gradients->featEmbs[i]->data / F<mySqrt>( adaGradSquares->featEmbs[i]->data + CConfig::fAdaEps ) );
+        if (CConfig::bFineTune) {
+            for(int i = 0; i < gradients->featEmbs.size(); i++)
+                featEmbs[i]->data -= CConfig::fBPRate * ( gradients->featEmbs[i]->data / F<mySqrt>( adaGradSquares->featEmbs[i]->data + CConfig::fAdaEps ) );
+        }
 
         gradients->setZero(); // set zero for that the cumulated gradients will be reused in the next update
     }
@@ -242,8 +248,10 @@ public:
         Wi2h  += model->Wi2h;
         Wh2o  += model->Wh2o;
         hbias += model->hbias;
-        for(int i = 0; i < featEmbs.size(); i++)
-            featEmbs[i]->data +=  model->featEmbs[i]->data;
+        if (CConfig::bFineTune) {
+            for(int i = 0; i < featEmbs.size(); i++)
+                featEmbs[i]->data +=  model->featEmbs[i]->data;
+        }
     }
 
     /**
@@ -333,6 +341,9 @@ public:
             iss_hbias_j >> hbias[ i ];
         }
     }
+private:
+    Model(const Model<xpu> &model) = delete;
+    Model<xpu>& operator= (const Model<xpu> &model) = delete;
 };
 // template<typename xpu>
 // Random<xpu, real_t>  Model<xpu>::rnd(0);

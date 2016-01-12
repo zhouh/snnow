@@ -16,8 +16,6 @@
 
 #include "LabeledSequence.h"
 
-#define DEBUG
-
 class Dictionary {
 protected:
     std::vector<std::string> m_lKnownElements;
@@ -65,8 +63,6 @@ private:
 
 class WordDictionary : public Dictionary {
 public:
-    int numberIdx;
-
     static const std::string numberstr;
 
 public:
@@ -79,7 +75,8 @@ public:
 
     static std::string processWord(const std::string &word);
 
-    static bool isNumber(const std::string &word);
+private:
+    static std::string replaceNumber(const std::string &word);
 };
 
 class POSDictionary : public Dictionary {

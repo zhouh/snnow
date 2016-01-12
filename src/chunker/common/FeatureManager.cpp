@@ -10,42 +10,56 @@
 #include "FeatureManager.h"
 
 void FeatureManager::init(const ChunkedDataSet &goldSet, const std::shared_ptr<DictManager> &dictManagerPtr) {
+#define ADDFEATUREEXTRACTOR(name, desc, featSize, featEmbSize, FeatureExtractorType) \
+    const std::string name ## Description = desc; \
+    const std::shared_ptr<Dictionary> name ## DictPtr = dictManagerPtr->getDictionaryOf(name ## Description); \
+    dictSize = name ## DictPtr->size(); \
+    FeatureType name ## FeatType(name ## Description, featSize, dictSize, featEmbSize); \
+    featExtractorPtrs.push_back(std::shared_ptr<FeatureExtractor>(new FeatureExtractorType(name ## FeatType, name ## DictPtr)))\
+
     int dictSize = 0;
     int featSize = 0;
     int featEmbSize = 0;
 
-    const std::string wordFeatDescription = DictManager::WORDDESCRIPTION;
-    const std::shared_ptr<Dictionary> wordDictPtr = dictManagerPtr->getDictionaryOf(wordFeatDescription);
-    dictSize = wordDictPtr->size();
-    featSize = CConfig::nWordFeatureNum;
-    featEmbSize = CConfig::nWordEmbeddingDim;
-    FeatureType wordFeatType(wordFeatDescription, featSize, dictSize, featEmbSize);
-    featExtractorPtrs.push_back(std::shared_ptr<FeatureExtractor>(new WordFeatureExtractor(
-                wordFeatType,
-                wordDictPtr
-                )));
+    ADDFEATUREEXTRACTOR(word, DictManager::WORDDESCRIPTION, CConfig::nWordFeatureNum, CConfig::nWordEmbeddingDim, WordFeatureExtractor);
 
-    const std::string posFeatDescription = DictManager::POSDESCRIPTION;
-    const std::shared_ptr<Dictionary> posDictPtr = dictManagerPtr->getDictionaryOf(posFeatDescription);
-    dictSize = posDictPtr->size();
-    featSize = CConfig::nPOSFeatureNum;
-    featEmbSize = CConfig::nPOSEmbeddingDim;
-    FeatureType posFeatType(posFeatDescription, featSize, dictSize, featEmbSize);
-    featExtractorPtrs.push_back(std::shared_ptr<FeatureExtractor>(new POSFeatureExtractor(
-                    posFeatType,
-                    posDictPtr
-                    )));
+    ADDFEATUREEXTRACTOR(pos, DictManager::POSDESCRIPTION, CConfig::nPOSFeatureNum, CConfig::nPOSEmbeddingDim, POSFeatureExtractor);
 
-    const std::string capFeatDescription = DictManager::CAPDESCRIPTION;
-    const std::shared_ptr<Dictionary> capDictPtr = dictManagerPtr->getDictionaryOf(capFeatDescription);
-    dictSize = capDictPtr->size();
-    featSize = CConfig::nCapFeatureNum;
-    featEmbSize = CConfig::nCapEmbeddingDim;
-    FeatureType capFeatType(capFeatDescription, featSize, dictSize, featEmbSize);
-    featExtractorPtrs.push_back(std::shared_ptr<FeatureExtractor>(new CapitalFeatureExtractor(
-                capFeatType,
-                capDictPtr
-                )));
+    ADDFEATUREEXTRACTOR(cap, DictManager::CAPDESCRIPTION, CConfig::nCapFeatureNum, CConfig::nCapEmbeddingDim, CapitalFeatureExtractor);
+
+#undef ADDFEATUREEXTRACTOR
+    // const std::string wordFeatDescription = DictManager::WORDDESCRIPTION;
+    // const std::shared_ptr<Dictionary> wordDictPtr = dictManagerPtr->getDictionaryOf(wordFeatDescription);
+    // dictSize = wordDictPtr->size();
+    // featSize = CConfig::nWordFeatureNum;
+    // featEmbSize = CConfig::nWordEmbeddingDim;
+    // FeatureType wordFeatType(wordFeatDescription, featSize, dictSize, featEmbSize);
+    // featExtractorPtrs.push_back(std::shared_ptr<FeatureExtractor>(new WordFeatureExtractor(
+    //             wordFeatType,
+    //             wordDictPtr
+    //             )));
+
+    // const std::string posFeatDescription = DictManager::POSDESCRIPTION;
+    // const std::shared_ptr<Dictionary> posDictPtr = dictManagerPtr->getDictionaryOf(posFeatDescription);
+    // dictSize = posDictPtr->size();
+    // featSize = CConfig::nPOSFeatureNum;
+    // featEmbSize = CConfig::nPOSEmbeddingDim;
+    // FeatureType posFeatType(posFeatDescription, featSize, dictSize, featEmbSize);
+    // featExtractorPtrs.push_back(std::shared_ptr<FeatureExtractor>(new POSFeatureExtractor(
+    //                 posFeatType,
+    //                 posDictPtr
+    //                 )));
+
+    // const std::string capFeatDescription = DictManager::CAPDESCRIPTION;
+    // const std::shared_ptr<Dictionary> capDictPtr = dictManagerPtr->getDictionaryOf(capFeatDescription);
+    // dictSize = capDictPtr->size();
+    // featSize = CConfig::nCapFeatureNum;
+    // featEmbSize = CConfig::nCapEmbeddingDim;
+    // FeatureType capFeatType(capFeatDescription, featSize, dictSize, featEmbSize);
+    // featExtractorPtrs.push_back(std::shared_ptr<FeatureExtractor>(new CapitalFeatureExtractor(
+    //             capFeatType,
+    //             capDictPtr
+    //             )));
 }
 
 std::vector<FeatureType> FeatureManager::getFeatureTypes() {
