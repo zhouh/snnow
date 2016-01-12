@@ -63,6 +63,8 @@ float CConfig::fAdaEps = 1e-6;
 
 bool CConfig::bDropOut = true;
 float CConfig::fDropoutProb = 0.5;
+
+bool CConfig::bFineTune = true;
  
 std::ostream& operator<< (std::ostream &os, const CConfig &config) {
     std::cerr << "train path:       " << CConfig::strTrainPath << std::endl;
@@ -75,6 +77,8 @@ std::ostream& operator<< (std::ostream &os, const CConfig &config) {
     std::cerr << "POS feat dim:     " << CConfig::nPOSEmbeddingDim << std::endl;
     std::cerr << "cap feat num:     " << CConfig::nCapFeatureNum << std::endl;
     std::cerr << "cap feat dim:     " << CConfig::nCapEmbeddingDim << std::endl;
+    std::cerr << "label feat num:   " << CConfig::nLabelFeatureNum << std::endl;
+    std::cerr << "label feat dim:   " << CConfig::nLabelEmbeddingDim << std::endl;
 
     std::cerr << "thread num:       " << CConfig::nThread << std::endl;
 
@@ -91,6 +95,8 @@ std::ostream& operator<< (std::ostream &os, const CConfig &config) {
 
     std::cerr << "dropout:          " << CConfig::bDropOut << std::endl;
     std::cerr << "dropout prob:     " << CConfig::fDropoutProb << std::endl;
+
+    std::cerr << "fine-tune:        " << CConfig::bFineTune << std::endl;
 }
 
 inline void my_trim(std::string &s) {
@@ -134,6 +140,7 @@ void CConfig::readConfiguration(const std::string &configPath) {
     attributes.insert("fAdaEps");
     attributes.insert("bDropOut");
     attributes.insert("fDropoutProb");
+    attributes.insert("bFineTune");
 
     std::ifstream is(configPath);
     while (!is.eof()) {
@@ -167,71 +174,76 @@ void CConfig::readConfiguration(const std::string &configPath) {
         }
 
         if (att.first == "strTrainPath") {
-            strTrainPath = att.second;
+            CConfig::strTrainPath = att.second;
         } else if (att.first == "strDevPath") {
-            strDevPath = att.second;
+            CConfig::strDevPath = att.second;
         } else if (att.first == "strTestPath") {
-            strTestPath = att.second;
+            CConfig::strTestPath = att.second;
         } else if (att.first == "strEmbeddingPath") {
-            strEmbeddingPath = att.second;
+            CConfig::strEmbeddingPath = att.second;
         } else if (att.first == "nBeamSize") {
-            nBeamSize = stoi(att.second);
+            CConfig::nBeamSize = stoi(att.second);
         } else if (att.first == "nGPUBatchSize") {
-            nGPUBatchSize = stoi(att.second);
+            CConfig::nGPUBatchSize = stoi(att.second);
         } else if (att.first == "nWordFeatureNum") {
-            nWordFeatureNum = stoi(att.second);
+            CConfig::nWordFeatureNum = stoi(att.second);
         } else if (att.first == "nWordEmbeddingDim") {
-            nWordEmbeddingDim = stoi(att.second);
+            CConfig::nWordEmbeddingDim = stoi(att.second);
         } else if (att.first == "nCapFeatureNum") {
-            nCapFeatureNum = stoi(att.second);
+            CConfig::nCapFeatureNum = stoi(att.second);
         } else if (att.first == "nCapEmbeddingDim") {
-            nCapEmbeddingDim = stoi(att.second);
+            CConfig::nCapEmbeddingDim = stoi(att.second);
         } else if (att.first == "nPOSFeatureNum") {
-            nPOSFeatureNum = stoi(att.second);
+            CConfig::nPOSFeatureNum = stoi(att.second);
         } else if (att.first == "nPOSEmbeddingDim") {
-            nPOSEmbeddingDim = stoi(att.second);
+            CConfig::nPOSEmbeddingDim = stoi(att.second);
         } else if (att.first == "nLabelFeatureNum") {
-            nLabelFeatureNum = stoi(att.second);
+            CConfig::nLabelFeatureNum = stoi(att.second);
         } else if (att.first == "nLabelEmbeddingDim") {
-            nLabelEmbeddingDim = stoi(att.second);
+            CConfig::nLabelEmbeddingDim = stoi(att.second);
         } else if (att.first == "nHiddenSize") {
-            nHiddenSize = stoi(att.second);
+            CConfig::nHiddenSize = stoi(att.second);
         } else if (att.first == "nRound") {
-            nRound = stoi(att.second);
+            CConfig::nRound = stoi(att.second);
         } else if (att.first == "nGreedyBatchSize") {
-            nGreedyBatchSize = stoi(att.second);
+            CConfig::nGreedyBatchSize = stoi(att.second);
         } else if (att.first == "nBeamBatchSize") {
-            nBeamBatchSize = stoi(att.second);
+            CConfig::nBeamBatchSize = stoi(att.second);
         } else if (att.first == "nEvaluatePerIters") {
-            nEvaluatePerIters = stoi(att.second);
+            CConfig::nEvaluatePerIters = stoi(att.second);
         } else if (att.first == "nThread") {
-            nThread = stoi(att.second);
+            CConfig::nThread = stoi(att.second);
         } else if (att.first == "fRegularizationRate") {
-            fRegularizationRate = stof(att.second);
+            CConfig::fRegularizationRate = stof(att.second);
         } else if (att.first == "fBPRate") {
-            fBPRate = stof(att.second);
+            CConfig::fBPRate = stof(att.second);
         } else if (att.first == "fInitRange") {
-            fInitRange = stof(att.second);
+            CConfig::fInitRange = stof(att.second);
         } else if (att.first == "fAdaEps") {
-            fAdaEps = stof(att.second);
+            CConfig::fAdaEps = stof(att.second);
         } else if (att.first == "bDropOut") {
             if (att.second == "true") {
-                bDropOut = true;
+                CConfig::bDropOut = true;
             } else {
-                bDropOut = false;
+                CConfig::bDropOut = false;
             }
         } else if (att.first == "fDropoutProb") {
-            fDropoutProb = stof(att.second);
+            CConfig::fDropoutProb = stof(att.second);
+        } else if (att.first == "bFineTune") {
+            if (att.second == "true") {
+                CConfig::bFineTune = true;
+            } else {
+                CConfig::bFineTune = false;
+            }
         }
-
-        if (nGreedyBatchSize % nGPUBatchSize != 0) {
-            std::cerr << "nGreedyBatchSize: " << nGreedyBatchSize << " should by divisible by nGPUBatchSize: " << nGPUBatchSize << std::endl;
-            exit(0);
-        }
-        if (nGreedyBatchSize < nGPUBatchSize * nThread) {
-            std::cerr << "nGreedyBatchSize: " << nGreedyBatchSize << " should be more than nGPUBatchSize * nThread: " << nGPUBatchSize << " * " << nThread << ")" << std::endl;
-            exit(0);
-        }
+    }
+    if (CConfig::nGreedyBatchSize % CConfig::nGPUBatchSize != 0) {
+        std::cerr << "nGreedyBatchSize: " << nGreedyBatchSize << " should by divisible by nGPUBatchSize: " << nGPUBatchSize << std::endl;
+        exit(0);
+    }
+    if (CConfig::nGreedyBatchSize < CConfig::nGPUBatchSize * CConfig::nThread) {
+        std::cerr << "nGreedyBatchSize: " << nGreedyBatchSize << " should be more than nGPUBatchSize * nThread: " << CConfig::nGPUBatchSize << " * " << CConfig::nThread << ")" << std::endl;
+        exit(0);
     }
 }
 

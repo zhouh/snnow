@@ -14,12 +14,13 @@ void FeatureManager::init(const ChunkedDataSet &goldSet, const std::shared_ptr<D
     int featSize = 0;
     int featEmbSize = 0;
 
-// #define ADDFEATUREEXTRACTOR(name, desc, featSize, featEmbSize, FeatureExtractorType) \
-        const std::string name#Description = desc; \
-        const std::shared_ptr<Dictionary> nameDictPtr = dictManagerPtr->getDictionaryOf(nameDescription); \
-        dictSize = nameDictPtr->size(); \
-        FeatureType nameFeatType(name#Description, featSize, dictSize, featEmbSize); \
-        featExtractorPtrs.push_back(std::shared_ptr<FeatureExtractor>(new FeatureExtractorType(nameFeatType, nameDictPtr))) 
+#define ADDFEATUREEXTRACTOR(name, desc, featSize, featEmbSize, FeatureExtractorType) \
+        const std::string name ## Description = desc; \
+        const std::shared_ptr<Dictionary> name ## DictPtr = dictManagerPtr->getDictionaryOf(name ## Description); \
+        dictSize = name ## DictPtr->size(); \
+        FeatureType name ## FeatType(name ## Description, featSize, dictSize, featEmbSize); \
+        featExtractorPtrs.push_back(std::shared_ptr<FeatureExtractor>(new FeatureExtractorType(name ## FeatType, name ## DictPtr))) \
+        
 
     // ADDFEATUREEXTRACTOR(word, DictManager::WORDDESCRIPTION, CConfig::nWordFeatureNum, CConfig::nWordEmbeddingDim, WordFeatureExtractor);
 
@@ -28,6 +29,8 @@ void FeatureManager::init(const ChunkedDataSet &goldSet, const std::shared_ptr<D
     // ADDFEATUREEXTRACTOR(cap, DictManager::CAPDESCRIPTION, CConfig::nCapFeatureNum, CConfig::nCapEmbeddingDim, CapitalFeatureExtractor);
 
     // ADDFEATUREEXTRACTOR(label, DictManager::LABELDESCRIPTION, CConfig::nLabelFeatureNum, CConfig::nLabelEmbeddingDim, LabelFeatureExtractor);
+
+#undef ADDFEATUREEXTRACTOR
 
     const std::string wordFeatDescription = DictManager::WORDDESCRIPTION;
     const std::shared_ptr<Dictionary> wordDictPtr = dictManagerPtr->getDictionaryOf(wordFeatDescription);

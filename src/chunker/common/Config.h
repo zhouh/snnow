@@ -45,6 +45,8 @@ public:
     static bool bDropOut;
     static float fDropoutProb;
 
+    static bool bFineTune;
+
     static void readConfiguration(const std::string &configPath);
     static void saveConfiguration(const std::string &configPath);
     friend std::ostream& operator<< (std::ostream &os, const CConfig &config);

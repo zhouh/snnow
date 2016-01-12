@@ -144,9 +144,11 @@ public:
         // calc grad of layer 1
         g_hbias = sum_rows(nhidden);
         g_Wi2h  = dot(ninput.T(), nhidden);
-  
-        g_input = dot(nhidden, paras->Wi2h.T());
-        Copy(cpu_g_input, g_input, g_input.stream_);
+
+        if (CConfig::bFineTune) {
+            g_input = dot(nhidden, paras->Wi2h.T());
+            Copy(cpu_g_input, g_input, g_input.stream_);
+        }
     }
  
     // TODO right? 
@@ -155,30 +157,32 @@ public:
         cumulatedGradsPtr->Wh2o  += g_Wh2o;
         cumulatedGradsPtr->hbias += g_hbias;
 
-        for (int i = 0; i < static_cast<int>(fvs.size()); i++) {
-            FeatureVector &fv = fvs[i];
+        if (CConfig::bFineTune) {
+            for (int i = 0; i < static_cast<int>(fvs.size()); i++) {
+                FeatureVector &fv = fvs[i];
 
-            int updateIndex = 0;
-            for (int j = 0; j < static_cast<int>(fv.size()); j++) {
-                FeatureType &ft = cumulatedGradsPtr->featTypes[j];
-                std::shared_ptr<FeatureEmbedding> &curFeatEmbPtr = cumulatedGradsPtr->featEmbs[j];
-                auto &oneFeatTypeVector = fv.features[j];
+                int updateIndex = 0;
+                for (int j = 0; j < static_cast<int>(fv.size()); j++) {
+                    FeatureType &ft = cumulatedGradsPtr->featTypes[j];
+                    std::shared_ptr<FeatureEmbedding> &curFeatEmbPtr = cumulatedGradsPtr->featEmbs[j];
+                    auto &oneFeatTypeVector = fv.features[j];
 
 
-                for (auto &featId : oneFeatTypeVector) {
-                    for (int dimi = 0; dimi < ft.featEmbSize; dimi++) {
-                        curFeatEmbPtr->data[featId][dimi] += cpu_g_input[i][updateIndex++];
+                    for (auto &featId : oneFeatTypeVector) {
+                        for (int dimi = 0; dimi < ft.featEmbSize; dimi++) {
+                            curFeatEmbPtr->data[featId][dimi] += cpu_g_input[i][updateIndex++];
+                        }
                     }
-                }
 
-                // for (auto &featId : oneFeatTypeVector) {
-                //     curFeatEmbPtr->data[featId] += g_input[i][updateIndex];
-                //     updateIndex += ft.featEmbSize;
-                // }
-                // for (int r = 0; r < static_cast<int>(oneFeatTypeVector.size()); r++) {
-                //     cumulatedGradsPtr->featEmbs[j]->data[oneFeatTypeVector[r]] += g_input[i][updateIndex];
-                //     updateIndex += ft.featEmbSize;
-                // }
+                    // for (auto &featId : oneFeatTypeVector) {
+                    //     curFeatEmbPtr->data[featId] += g_input[i][updateIndex];
+                    //     updateIndex += ft.featEmbSize;
+                    // }
+                    // for (int r = 0; r < static_cast<int>(oneFeatTypeVector.size()); r++) {
+                    //     cumulatedGradsPtr->featEmbs[j]->data[oneFeatTypeVector[r]] += g_input[i][updateIndex];
+                    //     updateIndex += ft.featEmbSize;
+                    // }
+                }
             }
         }
     }

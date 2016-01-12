@@ -7,7 +7,7 @@
 #ifndef _COMMON_CHUNKER_H_
 #define _COMMON_CHUNKER_H_
 
-#define XPU gpu
+#define XPU cpu
 typedef double real_t;
 
 #endif

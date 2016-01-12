@@ -11,7 +11,7 @@ const std::string Dictionary::nullstr = "-NULL-";
 const std::string Dictionary::unknownstr = "-UNKNOWN-";
 
 //WordDictionary
-const std::string WordDictionary::numberstr = "-NUMBER-";
+const std::string WordDictionary::numberstr = "NUMBER";
 void WordDictionary::makeDictionaries(const ChunkedDataSet &goldSet) {
     using std::unordered_set;
     using std::string;
@@ -23,12 +23,8 @@ void WordDictionary::makeDictionaries(const ChunkedDataSet &goldSet) {
             wordSet.insert(processWord(cw.word));
         }
     }
-#ifdef DEBUG
-    std::cerr << "  wordSet size: " << wordSet.size() << std::endl;
-#endif
     int idx = 0;
 
-    numberIdx = idx; m_mElement2Idx[numberstr] = idx++; m_lKnownElements.push_back(numberstr);
     nullIdx = idx; m_mElement2Idx[nullstr] = idx++; m_lKnownElements.push_back(nullstr);
     unkIdx = idx; m_mElement2Idx[unknownstr] = idx++; m_lKnownElements.push_back(unknownstr);
     for (auto &w : wordSet) {
@@ -37,10 +33,6 @@ void WordDictionary::makeDictionaries(const ChunkedDataSet &goldSet) {
 }
 
 int WordDictionary::element2Idx(const std::string &s) const {
-    if (isNumber(s)) {
-        return numberIdx;
-    }
-
     auto it = m_mElement2Idx.find(s);
 
     return (it == m_mElement2Idx.end()) ? unkIdx : it->second;
@@ -51,17 +43,32 @@ std::string WordDictionary::processWord(const std::string &word) {
 
     std::transform(word.begin(), word.end(), low_word.begin(), ::tolower);
 
+    low_word = replaceNumber(low_word);
+
     return low_word;
 }
 
-bool WordDictionary::isNumber(const std::string &word) {
-    for (char ch : word){
-        if (!isdigit(ch)) {
-            return false;
+std::string WordDictionary::replaceNumber(const std::string &word) {
+    std::string ret;
+
+    bool isNumber = false;
+    for (char ch : word) {
+        if (isdigit(ch)) {
+            isNumber = true;
+        } else {
+            if (isNumber) {
+                ret += numberstr;
+            }
+
+            isNumber = false;
+            ret.push_back(ch);
         }
     }
+    if (isNumber) {
+        ret += nullstr;
+    }
 
-    return true;
+    return ret;
 }
 
 // POSDictionary
@@ -179,8 +186,5 @@ void CapitalDictionary::makeDictionaries(const ChunkedDataSet &goldSet) {
     m_mElement2Idx[allcapitalstr] = idx++; m_lKnownElements.push_back(allcapitalstr);
     m_mElement2Idx[firstlettercapstr] = idx++; m_lKnownElements.push_back(firstlettercapstr);
     m_mElement2Idx[hadonecapstr] = idx++; m_lKnownElements.push_back(hadonecapstr);
-#ifdef DEBUG
-    std::cerr << "  labelSet size: " << m_lKnownElements.size() << std::endl;
-#endif
 }
 

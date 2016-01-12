@@ -166,7 +166,7 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
     std::cerr << "[end]" << std::endl;
 
     Model<XPU> modelParas(num_in, num_hidden, num_out, featureTypes, sstream, true);
-    m_featEmbManagerPtr->readPretrainedEmbeddings(modelParas);
+    // m_featEmbManagerPtr->readPretrainedEmbeddings(modelParas);
 
     Model<XPU> adaGradSquares(num_in, num_hidden, num_out, featureTypes, sstream, false);
 
@@ -197,7 +197,7 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
 
         Model<XPU> batchCumulatedGrads(num_in, num_hidden, num_out, featureTypes, sstream, false);
         
-#pragma omp parallel num_threads(CConfig::nThread)
+// #pragma omp parallel num_threads(CConfig::nThread)
         {
             int threadIndex = omp_get_thread_num();
             auto currentThreadData = multiThread_miniBatch_data[threadIndex];
@@ -276,14 +276,14 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
                 nnet->SubsideGradsTo(&cumulatedGrads, featureVectors);
             }
 
-#pragma omp barrier
-#pragma omp critical 
+// #pragma omp barrier
+// #pragma omp critical 
             batchCumulatedGrads.mergeModel(&cumulatedGrads);
 
-#pragma omp critical 
+// #pragma omp critical 
             batchCorrectSize += threadCorrectSize;
 
-#pragma omp critical 
+// #pragma omp critical 
             batchObjLoss += threadObjLoss;
         
         }  // end multi-processor
@@ -320,7 +320,7 @@ void GreedyChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
                 m_featManagerPtr->getDictManagerPtrs(),
                 static_cast<real_t>(CConfig::fInitRange)));
 
-    std::cerr << "  Input total embedding dim: " << m_featEmbManagerPtr->getTotalFeatEmbSize() << std::endl;
+    std::cerr << "  total input embedding dim: " << m_featEmbManagerPtr->getTotalFeatEmbSize() << std::endl;
     m_transSystemPtr.reset(new ActionStandardSystem());
     m_transSystemPtr->init(goldSet);
 
