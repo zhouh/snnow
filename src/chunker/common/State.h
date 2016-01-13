@@ -11,14 +11,16 @@
 
 class State {
 public:
-    int m_nIndex;
-    State *previous_;
-    std::vector<int> frontLabels;
-    int last_action;
-    int m_nLen;
+    int index;
+    State *prevStatePtr;
+    std::vector<int> chunkedLabelIds;
+    int lastAction;
+    int sentLength;
     int beamIdx;
     double score;
     bool bGold;
+    int currChunkIdx;
+    int prevChunkIdx;
 
     State(){
         bGold = true;
@@ -28,14 +30,16 @@ public:
 
     ~State() {}
 
-    State(const State &s) : frontLabels(s.frontLabels){
-        m_nIndex = s.m_nIndex;
-        previous_ = s.previous_;
-        last_action = s.last_action;
-        m_nLen = s.m_nLen;
+    State(const State &s) : chunkedLabelIds(s.chunkedLabelIds){
+        index = s.index;
+        prevStatePtr = s.prevStatePtr;
+        lastAction = s.lastAction;
+        sentLength = s.sentLength;
         score = s.score;
         beamIdx = s.beamIdx;
         bGold = s.bGold;
+        currChunkIdx = s.currChunkIdx;
+        prevChunkIdx = s.prevChunkIdx;
     }
 
     State& operator= (const State &s) {
@@ -43,20 +47,22 @@ public:
             return *this;
         }
 
-        this->m_nIndex = s.m_nIndex;
-        this->previous_ = s.previous_;
-        frontLabels = s.frontLabels;
-        this->last_action = s.last_action;
-        this->m_nLen = s.m_nLen;
+        this->index = s.index;
+        this->prevStatePtr = s.prevStatePtr;
+        this->chunkedLabelIds = s.chunkedLabelIds;
+        this->lastAction = s.lastAction;
+        this->sentLength = s.sentLength;
         this->score = s.score;
         this->beamIdx = s.beamIdx;
         this->bGold = s.bGold;
+        this->currChunkIdx = s.currChunkIdx;
+        this->prevChunkIdx = s.prevChunkIdx;
 
         return *this;
     }
 
     bool complete() {
-        return m_nIndex == m_nLen - 1;
+        return index == sentLength - 1;
     }
 
     void setBeamIdx(int idx) {
@@ -64,10 +70,13 @@ public:
     }
 
     void clear() {
-        m_nIndex = -1;
-        previous_ = nullptr;
+        index = -1;
+        prevStatePtr = nullptr;
         score = 0;
-        last_action = -1;
+        lastAction = -1;
+
+        currChunkIdx = -1;
+        prevChunkIdx = -1;
     }
 };
 

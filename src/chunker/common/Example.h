@@ -69,8 +69,11 @@ public:
             std::vector<Example> examples;
     
             std::shared_ptr<State> state(new State());
-            state->m_nLen = input.size();
+            state->sentLength = input.size();
     
+#ifdef PRINTFEATURE
+            std::cerr << inst << std::endl;
+#endif
             //generate every state of a sentence
             for (int j = 0; !state->complete(); j++) {
                 FeatureVector features;
@@ -89,10 +92,18 @@ public:
                 labels[goldAct] = 1;
 #ifdef PRINTFEATURE
                 std::cerr << j << ": ";
+                for (auto fid : features[features.size() - 2]) {
+                    std::cerr << fid << " ";
+                }
+                std::cerr << std::endl;
+                std::cerr << "  ";
                 for (auto fid : features[features.size() - 1]) {
                     std::cerr << fid << " ";
                 }
                 std::cerr << std::endl;
+
+                char ch;
+                std::cin >> ch;
 #endif
                 Example example(features, labels);
                 examples.push_back(example);

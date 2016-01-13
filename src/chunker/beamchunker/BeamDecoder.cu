@@ -77,7 +77,7 @@ State* BeamDecoder::decode(TNNets &tnnet, GlobalExample *gExample) {
     State *retval = nullptr;
 
     for (int i = 0; i < nMaxLatticeSize; ++i) {
-        lattice[i].m_nLen = nSentLen;
+        lattice[i].sentLength = nSentLen;
     }
 
     if (bTrain) {

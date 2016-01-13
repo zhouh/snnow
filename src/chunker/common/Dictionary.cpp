@@ -157,6 +157,29 @@ void LabelDictionary::makeDictionaries(const ChunkedDataSet &goldSet) {
     unkIdx = idx; m_mElement2Idx[unknownstr] = idx++; m_lKnownElements.push_back(unknownstr);
 }
 
+// int CurrentDictionary::element2Idx(const std::string &s) const {
+//     auto it = m_mElement2Idx.find(s);
+// 
+//     if (it == m_mElement2Idx.end()) {
+//         std::cerr << "Chunk label not found[In CurrentDictionary]: " << s << std::endl;
+//         exit(0);
+//     }
+// 
+//     return it->second;
+// }
+// 
+// void CurrentLabelDictionary::makeDictionaries(const ChunkedDataSet &goldSet) {
+//     using std::unordered_set;
+//     using std::string;
+// 
+//     int idx = 0;
+//     m_mElement2Idx["B"] = idx++; m_lKnownElements.push_back("B");
+//     m_mElement2Idx["I"] = idx++; m_lKnownElements.push_back("I");
+//     m_mElement2Idx["O"] = idx++; m_lKnownElements.push_back("O");
+//     nullIdx = idx; m_mElement2Idx[nullstr] = idx++; m_lKnownElements.push_back(nullstr);
+//     unkIdx = idx; m_mElement2Idx[unknownstr] = idx++; m_lKnownElements.push_back(unknownstr);
+// }
+
 // CapitalDictionary
 const std::string CapitalDictionary::noncapitalstr = "-NONCAPITAL-";
 const std::string CapitalDictionary::allcapitalstr = "-ALLCAPITAL-";

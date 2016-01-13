@@ -349,7 +349,7 @@ State* GreedyChunker::decode(Instance *inst, Model<XPU> &modelParas, State *latt
 
     State *retval = nullptr;
     for (int i = 0; i < nMaxRound + 1; ++i) {
-        lattice[i].m_nLen = nSentLen;
+        lattice[i].sentLength = nSentLen;
     }
 
     lattice[0].clear();

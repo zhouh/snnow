@@ -30,14 +30,8 @@ public:
         this->input = input;
     }
 
-    int size() {
+    int size() const {
         return this->input.size();
-    }
-
-    void print() {
-        for (auto &wordTag : input)
-            std::cerr << wordTag.first << "_" << wordTag.second << " ";
-        std::cerr << std::endl;
     }
 
     ~Instance() {}
@@ -71,5 +65,16 @@ public:
         }
     }
 };
+
+inline std::ostream& operator << (std::ostream& os, const Instance &inst) {
+    for (int i = 0; i < inst.size(); i++) {
+        os << i << ":\t";
+        os << inst.input[i].first << "\t" << inst.input[i].second << "\t";
+        os << inst.wordCache[i] << "\t" << inst.tagCache[i] << "\t" << inst.capfeatCache[i];
+        os << std::endl;
+    }
+
+    return os;
+}
 
 #endif 

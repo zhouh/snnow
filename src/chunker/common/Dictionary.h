@@ -54,7 +54,7 @@ public:
 
     void printDict() {
         for (auto &s : m_lKnownElements) {
-            std::cerr << s << ": " << m_mElement2Idx[s] << std::endl;
+            std::cerr << "  " <<  s << ": " << m_mElement2Idx[s] << std::endl;
         }
     }
 
@@ -91,13 +91,23 @@ public:
 
 class LabelDictionary : public Dictionary {
 public:
-    LabelDictionary() { }
+    LabelDictionary() {}
     ~LabelDictionary() {}
 
     int element2Idx(const std::string &s) const;
 
     void makeDictionaries(const ChunkedDataSet &goldSet);
 };
+
+// class CurrentLabelDictionary : public Dictionary {
+// public:
+//     CurrentLabelDictionary() {}
+//     ~CurrentLabelDictionary() {}
+// 
+//     int element2Idx(const std::string &s) const;
+// 
+//     void makeDictionaries(const ChunkedDataSet &goldSet);
+// };
 
 class CapitalDictionary : public Dictionary {
 public:

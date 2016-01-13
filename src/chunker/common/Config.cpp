@@ -44,6 +44,12 @@ int CConfig::nPOSEmbeddingDim = 10;
 int CConfig::nLabelFeatureNum = 2;
 int CConfig::nLabelEmbeddingDim = 5;
 
+int CConfig::nChunkWordFeatureNum = 4;
+int CConfig::nChunkWordEmbeddingDim = 50;
+
+int CConfig::nChunkPOSFeatureNum = 4;
+int CConfig::nChunkPOSEmbeddingDim = 10;
+
 int CConfig::nHiddenSize = 300;
 
 int CConfig::nRound = 2000; 
@@ -75,32 +81,36 @@ std::ostream& operator<< (std::ostream &os, const CConfig &config) {
     std::cerr << "dev path:         " << CConfig::strDevPath << std::endl;
     std::cerr << "test path:        " << CConfig::strTestPath << std::endl;
 
-    std::cerr << "word feat num:    " << CConfig::nWordFeatureNum << std::endl;
-    std::cerr << "word feat dim:    " << CConfig::nWordEmbeddingDim << std::endl;
-    std::cerr << "POS feat num:     " << CConfig::nPOSFeatureNum << std::endl;
-    std::cerr << "POS feat dim:     " << CConfig::nPOSEmbeddingDim << std::endl;
-    std::cerr << "cap feat num:     " << CConfig::nCapFeatureNum << std::endl;
-    std::cerr << "cap feat dim:     " << CConfig::nCapEmbeddingDim << std::endl;
-    std::cerr << "label feat num:   " << CConfig::nLabelFeatureNum << std::endl;
-    std::cerr << "label feat dim:   " << CConfig::nLabelEmbeddingDim << std::endl;
+    std::cerr << "word feat num:      " << CConfig::nWordFeatureNum << std::endl;
+    std::cerr << "word feat dim:      " << CConfig::nWordEmbeddingDim << std::endl;
+    std::cerr << "POS feat num:       " << CConfig::nPOSFeatureNum << std::endl;
+    std::cerr << "POS feat dim:       " << CConfig::nPOSEmbeddingDim << std::endl;
+    std::cerr << "cap feat num:       " << CConfig::nCapFeatureNum << std::endl;
+    std::cerr << "cap feat dim:       " << CConfig::nCapEmbeddingDim << std::endl;
+    std::cerr << "label feat num:     " << CConfig::nLabelFeatureNum << std::endl;
+    std::cerr << "label feat dim:     " << CConfig::nLabelEmbeddingDim << std::endl;
+    std::cerr << "chunkword feat num: " << CConfig::nChunkWordFeatureNum << std::endl;
+    std::cerr << "chunkword feat dim: " << CConfig::nChunkWordEmbeddingDim << std::endl;
+    std::cerr << "chunkPOS feat num:  " << CConfig::nChunkPOSFeatureNum << std::endl;
+    std::cerr << "chunkPOS feat dim:  " << CConfig::nChunkPOSEmbeddingDim << std::endl;
 
-    std::cerr << "thread num:       " << CConfig::nThread << std::endl;
+    std::cerr << "thread num:         " << CConfig::nThread << std::endl;
 
-    std::cerr << "beam size:        " << CConfig::nBeamSize << std::endl;
+    std::cerr << "beam size:          " << CConfig::nBeamSize << std::endl;
 
-    std::cerr << "round size:       " << CConfig::nRound << std::endl;
-    std::cerr << "greedybatch size: " << CConfig::nGreedyBatchSize << std::endl;
-    std::cerr << "beambatch size:   " << CConfig::nBeamBatchSize << std::endl;
-    std::cerr << "hidden size:      " << CConfig::nHiddenSize << std::endl;
-    std::cerr << "regular rate:     " << CConfig::fRegularizationRate << std::endl;
-    std::cerr << "BP rate:          " << CConfig::fBPRate << std::endl;
-    std::cerr << "init range:       " << CConfig::fInitRange << std::endl;
-    std::cerr << "adagrad eps:      " << CConfig::fAdaEps << std::endl;
+    std::cerr << "round size:         " << CConfig::nRound << std::endl;
+    std::cerr << "greedybatch size:   " << CConfig::nGreedyBatchSize << std::endl;
+    std::cerr << "beambatch size:     " << CConfig::nBeamBatchSize << std::endl;
+    std::cerr << "hidden size:        " << CConfig::nHiddenSize << std::endl;
+    std::cerr << "regular rate:       " << CConfig::fRegularizationRate << std::endl;
+    std::cerr << "BP rate:            " << CConfig::fBPRate << std::endl;
+    std::cerr << "init range:         " << CConfig::fInitRange << std::endl;
+    std::cerr << "adagrad eps:        " << CConfig::fAdaEps << std::endl;
 
-    std::cerr << "dropout:          " << CConfig::bDropOut << std::endl;
-    std::cerr << "dropout prob:     " << CConfig::fDropoutProb << std::endl;
+    std::cerr << "dropout:            " << CConfig::bDropOut << std::endl;
+    std::cerr << "dropout prob:       " << CConfig::fDropoutProb << std::endl;
 
-    std::cerr << "fine-tune:        " << CConfig::bFineTune << std::endl;
+    std::cerr << "fine-tune:          " << CConfig::bFineTune << std::endl;
 }
 
 inline void my_trim(std::string &s) {
@@ -133,6 +143,10 @@ void CConfig::readConfiguration(const std::string &configPath) {
     attributes.insert("nPOSEmbeddingDim");
     attributes.insert("nLabelFeatureNum");
     attributes.insert("nLabelEmbeddingDim");
+    attributes.insert("nChunkWordFeatureNum");
+    attributes.insert("nChunkWordEmbeddingDim");
+    attributes.insert("nChunkPOSFeatureNum");
+    attributes.insert("nChunkPOSEmbeddingDim");
     attributes.insert("nHiddenSize");
     attributes.insert("nRound");
     attributes.insert("nGreedyBatchSize");
@@ -208,6 +222,14 @@ void CConfig::readConfiguration(const std::string &configPath) {
             CConfig::nLabelFeatureNum = stoi(att.second);
         } else if (att.first == "nLabelEmbeddingDim") {
             CConfig::nLabelEmbeddingDim = stoi(att.second);
+        } else if (att.first == "nChunkWordFeatureNum") {
+            CConfig::nChunkWordFeatureNum = stoi(att.second);
+        } else if (att.first == "nChunkWordEmbeddingDim") {
+            CConfig::nChunkWordEmbeddingDim = stoi(att.second);
+        } else if (att.first == "nChunkPOSFeatureNum") {
+            CConfig::nChunkPOSFeatureNum = stoi(att.second);
+        } else if (att.first == "nChunkPOSEmbeddingDim") {
+            CConfig::nChunkPOSEmbeddingDim = stoi(att.second);
         } else if (att.first == "nHiddenSize") {
             CConfig::nHiddenSize = stoi(att.second);
         } else if (att.first == "nRound") {

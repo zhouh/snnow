@@ -31,6 +31,10 @@ public:
     static int nPOSEmbeddingDim;
     static int nLabelFeatureNum;
     static int nLabelEmbeddingDim;
+    static int nChunkWordFeatureNum;
+    static int nChunkWordEmbeddingDim;
+    static int nChunkPOSFeatureNum;
+    static int nChunkPOSEmbeddingDim;
 
     static int nHiddenSize;
 

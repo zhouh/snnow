@@ -140,8 +140,8 @@ public:
                //std::cout<<"action :\t"<<(*iter)->action<<std::endl;
                grads[ ( *iter )->source->beamIdx ][ ( *iter )->action ] += updateParas[i] / CConfig::nBeamBatchSize;
                if( backRound != 0 ){ // last time updating, do not need to prepare for next iteration
-                    ( *iter )->action = ( *iter )->source->last_action;
-                    ( *iter )->source = ( *iter )->source->previous_;
+                    ( *iter )->action = ( *iter )->source->lastAction;
+                    ( *iter )->source = ( *iter )->source->prevStatePtr;
                }
            }
 

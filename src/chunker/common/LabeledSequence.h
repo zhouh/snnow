@@ -64,11 +64,11 @@ inline std::ostream& operator << (std::ostream &os, const LabeledTerm &lt) {
 class LabeledSequence {
 private:
     std::vector<LabeledTerm> m_lLabeledTerms;
-    int m_nLength;
+    int sentLengthgth;
 
 public:
 
-    LabeledSequence(): m_nLength(0) {}
+    LabeledSequence(): sentLengthgth(0) {}
 
     LabeledSequence(const SequenceInput &ci) {
         for (auto &e : ci) {
@@ -77,21 +77,21 @@ public:
             m_lLabeledTerms.push_back(lt);
         }
 
-        m_nLength = static_cast<int>(m_lLabeledTerms.size());
+        sentLengthgth = static_cast<int>(m_lLabeledTerms.size());
     }
 
-    LabeledSequence(const LabeledSequence &ls): m_nLength(ls.m_nLength), m_lLabeledTerms(ls.m_lLabeledTerms) {
+    LabeledSequence(const LabeledSequence &ls): sentLengthgth(ls.sentLengthgth), m_lLabeledTerms(ls.m_lLabeledTerms) {
     }
 
     LabeledSequence& operator= (const LabeledSequence &ls) {
         if (this == &ls) {
             return *this;
         }
-        this->m_lLabeledTerms.resize(ls.m_nLength);
+        this->m_lLabeledTerms.resize(ls.sentLengthgth);
 
-        m_nLength = ls.m_nLength;
+        sentLengthgth = ls.sentLengthgth;
 
-        for (int i = 0; i < m_nLength; i++) {
+        for (int i = 0; i < sentLengthgth; i++) {
             m_lLabeledTerms[i] = ls.m_lLabeledTerms[i];
         }
 
@@ -106,13 +106,13 @@ public:
             m_lLabeledTerms.push_back(lt);
         }
 
-        m_nLength = m_lLabeledTerms.size();
+        sentLengthgth = m_lLabeledTerms.size();
     }
 
     void getSequenceInput(SequenceInput &ci) {
-        ci.resize(m_nLength);
+        ci.resize(sentLengthgth);
 
-        for (int i = 0; i < m_nLength; i++) {
+        for (int i = 0; i < sentLengthgth; i++) {
             const LabeledTerm &e = m_lLabeledTerms[i];
             ci[i].first = e.word;
             ci[i].second = e.tag;
@@ -120,7 +120,7 @@ public:
     }
 
     int size() {
-        return m_nLength;
+        return sentLengthgth;
     }
 
     const std::vector<LabeledTerm>& getLabeledTerms() const {
@@ -128,7 +128,7 @@ public:
     }
 
     void setLabel(const int i, const std::string &label) {
-        assert (i >= 0 && i <= m_nLength);
+        assert (i >= 0 && i <= sentLengthgth);
 
         m_lLabeledTerms[i].label = label;
     }
@@ -187,7 +187,7 @@ inline std::istream& operator >> (std::istream &is, LabeledSequence &ls) {
         getline(is, line);
     }
 
-    ls.m_nLength = static_cast<int>(ls.m_lLabeledTerms.size());
+    ls.sentLengthgth = static_cast<int>(ls.m_lLabeledTerms.size());
 
     ls.tranform2IAttachFormat();
 

@@ -55,14 +55,14 @@ public:
         std::vector<int> features;
 
         auto getWordIndex = [&state, &inst, this](int index) -> int {
-            if (index < 0 || index >= state.m_nLen) {
+            if (index < 0 || index >= state.sentLength) {
                 return this->dictPtr->nullIdx;
             }
 
             return inst.wordCache[index];
         };
         
-        int currentIndex = state.m_nIndex + 1;
+        int currentIndex = state.index + 1;
         int IDIdx = 0;
 
         features.resize(featType.featSize);
@@ -95,14 +95,14 @@ public:
         std::vector<int> features;
 
         auto getPOSIndex = [&state, &inst, this](int index) -> int {
-            if (index < 0 || index >= state.m_nLen) {
+            if (index < 0 || index >= state.sentLength) {
                 return this->dictPtr->nullIdx;
             }
 
             return inst.tagCache[index];
         };
         
-        int currentIndex = state.m_nIndex + 1;
+        int currentIndex = state.index + 1;
         int IDIdx = 0;
 
         features.resize(featType.featSize);
@@ -134,28 +134,29 @@ public:
         std::vector<int> features;
 
         auto getCapfeatIndex = [&state, &inst, this](int index) -> int {
-            if (index < 0 || index >= state.m_nLen) {
+            if (index < 0 || index >= state.sentLength) {
                 return this->dictPtr->nullIdx;
             }
 
             return inst.capfeatCache[index];
         };
 
-        int currentIndex = state.m_nIndex + 1;
+        int currentIndex = state.index + 1;
         int IDIdx = 0;
 
         features.resize(featType.featSize);
 
+        int neg2UniCap    = getCapfeatIndex(currentIndex - 2);
+        int neg1UniCap    = getCapfeatIndex(currentIndex - 1);
         int pos0UniCap    = getCapfeatIndex(currentIndex);
-        //int neg2UniCap    = getCapfeatIndex(currentIndex - 2);
-        //int neg1UniCap    = getCapfeatIndex(currentIndex - 1);
-        //int pos1UniCap    = getCapfeatIndex(currentIndex + 1);
-        //int pos2UniCap    = getCapfeatIndex(currentIndex + 2);
+        int pos1UniCap    = getCapfeatIndex(currentIndex + 1);
+        int pos2UniCap    = getCapfeatIndex(currentIndex + 2);
+
+        features[IDIdx++] = neg2UniCap;
+        features[IDIdx++] = neg1UniCap;
         features[IDIdx++] = pos0UniCap;
-        // features[IDIdx++] = neg2UniCap;
-        // features[IDIdx++] = neg1UniCap;
-        // features[IDIdx++] = pos1UniCap;
-        // features[IDIdx++] = pos2UniCap;
+        features[IDIdx++] = pos1UniCap;
+        features[IDIdx++] = pos2UniCap;
 
         return features;
     }
@@ -177,22 +178,97 @@ public:
                 return this->dictPtr->nullIdx;
             }
 
-            return state.frontLabels[index];
+            return state.chunkedLabelIds[index];
         };
 
-        int currentIndex = state.m_nIndex + 1;
+        int currentIndex = state.index + 1;
         int IDIdx = 0;
 
         features.resize(featType.featSize);
 
         int neg2UniLabel  = getLabelIndex(currentIndex - 2);
         int neg1UniLabel  = getLabelIndex(currentIndex - 1);
+        // int pos0UniLabel  = getLabelIndex(currentIndex);
 
         features[IDIdx++] = neg2UniLabel;
         features[IDIdx++] = neg1UniLabel;
+        // features[IDIdx++] = pos0UniLabel;
 
         return features;
     }
 };
 
+class ChunkWordFeatureExtractor : public FeatureExtractor {
+public:
+    ChunkWordFeatureExtractor(const FeatureType &fType, const std::shared_ptr<Dictionary> &dictPtr) :
+        FeatureExtractor(fType, dictPtr)
+    {
+    }
+    ~ChunkWordFeatureExtractor() {}
+
+    std::vector<int> extract(const State &state, const Instance &inst) {
+        std::vector<int> features;
+
+        auto getWordIndex = [&state, &inst, this](int index) -> int {
+            if (index < 0 || index >= state.sentLength) {
+                return this->dictPtr->nullIdx;
+            }
+
+            return inst.wordCache[index];
+        };
+
+        int currentIndex = state.index;
+        int IDIdx = 0;
+
+        features.resize(featType.featSize);
+
+        int neg1StartWord = getWordIndex(state.prevChunkIdx);
+        int neg1EndWord   = getWordIndex(state.currChunkIdx - 1);
+        int pos0StartWord = getWordIndex(state.currChunkIdx);
+        int pos0EndWord   = getWordIndex(currentIndex);
+        features[IDIdx++] = neg1StartWord;
+        features[IDIdx++] = neg1EndWord;
+        features[IDIdx++] = pos0StartWord;
+        features[IDIdx++] = pos0EndWord;
+
+        return features;
+    }
+};
+
+class ChunkPOSFeatureExtractor : public FeatureExtractor {
+public:
+    ChunkPOSFeatureExtractor(const FeatureType &fType, const std::shared_ptr<Dictionary> &dictPtr) :
+        FeatureExtractor(fType, dictPtr)
+    {
+    }
+    ~ChunkPOSFeatureExtractor() {}
+
+    std::vector<int> extract(const State &state, const Instance &inst) {
+        std::vector<int> features;
+
+        auto getPOSIndex = [&state, &inst, this](int index) -> int {
+            if (index < 0 || index >= state.sentLength) {
+                return this->dictPtr->nullIdx;
+            }
+
+            return inst.tagCache[index];
+        };
+
+        int currentIndex = state.index;
+        int IDIdx = 0;
+
+        features.resize(featType.featSize);
+
+        int neg1StartPOS  = getPOSIndex(state.prevChunkIdx);
+        int neg1EndPOS    = getPOSIndex(state.currChunkIdx - 1);
+        int pos0StartPOS  = getPOSIndex(state.currChunkIdx);
+        int pos0EndPOS    = getPOSIndex(currentIndex);
+        features[IDIdx++] = neg1StartPOS;
+        features[IDIdx++] = neg1EndPOS;
+        features[IDIdx++] = pos0StartPOS;
+        features[IDIdx++] = pos0EndPOS;
+
+        return features;
+    }
+};
 #endif

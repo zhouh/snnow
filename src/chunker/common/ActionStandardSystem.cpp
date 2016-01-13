@@ -101,7 +101,7 @@ int ActionStandardSystem::standardMove(State &state, LabeledSequence &gSent, std
         exit(1);
     }
 
-    int index = state.m_nIndex;
+    int index = state.index;
 
     int actionType = label2ActionType(gSent.getLabeledTerms()[ index+ 1].label);
     int labelIdx = labelIndexesCache[index + 1];
@@ -112,46 +112,58 @@ int ActionStandardSystem::standardMove(State &state, LabeledSequence &gSent, std
 void ActionStandardSystem::generateValidActs(State &state, std::vector<int> &validActs) {
     validActs.resize(nActNum, 0);
 
-    if (state.m_nIndex == -1 || state.last_action == nOutside) {
+    if (state.index == -1 || state.lastAction == nOutside) {
        validActs[nInside] = -1;
     }
 }
 
 void ActionStandardSystem::generateOutput(const State &state, LabeledSequence &sent) {
     const State *ptr = &state;
-    while (ptr->previous_ != nullptr) {
+    while (ptr->prevStatePtr != nullptr) {
 #ifdef DEBUGX
-        std::cerr << "current m_nIndex: " << ptr->m_nIndex << "\tlabel Idx: " << actionIdx2LabelIdx(ptr->last_action) << "\t"<< sent.m_lLabeledTerms[ptr->m_nIndex].word << "\t" << sent.m_lLabeledTerms[ptr->m_nIndex].tag << std::endl;
+        std::cerr << "current index: " << ptr->index << "\tlabel Idx: " << actionIdx2LabelIdx(ptr->lastAction) << "\t"<< sent.m_lLabeledTerms[ptr->index].word << "\t" << sent.m_lLabeledTerms[ptr->index].tag << std::endl;
 #endif
-        sent.setLabel(ptr->m_nIndex, knowLabels[actionIdx2LabelIdx(ptr->last_action)]);
+        sent.setLabel(ptr->index, knowLabels[actionIdx2LabelIdx(ptr->lastAction)]);
 
-        ptr = ptr->previous_;
+        ptr = ptr->prevStatePtr;
     }
 }
 
 void ActionStandardSystem::doOutsideMove(State &srcState, State &dstState, const CScoredTransition &transition) {
-    dstState.m_nIndex = srcState.m_nIndex + 1;
-    dstState.previous_ = &srcState;
-    dstState.frontLabels.push_back(actionIdx2LabelIdx(transition.action));
-    dstState.last_action = const_cast<CScoredTransition &>(transition).action;
-    dstState.m_nLen = srcState.m_nLen;
+    dstState.index = srcState.index + 1;
+    dstState.prevStatePtr = &srcState;
+    dstState.chunkedLabelIds.push_back(actionIdx2LabelIdx(transition.action));
+    if (transition.action == nBegin || transition.action == nOutside) {
+        dstState.prevChunkIdx = dstState.currChunkIdx;
+        dstState.currChunkIdx = dstState.index;
+    }
+    dstState.lastAction = const_cast<CScoredTransition &>(transition).action;
+    dstState.sentLength = srcState.sentLength;
     dstState.score = const_cast<CScoredTransition &>(transition).score;
 }
 
 void ActionStandardSystem::doInsideMove(State &srcState, State &dstState, const CScoredTransition &transition) {
-    dstState.m_nIndex = srcState.m_nIndex + 1;
-    dstState.previous_ = &srcState;
-    dstState.frontLabels.push_back(actionIdx2LabelIdx(transition.action));
-    dstState.last_action = const_cast<CScoredTransition &>(transition).action;
-    dstState.m_nLen = srcState.m_nLen;
+    dstState.index = srcState.index + 1;
+    dstState.prevStatePtr = &srcState;
+    dstState.chunkedLabelIds.push_back(actionIdx2LabelIdx(transition.action));
+    if (transition.action == nBegin || transition.action == nOutside) {
+        dstState.prevChunkIdx = dstState.currChunkIdx;
+        dstState.currChunkIdx = dstState.index;
+    }
+    dstState.lastAction = const_cast<CScoredTransition &>(transition).action;
+    dstState.sentLength = srcState.sentLength;
     dstState.score = const_cast<CScoredTransition &>(transition).score;
 }
 
 void ActionStandardSystem::doBeginMove(State &srcState, State &dstState, const CScoredTransition &transition) {
-    dstState.m_nIndex = srcState.m_nIndex + 1;
-    dstState.previous_ = &srcState;
-    dstState.frontLabels.push_back(actionIdx2LabelIdx(transition.action));
-    dstState.last_action = const_cast<CScoredTransition &>(transition).action;
-    dstState.m_nLen = srcState.m_nLen;
+    dstState.index = srcState.index + 1;
+    dstState.prevStatePtr = &srcState;
+    dstState.chunkedLabelIds.push_back(actionIdx2LabelIdx(transition.action));
+    if (transition.action == nBegin || transition.action == nOutside) {
+        dstState.prevChunkIdx = dstState.currChunkIdx;
+        dstState.currChunkIdx = dstState.index;
+    }
+    dstState.lastAction = const_cast<CScoredTransition &>(transition).action;
+    dstState.sentLength = srcState.sentLength;
     dstState.score = const_cast<CScoredTransition &>(transition).score;
 }
