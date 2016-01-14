@@ -9,14 +9,6 @@
 #include "Config.h"
 #include "FeatureEmbeddingManager.h"
 
-void FeatureEmbeddingManager::readPretrainedEmbeddings(Model<XPU> &model) {
-    for (int i = 0; i < static_cast<int>(m_lFeatTypes.size()); i++) {
-        if (m_lFeatTypes[i].typeName == "word") {
-            model.featEmbs[i]->readPreTrain(CConfig::strEmbeddingPath, m_lFeatDictPtrs[i]->getWord2IdxMap());
-        }
-    }
-}
-
 void FeatureEmbeddingManager::returnInput(std::vector<FeatureVector> &featVecs, std::vector<std::shared_ptr<FeatureEmbedding>> &featEmbs, TensorContainer<cpu, 2, real_t> &input){
     // TODO: if neccessary ?
 	// initialize the input

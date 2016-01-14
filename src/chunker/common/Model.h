@@ -15,6 +15,7 @@
 #include "chunker.h"
 
 #include "Config.h"
+#include "FeatureEmbeddingManager.h"
 #include "FeatureEmbedding.h"
 #include "FeatureType.h"
 
@@ -56,11 +57,13 @@ public:
     /*
      * parameters of feature embeddings
      */
+    std::shared_ptr<FeatureEmbeddingManager> featEmbManagerPtr;
     std::vector< std::shared_ptr<FeatureEmbedding> > featEmbs;
-    std::vector< FeatureType > featTypes;
+    std::vector<FeatureType> featTypes;
 
     Model(int num_in, int num_hidden, int num_out, 
-            std::vector<FeatureType>& featureTypes, Stream<xpu> *stream, bool bRndInitialize = false) : rnd(0), featTypes(featureTypes) {
+          std::shared_ptr<FeatureEmbeddingManager> fEmbManagerPtr, Stream<xpu> *stream, bool bRndInitialize = false) : rnd(0), featEmbManagerPtr(fEmbManagerPtr) {
+        featTypes = featEmbManagerPtr->getFeatureTypes();
         /*
          * set streams for data
          */
@@ -90,16 +93,11 @@ public:
          * initialize the feature embeddings
          * the feature embedding need to be all zeros here
          */
-        featEmbs.resize(featTypes.size());
-        for(int i = 0; i < featTypes.size(); i++){
-            featEmbs[i].reset(new FeatureEmbedding(featTypes[i]));
-
-            auto &featEmb = featEmbs[i];
-
-            if(bRndInitialize) {
-                featEmb->init(CConfig::fInitRange);
-            }
-        } 
+        if (bRndInitialize) {
+            featEmbs = featEmbManagerPtr->getInitialzedEmebddings(CConfig::fInitRange);
+        } else {
+            featEmbs = featEmbManagerPtr->getAllZeroEmebddings();
+        }
     }
 
     // Model(const Model<xpu> &model) : rnd(0), featTypes(model.featTypes), featEmbs(model.featEmbs){

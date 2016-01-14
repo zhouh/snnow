@@ -165,10 +165,9 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
     }
     std::cerr << "[end]" << std::endl;
 
-    Model<XPU> modelParas(num_in, num_hidden, num_out, featureTypes, sstream, true);
-    m_featEmbManagerPtr->readPretrainedEmbeddings(modelParas);
+    Model<XPU> modelParas(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, true);
 
-    Model<XPU> adaGradSquares(num_in, num_hidden, num_out, featureTypes, sstream, false);
+    Model<XPU> adaGradSquares(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, false);
 
     ChunkedResultType bestDevFB1 = std::make_tuple(0.0, 0.0, -1.0);
     ChunkedResultType bestDevNPFB1 = std::make_tuple(0.0, 0.0, -1.0);
@@ -195,7 +194,7 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
         std::vector<ExamplePtrs> multiThread_miniBatch_data;
         generateMultiThreadsMiniBatchData(multiThread_miniBatch_data);
 
-        Model<XPU> batchCumulatedGrads(num_in, num_hidden, num_out, featureTypes, sstream, false);
+        Model<XPU> batchCumulatedGrads(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, false);
         
 #pragma omp parallel num_threads(CConfig::nThread)
         {
@@ -205,7 +204,7 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
             int threadCorrectSize = 0;
             double threadObjLoss = 0.0;
 
-            Model<XPU> cumulatedGrads(num_in, num_hidden, num_out, featureTypes, sstream, false);
+            Model<XPU> cumulatedGrads(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, false);
             std::shared_ptr<NNet<XPU>> nnet(new NNet<XPU>(CConfig::nGPUBatchSize, num_in, num_hidden, num_out, &modelParas));
 
             std::vector<FeatureVector> featureVectors(CConfig::nGPUBatchSize);
@@ -316,8 +315,7 @@ void GreedyChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
     m_featManagerPtr->init(goldSet, m_dictManagerPtr);
 
     m_featEmbManagerPtr.reset(new FeatureEmbeddingManager(
-                m_featManagerPtr->getFeatureTypes(),
-                m_featManagerPtr->getDictManagerPtrs(),
+                m_featManagerPtr,
                 static_cast<real_t>(CConfig::fInitRange)));
 
     std::cerr << "  total input embedding dim: " << m_featEmbManagerPtr->getTotalFeatEmbSize() << std::endl;

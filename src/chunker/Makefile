@@ -30,8 +30,8 @@ CUDA_COMMON_OBJ = $(OBJ_DIR)/common/FeatureEmbeddingManager.o
 # CUOBJ = $(OBJ_DIR)/Chunker.o
 .PHONY: clean all
 
-all: directoires $(GREEDY_BIN)
-# all: directoires $(BEAM_BIN)
+# all: directoires $(GREEDY_BIN)
+all: directoires $(BEAM_BIN)
 # all: directoires $(GREEDY_BIN) $(BEAM_BIN)
 
 directoires:

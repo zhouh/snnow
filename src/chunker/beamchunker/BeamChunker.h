@@ -15,6 +15,7 @@
 #include "Beam.h"
 #include "BeamDecoder.h"
 
+#include "Model.h"
 #include "Instance.h"
 #include "FeatureManager.h"
 #include "FeatureEmbeddingManager.h"

@@ -154,9 +154,8 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
     }
     std::cerr << "[end]" << std::endl;
 
-    Model<XPU> modelParas(num_in, num_hidden, num_out, featureTypes, sstream, true);
-    m_featEmbManagerPtr->readPretrainedEmbeddings(modelParas);
-    Model<XPU> adaGradSquares(num_in, num_hidden, num_out, featureTypes, sstream, false);
+    Model<XPU> modelParas(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, true);
+    Model<XPU> adaGradSquares(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, false);
 
     auto longestSentence = *std::max_element(gExamples.begin(), gExamples.end(), [](GlobalExample &ge1, GlobalExample &ge2) { return ge1.instance.input.size() < ge2.instance.input.size();} );
     const int longestLen = longestSentence.instance.input.size();
@@ -210,7 +209,7 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
         std::vector<std::vector<GlobalExample *>> multiThread_miniBatch_data;
         generateMultiThreadsMiniBatchData(multiThread_miniBatch_data);
 
-        Model<XPU> batchCumulatedGrads(num_in, num_hidden, num_out, featureTypes, sstream, false);
+        Model<XPU> batchCumulatedGrads(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, false);
         // begin to multi thread Training
 #pragma omp parallel num_threads(CConfig::nThread)
         {
@@ -218,7 +217,7 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
             // int threadIndex = 0;
             auto currentThreadData = multiThread_miniBatch_data[threadIndex];
 
-            Model<XPU> cumulatedGrads(num_in, num_hidden, num_out, featureTypes, sstream, false);
+            Model<XPU> cumulatedGrads(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, false);
 
             // for evary instance in this mini-batch
             for (unsigned inst = 0; inst < currentThreadData.size(); inst++) {
@@ -287,8 +286,7 @@ void BeamChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
     m_featManagerPtr->init(goldSet, m_dictManagerPtr);
 
     m_featEmbManagerPtr.reset(new FeatureEmbeddingManager(
-                m_featManagerPtr->getFeatureTypes(),
-                m_featManagerPtr->getDictManagerPtrs(),
+        m_featManagerPtr,
                 static_cast<real_t>(CConfig::fInitRange)
                 ));
 
