@@ -30,8 +30,8 @@ CUDA_COMMON_OBJ = $(OBJ_DIR)/common/FeatureEmbeddingManager.o
 # CUOBJ = $(OBJ_DIR)/Chunker.o
 .PHONY: clean all
 
-# all: directoires $(GREEDY_BIN)
-all: directoires $(BEAM_BIN)
+all: directoires $(GREEDY_BIN)
+# all: directoires $(BEAM_BIN)
 # all: directoires $(GREEDY_BIN) $(BEAM_BIN)
 
 directoires:
@@ -73,7 +73,7 @@ $(GREEDY_CUOBJ) : $(GREEDY_CHUNKER_DIR)/GreedyChunker.cu $(GREEDY_CHUNKER_DIR)/G
 $(BEAM_CUOBJ) : $(BEAM_CHUNKER_DIR)/BeamChunker.cu $(BEAM_CHUNKER_DIR)/BeamChunker.h $(COMMON_HEADER) $(BEAM_CHUNKER_DIR)/Beam.h $(BEAM_CHUNKER_DIR)/BeamDecoder.h $(CHUNKER_COMMON_DIR)/chunker.h $(BEAM_CHUNKER_DIR)/TNNets.h
 
 $(OBJ_DIR)/beamchunker/BeamDecoder.o : $(BEAM_CHUNKER_DIR)/BeamDecoder.cu $(BEAM_CHUNKER_DIR)/BeamDecoder.h $(BEAM_CHUNKER_DIR)/TNNets.h
-	$(NVCC) -g -c -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" $(filter %.cu, $^)
+	$(NVCC) -c -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" $(filter %.cu, $^)
 
 $(GREEDY_BIN) :
 	$(CXX) $(CFLAGS) -o $@ $(filter %.cpp %.o %.c, $^) $(LDFLAGS)

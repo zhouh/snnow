@@ -37,9 +37,9 @@ void FeatureManager::init(const ChunkedDataSet &goldSet, const std::shared_ptr<D
 
     ADDFEATUREEXTRACTOR(label, DictManager::LABELDESCRIPTION, FeatureManager::CAPDESCRIPTION, CConfig::nLabelFeatureNum, CConfig::nLabelEmbeddingDim, LabelFeatureExtractor);
 
-    // ADDFEATUREEXTRACTOR(chunkword, DictManager::WORDDESCRIPTION, FeatureManager::CHUNKWORDDESCRIPTION, CConfig::nChunkWordFeatureNum, CConfig::nChunkWordEmbeddingDim, ChunkWordFeatureExtractor);
+    ADDFEATUREEXTRACTOR(chunkword, DictManager::WORDDESCRIPTION, FeatureManager::CHUNKWORDDESCRIPTION, CConfig::nChunkWordFeatureNum, CConfig::nChunkWordEmbeddingDim, ChunkWordFeatureExtractor);
 
-    // ADDFEATUREEXTRACTOR(chunkpos, DictManager::POSDESCRIPTION, FeatureManager::CHUNKPOSDESCRIPTION, CConfig::nChunkPOSFeatureNum, CConfig::nChunkPOSEmbeddingDim, ChunkPOSFeatureExtractor);
+    ADDFEATUREEXTRACTOR(chunkpos, DictManager::POSDESCRIPTION, FeatureManager::CHUNKPOSDESCRIPTION, CConfig::nChunkPOSFeatureNum, CConfig::nChunkPOSEmbeddingDim, ChunkPOSFeatureExtractor);
 #undef ADDFEATUREEXTRACTOR
 
     m_lEmbeddingNames.push_back(WORDDESCRIPTION);

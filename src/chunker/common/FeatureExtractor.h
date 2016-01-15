@@ -217,7 +217,7 @@ public:
             return inst.wordCache[index];
         };
 
-        int currentIndex = state.index;
+        int currentIndex = state.index + 1;
         int IDIdx = 0;
 
         features.resize(featType.featSize);
@@ -254,7 +254,7 @@ public:
             return inst.tagCache[index];
         };
 
-        int currentIndex = state.index;
+        int currentIndex = state.index + 1;
         int IDIdx = 0;
 
         features.resize(featType.featSize);

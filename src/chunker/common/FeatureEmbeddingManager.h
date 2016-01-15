@@ -27,7 +27,6 @@ private:
     std::vector<FeatureType> m_lFeatTypes;
     std::vector<std::shared_ptr<Dictionary>> m_lFeatDictPtrs;
     std::vector<std::string> m_lEmbeddingNames;
-    std::tr1::unordered_map<std::string, int> m_mEmbeddingName2EmbeddingIdx;
     int totalFeatEmbSize;
 
 public:
@@ -47,10 +46,6 @@ public:
         }
 
         m_lEmbeddingNames = m_featManagerPtr->getEmebddingNames();
-        int idx = 0;
-        for (auto &name : m_lEmbeddingNames) {
-            m_mEmbeddingName2EmbeddingIdx[name] = idx++;
-        }
     }
     ~FeatureEmbeddingManager() {}
 
@@ -58,49 +53,10 @@ public:
         return m_lFeatTypes;
     }
 
-    std::vector<std::shared_ptr<FeatureEmbedding>> getInitialzedEmebddings(const real_t initRange) {
-        std::vector<std::shared_ptr<FeatureEmbedding>> embeddings(m_lFeatTypes.size());
-        std::tr1::unordered_map<std::string, std::shared_ptr<FeatureEmbedding>> name2Embedding;
+    std::vector<std::shared_ptr<FeatureEmbedding>> getInitialzedEmebddings(const real_t initRange);
 
-        for (int i = 0; i < static_cast<int>(m_lFeatTypes.size()); i++) {
-            const FeatureType &type = m_lFeatTypes[i];
-            const std::string embeddingName = m_featManagerPtr->featName2EmbeddingName(type.typeName);
 
-            if (name2Embedding.find(embeddingName) == name2Embedding.end()) {
-                name2Embedding[embeddingName].reset(new FeatureEmbedding(type));
-            }
-
-            auto found = name2Embedding.find(embeddingName);
-            found->second->init(initRange);
-
-            if (m_lFeatTypes[i].typeName == FeatureManager::WORDDESCRIPTION) {
-                found->second->readPreTrain(CConfig::strEmbeddingPath, m_lFeatDictPtrs[i]->getWord2IdxMap());
-            }
-            embeddings[i] = found->second;
-        }
-
-        return embeddings;
-    }
-
-    std::vector<std::shared_ptr<FeatureEmbedding>> getAllZeroEmebddings() {
-        std::vector<std::shared_ptr<FeatureEmbedding>> embeddings(m_lFeatTypes.size());
-        std::tr1::unordered_map<std::string, std::shared_ptr<FeatureEmbedding>> name2Embedding;
-
-        for (int i = 0; i < static_cast<int>(m_lFeatTypes.size()); i++) {
-            const FeatureType &type = m_lFeatTypes[i];
-            const std::string embeddingName = m_featManagerPtr->featName2EmbeddingName(type.typeName);
-
-            if (name2Embedding.find(embeddingName) == name2Embedding.end()) {
-                name2Embedding[embeddingName] = std::make_shared<FeatureEmbedding>(type);
-            }
-
-            auto found = name2Embedding.find(embeddingName);
-
-            embeddings[i] = found->second;
-        }
-
-        return embeddings;
-    }
+    std::vector<std::shared_ptr<FeatureEmbedding>> getAllZeroEmebddings();
 
     int getTotalFeatEmbSize() const {
         return totalFeatEmbSize;

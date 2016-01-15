@@ -9,6 +9,51 @@
 #include "Config.h"
 #include "FeatureEmbeddingManager.h"
 
+std::vector<std::shared_ptr<FeatureEmbedding>> FeatureEmbeddingManager::getInitialzedEmebddings(const real_t initRange) {
+    std::vector<std::shared_ptr<FeatureEmbedding>> embeddings(m_lFeatTypes.size());
+    std::tr1::unordered_map<std::string, std::shared_ptr<FeatureEmbedding>> name2Embedding;
+
+    for (int i = 0; i < static_cast<int>(m_lFeatTypes.size()); i++) {
+        const FeatureType &type = m_lFeatTypes[i];
+        const std::string embeddingName = m_featManagerPtr->featName2EmbeddingName(type.typeName);
+
+        if (name2Embedding.find(embeddingName) == name2Embedding.end()) {
+            name2Embedding[embeddingName] = std::make_shared<FeatureEmbedding>(type);
+            name2Embedding[embeddingName]->init(initRange);
+        }
+
+        auto found = name2Embedding.find(embeddingName);
+
+        // if (m_lFeatTypes[i].typeName == FeatureManager::WORDDESCRIPTION) {
+        //     found->second->readPreTrain(CConfig::strEmbeddingPath, m_lFeatDictPtrs[i]->getWord2IdxMap());
+        // }
+        embeddings[i] = found->second;
+    }
+
+    return embeddings;
+}
+
+
+std::vector<std::shared_ptr<FeatureEmbedding>> FeatureEmbeddingManager::getAllZeroEmebddings() {
+    std::vector<std::shared_ptr<FeatureEmbedding>> embeddings(m_lFeatTypes.size());
+    std::tr1::unordered_map<std::string, std::shared_ptr<FeatureEmbedding>> name2Embedding;
+
+    for (int i = 0; i < static_cast<int>(m_lFeatTypes.size()); i++) {
+        const FeatureType &type = m_lFeatTypes[i];
+        const std::string embeddingName = m_featManagerPtr->featName2EmbeddingName(type.typeName);
+
+        if (name2Embedding.find(embeddingName) == name2Embedding.end()) {
+            name2Embedding[embeddingName] = std::make_shared<FeatureEmbedding>(type);
+        }
+
+        auto found = name2Embedding.find(embeddingName);
+
+        embeddings[i] = found->second;
+    }
+
+    return embeddings;
+}
+
 void FeatureEmbeddingManager::returnInput(std::vector<FeatureVector> &featVecs, std::vector<std::shared_ptr<FeatureEmbedding>> &featEmbs, TensorContainer<cpu, 2, real_t> &input){
     // TODO: if neccessary ?
 	// initialize the input
