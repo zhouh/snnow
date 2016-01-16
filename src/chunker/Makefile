@@ -10,11 +10,11 @@ export NVCC = nvcc
 include $(BASE_DIR)/make/config.mk
 include $(BASE_DIR)/make/mshadow.mk
 
-export CFLAGS = -O3 -std=c++11 -I$(INCLUDE_DIR) -I$(CHUNKER_COMMON_DIR) -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
-# export CFLAGS = -g -std=c++11 -I$(INCLUDE_DIR) -I$(CHUNKER_COMMON_DIR) -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
+# export CFLAGS = -O3 -std=c++11 -I$(INCLUDE_DIR) -I$(CHUNKER_COMMON_DIR) -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
+export CFLAGS = -g -std=c++11 -I$(INCLUDE_DIR) -I$(CHUNKER_COMMON_DIR) -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
 export LDFLAGS = -lm -L$(CUDA_HOME)/lib64 $(MSHADOW_LDFLAGS)
-export NVCCFLAGS = -O3 -G -std=c++11 --use_fast_math -ccbin $(CXX) $(MSHADOW_NVCCFLAGS)
-# export NVCCFLAGS = -g -G -std=c++11 --use_fast_math -ccbin $(CXX) $(MSHADOW_NVCCFLAGS)
+# export NVCCFLAGS = -O3 -G -std=c++11 --use_fast_math -ccbin $(CXX) $(MSHADOW_NVCCFLAGS)
+export NVCCFLAGS = -g -G -std=c++11 --use_fast_math -ccbin $(CXX) $(MSHADOW_NVCCFLAGS)
 
 GREEDY_CHUNKER_DIR = $(CHUNKER_DIR)/greedychunker
 BEAM_CHUNKER_DIR = $(CHUNKER_DIR)/beamchunker
@@ -30,15 +30,15 @@ CUDA_COMMON_OBJ = $(OBJ_DIR)/common/FeatureEmbeddingManager.o
 # CUOBJ = $(OBJ_DIR)/Chunker.o
 .PHONY: clean all
 
-all: directoires $(GREEDY_BIN)
-# all: directoires $(BEAM_BIN)
+# all: directoires $(GREEDY_BIN)
+all: directoires $(BEAM_BIN)
 # all: directoires $(GREEDY_BIN) $(BEAM_BIN)
 
 directoires:
 	mkdir -p $(OBJ_DIR)/common $(OBJ_DIR)/greedychunker $(OBJ_DIR)/beamchunker
 
 $(GREEDY_BIN) : $(GREEDY_CHUNKER_DIR)/chunk.cpp $(GREEDY_CUOBJ) $(COMMON_OBJ) $(CUDA_COMMON_OBJ)
-$(BEAM_BIN) : $(BEAM_CHUNKER_DIR)/chunk.cpp $(BEAM_CUOBJ) $(COMMON_OBJ) $(CUDA_COMMON_OBJ) $(OBJ_DIR)/beamchunker/Beam.o $(OBJ_DIR)/beamchunker/BeamDecoder.o
+$(BEAM_BIN) : $(BEAM_CHUNKER_DIR)/chunk.cpp $(BEAM_CUOBJ) $(COMMON_OBJ) $(CUDA_COMMON_OBJ) $(OBJ_DIR)/beamchunker/Beam.o $(OBJ_DIR)/beamchunker/BeamDecoder.o $(OBJ_DIR)/beamchunker/BatchBeamDecoder.o $(OBJ_DIR)/beamchunker/TNNets.o
 # $(BEAM_BIN) : $(BEAM_CHUNKER_DIR)/chunk.cpp $(BEAM_CUOBJ) $(COMMON_OBJ) $(CUDA_COMMON_OBJ) $(OBJ_DIR)/beamchunker/Beam.o 
 
 $(OBJ_DIR)/common/Config.o : $(CHUNKER_COMMON_DIR)/Config.h $(CHUNKER_COMMON_DIR)/Config.cpp
@@ -70,9 +70,15 @@ COMMON_HEADER = $(CHUNKER_COMMON_DIR)/Config.h $(CHUNKER_COMMON_DIR)/chunker.h \
 
 $(GREEDY_CUOBJ) : $(GREEDY_CHUNKER_DIR)/GreedyChunker.cu $(GREEDY_CHUNKER_DIR)/GreedyChunker.h $(COMMON_HEADER)
 
-$(BEAM_CUOBJ) : $(BEAM_CHUNKER_DIR)/BeamChunker.cu $(BEAM_CHUNKER_DIR)/BeamChunker.h $(COMMON_HEADER) $(BEAM_CHUNKER_DIR)/Beam.h $(BEAM_CHUNKER_DIR)/BeamDecoder.h $(CHUNKER_COMMON_DIR)/chunker.h $(BEAM_CHUNKER_DIR)/TNNets.h
+$(BEAM_CUOBJ) : $(BEAM_CHUNKER_DIR)/BeamChunker.cu $(BEAM_CHUNKER_DIR)/BeamChunker.h $(COMMON_HEADER) $(BEAM_CHUNKER_DIR)/Beam.h $(BEAM_CHUNKER_DIR)/BeamDecoder.h $(BEAM_CHUNKER_DIR)/BatchBeamDecoder.h $(CHUNKER_COMMON_DIR)/chunker.h $(BEAM_CHUNKER_DIR)/TNNets.h
 
 $(OBJ_DIR)/beamchunker/BeamDecoder.o : $(BEAM_CHUNKER_DIR)/BeamDecoder.cu $(BEAM_CHUNKER_DIR)/BeamDecoder.h $(BEAM_CHUNKER_DIR)/TNNets.h
+	$(NVCC) -c -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" $(filter %.cu, $^)
+
+$(OBJ_DIR)/beamchunker/BatchBeamDecoder.o : $(BEAM_CHUNKER_DIR)/BatchBeamDecoder.cu $(BEAM_CHUNKER_DIR)/BatchBeamDecoder.h $(BEAM_CHUNKER_DIR)/TNNets.h
+	$(NVCC) -c -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" $(filter %.cu, $^)
+
+$(OBJ_DIR)/beamchunker/TNNets.o : $(BEAM_CHUNKER_DIR)/TNNets.h $(BEAM_CHUNKER_DIR)/TNNets.cu $(BEAM_CHUNKER_DIR)/BatchBeamDecoder.h
 	$(NVCC) -c -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" $(filter %.cu, $^)
 
 $(GREEDY_BIN) :

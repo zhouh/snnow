@@ -39,7 +39,7 @@ template<typename xpu>
 class NNet{
 public:
     // initialize the network
-    NNet(int batch_size, int num_in, int num_hidden, int num_out, Model<xpu>* paras) {
+    NNet(const int batch_size, const int num_in, const int num_hidden, const int num_out, Model<xpu>* paras) {
         // setup stream
         // stream = NewStream<xpu>();
 
@@ -160,6 +160,9 @@ public:
         if (CConfig::bFineTune) {
             for (int i = 0; i < static_cast<int>(fvs.size()); i++) {
                 FeatureVector &fv = fvs[i];
+                if (fv.size() == 0) {
+                    continue;
+                }
 
                 int updateIndex = 0;
                 for (int j = 0; j < static_cast<int>(fv.size()); j++) {

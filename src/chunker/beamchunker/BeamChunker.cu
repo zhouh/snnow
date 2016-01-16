@@ -16,6 +16,7 @@
 
 #include "TNNets.h"
 #include "BeamChunker.h"
+#include "BatchBeamDecoder.h"
 #include "Evalb.h"
 
 #include "Example.h"
@@ -109,7 +110,7 @@ std::pair<BeamChunker::ChunkedResultType, BeamChunker::ChunkedResultType> BeamCh
 }
 
 void BeamChunker::generateMultiThreadsMiniBatchData(std::vector<std::vector<GlobalExample *>> &multiThread_miniBatch_data) {
-    std::random_shuffle(gExamples.begin(), gExamples.end());
+    // std::random_shuffle(gExamples.begin(), gExamples.end());
 
     // prepare mini-batch data for each threads
     static int exampleNumOfThread = std::min(CConfig::nBeamBatchSize, static_cast<int>(gExamples.size()))/ CConfig::nThread;
@@ -159,23 +160,9 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
 
     auto longestSentence = *std::max_element(gExamples.begin(), gExamples.end(), [](GlobalExample &ge1, GlobalExample &ge2) { return ge1.instance.input.size() < ge2.instance.input.size();} );
     const int longestLen = longestSentence.instance.input.size();
-    const int nMaxLatticeSize = (m_nBeamSize + 1) * longestLen;
-    std::vector<State *> lattices(CConfig::nThread);
-    std::vector<State **> lattice_indexes(CConfig::nThread);
-    for (int i = 0; i < CConfig::nThread; i++) {
-        lattices[i] = new State[nMaxLatticeSize];
-        lattice_indexes[i] = new State*[longestLen + 2];
-    }
-    std::vector<std::vector<NNet<XPU> *>> netss;
-    for (int i = 0; i < CConfig::nThread; i++) {
-        std::vector<NNet<XPU> *> nets(longestLen + 1);
 
-        for (int j = 0; j < nets.size(); j++) {
-            nets[j] = new NNet<XPU>(m_nBeamSize, num_in, num_hidden, num_out, &modelParas);
-        }
-
-        netss.push_back(nets);
-    }
+    BatchBeamDecoderMemoryManager decoderMemoryManager(m_nBeamSize, CConfig::nBeamBatchDecoderItemSize, longestLen, CConfig::nThread);
+    TNNetsMemoryManager nnetsMemoryManager(CConfig::nThread, longestLen, m_nBeamSize * CConfig::nBeamBatchDecoderItemSize, num_in, num_hidden, num_out, &modelParas);
 
     ChunkedResultType bestDevFB1 = std::make_tuple(0.0, 0.0, -1.0);
     ChunkedResultType bestDevNPFB1 = std::make_tuple(0.0, 0.0, -1.0);
@@ -211,39 +198,55 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
 
         Model<XPU> batchCumulatedGrads(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, false);
         // begin to multi thread Training
-#pragma omp parallel num_threads(CConfig::nThread)
+// #pragma omp parallel num_threads(CConfig::nThread)
         {
-            int threadIndex = omp_get_thread_num();
-            // int threadIndex = 0;
+            // int threadIndex = omp_get_thread_num();
+            int threadIndex = 0;
             auto currentThreadData = multiThread_miniBatch_data[threadIndex];
 
             Model<XPU> cumulatedGrads(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, false);
 
-            // for evary instance in this mini-batch
-            for (unsigned inst = 0; inst < currentThreadData.size(); inst++) {
-                // fetch a to-be-trained instance
-                GlobalExample *example = currentThreadData[inst];
+            for (int insti = 0; insti < currentThreadData.size(); insti += CConfig::nBeamBatchDecoderItemSize) {
+                std::vector<GlobalExample *> gExamplePtrs;
+                std::vector<Instance *> instPtrs;
+                for (int i = 0; i < CConfig::nBeamBatchDecoderItemSize; i++) {
+                    gExamplePtrs.push_back(currentThreadData[insti + i]);
+                    instPtrs.push_back(&(currentThreadData[insti + i]->instance));
+                }
 
-                TNNets tnnets(m_nBeamSize, num_in, num_hidden, num_out, &modelParas, netss[threadIndex]);
+                TNNets tnnets(m_nBeamSize * CConfig::nBeamBatchDecoderItemSize, num_in, num_hidden, num_out, &modelParas, nnetsMemoryManager.getNetPtrVec(threadIndex));
 
-                // decode and update
-                // std::cerr << "begin to decode!" << std::endl;
-                BeamDecoder decoder(&(example->instance), 
-                                    m_transSystemPtr,
-                                    m_featManagerPtr,
-                                    m_featEmbManagerPtr,
-                                    m_nBeamSize, 
-                                    lattices[threadIndex],
-                                    lattice_indexes[threadIndex],
-                                    true);
+                BatchBeamDecoder decoder(
+                        instPtrs, 
+                        m_transSystemPtr,
+                        m_featManagerPtr,
+                        m_featEmbManagerPtr,
+                        m_nBeamSize,
+                        decoderMemoryManager.getLatticePtrVec(threadIndex),
+                        decoderMemoryManager.getLatticeIndexPtrVec(threadIndex),
+                        true
+                        );
 
-                State * predState = decoder.decode(tnnets, example);
+                std::vector<State *> predStates = decoder.decode(tnnets, gExamplePtrs);
 
-                tnnets.updateTNNetParas(&cumulatedGrads, decoder.beam, decoder.bEarlyUpdate, decoder.nGoldTransitionIndex, decoder.goldScoredTran);
+                for (int i = 0; i < predStates.size(); i++) {
+                    LabeledSequence sequence(instPtrs[i]->input);
+
+                    m_transSystemPtr->generateOutput(*predStates[i], sequence);
+
+                    std::cerr << sequence << std::endl;
+                    std::cerr << std::endl;
+
+                }
+
+                std::cerr << "construct finish" << std::endl;
+                char ch;
+                std::cin >> ch;
+                // tnnets.updateTNNetParas(&cumulatedGrads, decoder.beam, decoder.bEarlyUpdate, decoder.nGoldTransitionIndex, decoder.goldScoredTran);
             } // end for instance traverse
 
-#pragma omp barrier
-#pragma omp critical
+// #pragma omp barrier
+// #pragma omp critical
             batchCumulatedGrads.mergeModel(&cumulatedGrads);
 
         } // end multi-processor
@@ -258,15 +261,6 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
         }
     } // end total iteration
 
-    for (int i = 0; i < CConfig::nThread; i++) {
-        for (int j = 0; j < netss[i].size(); j++) {
-            delete netss[i][j];
-        }
-    }
-    for (int i = 0; i < CConfig::nThread; i++) {
-        delete []lattices[i];
-        delete []lattice_indexes[i];
-    }
     DeleteStream(sstream);
     ShutdownTensorEngine<XPU>();
 }

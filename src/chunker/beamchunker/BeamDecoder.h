@@ -46,6 +46,7 @@ public:
 
     Instance * inst;
 
+public:
     BeamDecoder(Instance *inst, 
                 std::shared_ptr<ActionStandardSystem> transitionSystemPtr, 
                 std::shared_ptr<FeatureManager> featureMangerPtr,

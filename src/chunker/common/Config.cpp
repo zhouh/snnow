@@ -55,6 +55,7 @@ int CConfig::nHiddenSize = 300;
 int CConfig::nRound = 2000; 
 
 int CConfig::nBeamBatchSize = 1000;
+int CConfig::nBeamBatchDecoderItemSize = 10;
 int CConfig::nGreedyBatchSize = 10000;
 
 int CConfig::nEvaluatePerIters = 20;
@@ -101,6 +102,7 @@ std::ostream& operator<< (std::ostream &os, const CConfig &config) {
     std::cerr << "round size:         " << CConfig::nRound << std::endl;
     std::cerr << "greedybatch size:   " << CConfig::nGreedyBatchSize << std::endl;
     std::cerr << "beambatch size:     " << CConfig::nBeamBatchSize << std::endl;
+    std::cerr << "decoderitem size:   " << CConfig::nBeamBatchDecoderItemSize << std::endl;
     std::cerr << "hidden size:        " << CConfig::nHiddenSize << std::endl;
     std::cerr << "regular rate:       " << CConfig::fRegularizationRate << std::endl;
     std::cerr << "BP rate:            " << CConfig::fBPRate << std::endl;
@@ -151,6 +153,7 @@ void CConfig::readConfiguration(const std::string &configPath) {
     attributes.insert("nRound");
     attributes.insert("nGreedyBatchSize");
     attributes.insert("nBeamBatchSize");
+    attributes.insert("nBeamBatchDecoderItemSize");
     attributes.insert("nEvaluatePerIters");
     attributes.insert("nThread");
     attributes.insert("fRegularizationRate");
@@ -238,6 +241,8 @@ void CConfig::readConfiguration(const std::string &configPath) {
             CConfig::nGreedyBatchSize = stoi(att.second);
         } else if (att.first == "nBeamBatchSize") {
             CConfig::nBeamBatchSize = stoi(att.second);
+        } else if (att.first == "nBeamBatchDecoderItemSize") {
+            CConfig::nBeamBatchDecoderItemSize = stoi(att.second);
         } else if (att.first == "nEvaluatePerIters") {
             CConfig::nEvaluatePerIters = stoi(att.second);
         } else if (att.first == "nThread") {
@@ -267,9 +272,20 @@ void CConfig::readConfiguration(const std::string &configPath) {
         }
     }
     if (CConfig::nGreedyBatchSize % CConfig::nGPUBatchSize != 0) {
-        std::cerr << "nGreedyBatchSize: " << nGreedyBatchSize << " should by divisible by nGPUBatchSize: " << nGPUBatchSize << std::endl;
+        std::cerr << "nGreedyBatchSize: " << nGreedyBatchSize << " should be divisible by nGPUBatchSize: " << nGPUBatchSize << std::endl;
         exit(0);
     }
+
+    if (CConfig::nBeamBatchSize % CConfig::nThread != 0) {
+        std::cerr << "nBeamBatchSize: " << CConfig::nBeamBatchSize << " should be divisible by nThread: " << CConfig::nThread << std::endl;
+        exit(0);
+    }
+
+    if ((CConfig::nBeamBatchSize / CConfig::nThread) % CConfig::nBeamBatchDecoderItemSize != 0) {
+        std::cerr << "(nBeamBatchSize / nThread): " << (CConfig::nBeamBatchSize / CConfig::nThread) << " should be divisible by nBeamBatchDecoderItemSize: " << CConfig::nBeamBatchDecoderItemSize << std::endl;
+        exit(0);
+    }
+
     if (CConfig::nGreedyBatchSize < CConfig::nGPUBatchSize * CConfig::nThread) {
         std::cerr << "nGreedyBatchSize: " << nGreedyBatchSize << " should be more than nGPUBatchSize * nThread: " << CConfig::nGPUBatchSize << " * " << CConfig::nThread << ")" << std::endl;
         exit(0);

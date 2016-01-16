@@ -41,6 +41,7 @@ public:
     static int nRound;
     static int nGreedyBatchSize;
     static int nBeamBatchSize;
+    static int nBeamBatchDecoderItemSize;
     static int nEvaluatePerIters;
     static int nThread;
 
