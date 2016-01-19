@@ -191,14 +191,20 @@ void ActionStandardSystem::doBeginMove(State &srcState, State &dstState, const C
 
 void ActionStandardSystem::saveActionSystem(std::ostream &os) {
     labelManager.saveLabelManager(os);
+
     os << "labelSize" << " " << knowLabels.size() << std::endl;
+    for (std::string &s : knowLabels) {
+        os << s << std::endl;
+    }
     os << "nActNum" << " " << nActNum << std::endl;
     os << "nOutside" << " " << nOutside << std::endl;
+    os << "nInside" << " " << nInside << std::endl;
     os << "nBegin" << " " << nBegin << std::endl;
 }
 
 void ActionStandardSystem::loadActionSystem(std::istream &is) {
     labelManager.loadLabelManager(is);
+
     std::string line;
     getline(is, line);
     std::istringstream iss(line);
@@ -215,16 +221,25 @@ void ActionStandardSystem::loadActionSystem(std::istream &is) {
     }
 
     getline(is, line);
+    iss.clear();
     iss.str(line);
     iss >> tmp >> size;
     nActNum = size;
     
     getline(is, line);
+    iss.clear();
     iss.str(line);
     iss >> tmp >> size;
     nOutside = size;
 
     getline(is, line);
+    iss.clear();
+    iss.str(line);
+    iss >> tmp >> size;
+    nInside = size;
+
+    getline(is, line);
+    iss.clear();
     iss.str(line);
     iss >> tmp >> size;
     nBegin = size;

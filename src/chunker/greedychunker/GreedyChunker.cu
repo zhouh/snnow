@@ -136,6 +136,27 @@ void display2Tensor( Tensor<XPU, 2, double> tensor ){
     }
 }
 
+void GreedyChunker::saveChunker(int round) {
+    std::string dir = CConfig::strModelDirPath;
+    std::string app_str;
+
+    if (round != -1) {
+        app_str = "." + std::to_string(round);
+    }
+
+    std::ofstream actionSystemOs(dir + "/actionsystem.model" + app_str);
+    m_transSystemPtr->saveActionSystem(actionSystemOs);
+
+    std::ofstream dictOs(dir + "/dictionarymanager.model" + app_str);
+    m_dictManagerPtr->saveDictManager(dictOs);
+
+    std::ofstream featManagerOs(dir + "/featuremanager.model" + app_str);
+    m_featManagerPtr->saveFeatureManager(featManagerOs);
+
+    std::ofstream modelOs(dir + "/netmodel.model" + app_str);
+    m_modelPtr->saveModel(modelOs);
+}
+
 void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, ChunkedDataSet &devGoldSet, InstanceSet &devSet) {
     std::cerr << "[trainingSet involved initing]Initing DictManager &  FeatureManager & ActionStandardSystem & generateTrainingExamples..." << std::endl;
     initTrain(trainGoldSet, trainSet);
@@ -143,33 +164,15 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
     std::cerr << "[devSet involved initing]Initing generateInstanceSetCache for devSet..." << std::endl;
     initDev(devSet);
 
-    const static int num_in = m_featEmbManagerPtr->getTotalFeatEmbSize();
-    const static int num_hidden = CConfig::nHiddenSize;
-    const static int num_out = m_transSystemPtr->getActNumber();
     const static int batchSize = std::min(CConfig::nGreedyBatchSize, static_cast<int>(trainExamplePtrs.size()));
-    // const static int batchSize = static_cast<int>(trainExamplePtrs.size());
-
-    srand(0);
-
-    Stream<XPU> *sstream = NewStream<XPU>();
-
-    m_modelPtr.reset(new Model<XPU>(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, true));
 
     InitTensorEngine<XPU>();
 
     auto featureTypes = m_featManagerPtr->getFeatureTypes();
-
-    std::cerr << "[begin]featureTypes:" << std::endl;
-    for (auto &ft : featureTypes) {
-        std::cerr << "  " << ft.typeName << ":" << std::endl;
-        std::cerr << "    dictSize = " << ft.dictSize << std::endl;
-        std::cerr << "    featSize = " << ft.featSize << std::endl;
-        std::cerr << "    embsSize = " << ft.featEmbSize << std::endl;
-    }
-    std::cerr << "[end]" << std::endl;
-
+    Stream<XPU> *sstream = m_modelPtr->stream;
     Model<XPU> &modelParas = *(m_modelPtr.get());
-    Model<XPU> adaGradSquares(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, false);
+
+    Model<XPU> adaGradSquares(num_in, num_hidden, num_out, featureTypes, sstream);
 
     ChunkedResultType bestDevFB1 = std::make_tuple(0.0, 0.0, -1.0);
     ChunkedResultType bestDevNPFB1 = std::make_tuple(0.0, 0.0, -1.0);
@@ -178,6 +181,9 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
     double batchObjLoss = 0.0;
 
     for (int iter = 1; iter <= CConfig::nRound; iter++) {
+        if (CConfig::saveModel && iter % CConfig::nSaveModelPerIters == 0) {
+            saveChunker(iter);
+        }
         if (iter % CConfig::nEvaluatePerIters == 0) {
             double posClassificationRate = 100 * static_cast<double>(batchCorrectSize) / batchSize;
 
@@ -196,7 +202,7 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
         std::vector<ExamplePtrs> multiThread_miniBatch_data;
         generateMultiThreadsMiniBatchData(multiThread_miniBatch_data);
 
-        Model<XPU> batchCumulatedGrads(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, false);
+        Model<XPU> batchCumulatedGrads(num_in, num_hidden, num_out, featureTypes, sstream);
         
 #pragma omp parallel num_threads(CConfig::nThread)
         {
@@ -206,7 +212,7 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
             int threadCorrectSize = 0;
             double threadObjLoss = 0.0;
 
-            Model<XPU> cumulatedGrads(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, false);
+            Model<XPU> cumulatedGrads(num_in, num_hidden, num_out, featureTypes, sstream);
             std::shared_ptr<NNet<XPU>> nnet(new NNet<XPU>(CConfig::nGPUBatchSize, num_in, num_hidden, num_out, &modelParas));
 
             std::vector<FeatureVector> featureVectors(CConfig::nGPUBatchSize);
@@ -311,18 +317,45 @@ void GreedyChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
     using std::endl;
 
     m_dictManagerPtr.reset(new DictManager());
-    m_dictManagerPtr->init(goldSet);
-
     m_featManagerPtr.reset(new FeatureManager());
-    m_featManagerPtr->init(goldSet, m_dictManagerPtr);
-
-
     m_featEmbManagerPtr.reset(new FeatureEmbeddingManager());
-    m_featEmbManagerPtr->init(m_featManagerPtr, static_cast<real_t>(CConfig::fInitRange));
-
-    std::cerr << "  total input embedding dim: " << m_featEmbManagerPtr->getTotalFeatEmbSize() << std::endl;
     m_transSystemPtr.reset(new ActionStandardSystem());
-    m_transSystemPtr->init(goldSet);
+    if (CConfig::loadModel){
+        std::ifstream dict_is(CConfig::strModelDirPath + "/dictionarymanager.model");
+        m_dictManagerPtr->loadDictManager(dict_is);
+
+        std::ifstream featManager_is(CConfig::strModelDirPath + "/featuremanager.model");
+        m_featManagerPtr->loadFeatureManager(featManager_is, m_dictManagerPtr);
+
+        std::ifstream trans_is(CConfig::strModelDirPath + "/actionsystem.model");
+        m_transSystemPtr->loadActionSystem(trans_is);
+    } else {
+        m_dictManagerPtr->init(goldSet);
+        m_featManagerPtr->init(goldSet, m_dictManagerPtr);
+        m_transSystemPtr->init(goldSet);
+    }
+
+    m_featEmbManagerPtr->init(m_featManagerPtr);
+
+    num_in = m_featEmbManagerPtr->getTotalFeatEmbSize();
+    num_hidden = CConfig::nHiddenSize;
+    num_out = m_transSystemPtr->getActNumber();
+
+    srand(0);
+
+    Stream<XPU> *sstream = NewStream<XPU>();
+
+    m_modelPtr.reset(new Model<XPU>(num_in, num_hidden, num_out, m_featEmbManagerPtr->getFeatureTypes(), sstream));
+    if (CConfig::loadModel) {
+        std::ifstream model_is(CConfig::strModelDirPath + "/netmodel.model");
+        m_modelPtr->loadModel(model_is);
+    } else {
+        m_modelPtr->randomInitialize();
+    }
+
+    if (!CConfig::loadModel && CConfig::bReadPretrain) {
+        m_featEmbManagerPtr->readPretrainedEmbeddings(*(m_modelPtr.get()));
+    }
 
     Instance::generateInstanceSetCache(*(m_dictManagerPtr.get()), trainSet);
 
@@ -334,14 +367,21 @@ void GreedyChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
         }
     }
 
-    std::cerr << "  Greedy train set size: " << trainExamplePtrs.size() << std::endl;
+    auto featureTypes = m_featManagerPtr->getFeatureTypes();
+
+    std::cerr << "  total input embedding dim: " << m_featEmbManagerPtr->getTotalFeatEmbSize() << std::endl;
+    std::cerr << "  greedy train set size: " << trainExamplePtrs.size() << std::endl;
+    std::cerr << "  [begin]featureTypes:" << std::endl;
+    for (auto &ft : featureTypes) {
+        std::cerr << "    " << ft.typeName << ":" << std::endl;
+        std::cerr << "      dictSize = " << ft.dictSize << std::endl;
+        std::cerr << "      featSize = " << ft.featSize << std::endl;
+        std::cerr << "      embsSize = " << ft.featEmbSize << std::endl;
+    }
+    std::cerr << "  [end]" << std::endl;
 }
 
 State* GreedyChunker::decode(Instance *inst, Model<XPU> &modelParas, State *lattice) {
-    const static int num_in = m_featEmbManagerPtr->getTotalFeatEmbSize();
-    const static int num_hidden = CConfig::nHiddenSize;
-    const static int num_out = m_transSystemPtr->getActNumber();
-
     int nSentLen = inst->input.size();
     int nMaxRound = nSentLen;
     ActionStandardSystem &tranSystem = *(m_transSystemPtr.get());

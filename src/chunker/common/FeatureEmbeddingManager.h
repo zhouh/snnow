@@ -20,19 +20,18 @@
 #include "FeatureVector.h"
 #include "FeatureType.h"
 #include "Dictionary.h"
+#include "Model.h"
 
 class FeatureEmbeddingManager {
 private:
-    std::shared_ptr<FeatureManager> m_featManagerPtr;
     std::vector<FeatureType> m_lFeatTypes;
     std::vector<std::shared_ptr<Dictionary>> m_lFeatDictPtrs;
-    std::vector<std::string> m_lEmbeddingNames;
     int totalFeatEmbSize;
 
 public:
     FeatureEmbeddingManager() { }
 
-    void init(const std::shared_ptr<FeatureManager> &featManagerPtr, const real_t initRange);
+    void init(const std::shared_ptr<FeatureManager> &featManagerPtr);
 
     ~FeatureEmbeddingManager() {}
 
@@ -40,17 +39,11 @@ public:
         return m_lFeatTypes;
     }
 
-    std::vector<std::shared_ptr<FeatureEmbedding>> getInitialzedEmebddings(const real_t initRange);
-
-    std::vector<std::shared_ptr<FeatureEmbedding>> loadFeatureEmbeddings();
-
-    void saveFeatureEmbeddings(std::vector<std::shared_ptr<FeatureEmbedding>> &featEmbPtrs);
-
-    std::vector<std::shared_ptr<FeatureEmbedding>> getAllZeroEmebddings();
-
     int getTotalFeatEmbSize() const {
         return totalFeatEmbSize;
     }
+
+    void readPretrainedEmbeddings(Model<XPU> &model);
 
     void returnInput(std::vector<FeatureVector> &featVecs, std::vector<std::shared_ptr<FeatureEmbedding>> &featEmbs, TensorContainer<cpu, 2, real_t>& input);
 

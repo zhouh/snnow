@@ -15,11 +15,7 @@ public:
     static bool loadModel;
     static bool saveModel;
 
-    static std::string strDictManagerPath;
-    static std::string strNetModelPath;
-    static std::string strFeatureEmbeddingManagerPath;
-    static std::string strFeatureManagerPath;
-    static std::string strActionStandardSystemPath;
+    static std::string strModelDirPath;
 
     static std::string strEmbeddingPath;
 
@@ -40,10 +36,6 @@ public:
     static int nPOSEmbeddingDim;
     static int nLabelFeatureNum;
     static int nLabelEmbeddingDim;
-    static int nChunkWordFeatureNum;
-    static int nChunkWordEmbeddingDim;
-    static int nChunkPOSFeatureNum;
-    static int nChunkPOSEmbeddingDim;
 
     static int nHiddenSize;
 
@@ -52,6 +44,7 @@ public:
     static int nBeamBatchSize;
     static int nBeamBatchDecoderItemSize;
     static int nEvaluatePerIters;
+    static int nSaveModelPerIters;
     static int nThread;
 
     static float fRegularizationRate;
@@ -63,6 +56,7 @@ public:
     static float fDropoutProb;
 
     static bool bFineTune;
+    static bool bReadPretrain;
 
     static void readConfiguration(const std::string &configPath);
     static void saveConfiguration(const std::string &configPath);

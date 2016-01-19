@@ -135,28 +135,15 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
     std::cerr << "[devSet involved initing]Initing generateInstanceSetCache for devSet..." << std::endl;
     initDev(devSet);
 
-    const int num_in = m_featEmbManagerPtr->getTotalFeatEmbSize();
-    const int num_hidden = CConfig::nHiddenSize;
-    const int num_out = m_transSystemPtr->getActNumber();
     const int batch_size = std::min(CConfig::nBeamBatchSize, static_cast<int>(gExamples.size()));
 
-    srand(0);
-
     InitTensorEngine<XPU>();
-    Stream<XPU> *sstream = NewStream<XPU>();
+    Stream<XPU> *sstream = m_modelPtr->stream;
 
     auto featureTypes = m_featManagerPtr->getFeatureTypes();
-    std::cerr << "[begin]featureTypes:" << std::endl;
-    for (auto &ft : featureTypes) {
-        std::cerr << "  " << ft.typeName << ":" << std::endl;
-        std::cerr << "    dictSize = " << ft.dictSize << std::endl;
-        std::cerr << "    featSize = " << ft.featSize << std::endl;
-        std::cerr << "    embsSize = " << ft.featEmbSize << std::endl;
-    }
-    std::cerr << "[end]" << std::endl;
 
-    Model<XPU> modelParas(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, true);
-    Model<XPU> adaGradSquares(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, false);
+    Model<XPU> &modelParas = *(m_modelPtr.get());
+    Model<XPU> adaGradSquares(num_in, num_hidden, num_out, featureTypes, sstream);
 
     auto longestSentence = *std::max_element(gExamples.begin(), gExamples.end(), [](GlobalExample &ge1, GlobalExample &ge2) { return ge1.instance.input.size() < ge2.instance.input.size();} );
     const int longestLen = longestSentence.instance.input.size();
@@ -168,6 +155,9 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
     ChunkedResultType bestDevNPFB1 = std::make_tuple(0.0, 0.0, -1.0);
     clock_t start, end;
     for (int iter = 1; iter <= CConfig::nRound; iter++) {
+        if (CConfig::saveModel && iter % CConfig::nSaveModelPerIters == 0) {
+            saveChunker(iter);
+        }
         if (iter % CConfig::nEvaluatePerIters == 0) {
             auto res = chunk(devSet, devGoldSet, modelParas);
             ChunkedResultType &currentFB1 = std::get<0>(res);
@@ -196,7 +186,7 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
         std::vector<std::vector<GlobalExample *>> multiThread_miniBatch_data;
         generateMultiThreadsMiniBatchData(multiThread_miniBatch_data);
 
-        Model<XPU> batchCumulatedGrads(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, false);
+        Model<XPU> batchCumulatedGrads(num_in, num_hidden, num_out, featureTypes, sstream);
         // begin to multi thread Training
 #pragma omp parallel num_threads(CConfig::nThread)
         {
@@ -204,7 +194,7 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
             // int threadIndex = 0;
             auto currentThreadData = multiThread_miniBatch_data[threadIndex];
 
-            Model<XPU> cumulatedGrads(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, false);
+            Model<XPU> cumulatedGrads(num_in, num_hidden, num_out, featureTypes, sstream);
 
             for (int insti = 0; insti < currentThreadData.size(); insti += CConfig::nBeamBatchDecoderItemSize) {
                 std::vector<GlobalExample *> gExamplePtrs;
@@ -273,22 +263,82 @@ void BeamChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
     using std::endl;
 
     m_dictManagerPtr.reset(new DictManager());
-    m_dictManagerPtr->init(goldSet);
-
     m_featManagerPtr.reset(new FeatureManager());
-    m_featManagerPtr->init(goldSet, m_dictManagerPtr);
-
-    m_featEmbManagerPtr.reset(new FeatureEmbeddingManager(
-        m_featManagerPtr,
-                static_cast<real_t>(CConfig::fInitRange)
-                ));
-
+    m_featEmbManagerPtr.reset(new FeatureEmbeddingManager());
     m_transSystemPtr.reset(new ActionStandardSystem());
-    m_transSystemPtr->init(goldSet);
+    if (CConfig::loadModel){
+        std::ifstream dict_is(CConfig::strModelDirPath + "/dictionarymanager.model");
+        m_dictManagerPtr->loadDictManager(dict_is);
+
+        std::ifstream featManager_is(CConfig::strModelDirPath + "/featuremanager.model");
+        m_featManagerPtr->loadFeatureManager(featManager_is, m_dictManagerPtr);
+
+        std::ifstream trans_is(CConfig::strModelDirPath + "/actionsystem.model");
+        m_transSystemPtr->loadActionSystem(trans_is);
+    } else {
+        m_dictManagerPtr->init(goldSet);
+        m_featManagerPtr->init(goldSet, m_dictManagerPtr);
+        m_transSystemPtr->init(goldSet);
+    }
+
+    m_featEmbManagerPtr->init(m_featManagerPtr);
+
+    num_in = m_featEmbManagerPtr->getTotalFeatEmbSize();
+    num_hidden = CConfig::nHiddenSize;
+    num_out = m_transSystemPtr->getActNumber();
+
+    srand(0);
+
+    Stream<XPU> *sstream = NewStream<XPU>();
+
+    m_modelPtr.reset(new Model<XPU>(num_in, num_hidden, num_out, m_featEmbManagerPtr->getFeatureTypes(), sstream));
+    if (CConfig::loadModel) {
+        std::ifstream model_is(CConfig::strModelDirPath + "/netmodel.model");
+        m_modelPtr->loadModel(model_is);
+    } else {
+        m_modelPtr->randomInitialize();
+    }
+
+    if (!CConfig::loadModel && CConfig::bReadPretrain) {
+        m_featEmbManagerPtr->readPretrainedEmbeddings(*(m_modelPtr.get()));
+    }
+
 
     Instance::generateInstanceSetCache(*(m_dictManagerPtr.get()), trainSet);
 
     GlobalExample::generateTrainingExamples(*(m_transSystemPtr.get()), *(m_featManagerPtr.get()), trainSet, goldSet, gExamples);
 
+    auto featureTypes = m_featManagerPtr->getFeatureTypes();
+
+    std::cerr << "  total input embedding dim: " << m_featEmbManagerPtr->getTotalFeatEmbSize() << std::endl;
     std::cerr << std::endl << "  train set size: " << trainSet.size() << std::endl;
+    std::cerr << "  [begin]featureTypes:" << std::endl;
+    for (auto &ft : featureTypes) {
+        std::cerr << "    " << ft.typeName << ":" << std::endl;
+        std::cerr << "      dictSize = " << ft.dictSize << std::endl;
+        std::cerr << "      featSize = " << ft.featSize << std::endl;
+        std::cerr << "      embsSize = " << ft.featEmbSize << std::endl;
+    }
+    std::cerr << "  [end]" << std::endl;
+}
+
+void BeamChunker::saveChunker(int round) {
+    std::string dir = CConfig::strModelDirPath;
+    std::string app_str;
+
+    if (round != -1) {
+        app_str = "." + std::to_string(round);
+    }
+
+    std::ofstream actionSystemOs(dir + "/actionsystem.model" + app_str);
+    m_transSystemPtr->saveActionSystem(actionSystemOs);
+
+    std::ofstream dictOs(dir + "/dictionarymanager.model" + app_str);
+    m_dictManagerPtr->saveDictManager(dictOs);
+
+    std::ofstream featManagerOs(dir + "/featuremanager.model" + app_str);
+    m_featManagerPtr->saveFeatureManager(featManagerOs);
+
+    std::ofstream modelOs(dir + "/netmodel.model" + app_str);
+    m_modelPtr->saveModel(modelOs);
 }

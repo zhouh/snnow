@@ -22,20 +22,36 @@ using std::vector;
 
 #define DEBUG
 
-
 #ifdef DEBUG
 //#define DEBUG1
 #endif //! DEBUG
 
 int main(int argc, char *argv[]) {
-    std::cerr << "[BeamChunker Description]: ";
-    if (argc == 1) {
-        std::cerr << "There is no description!" << std::endl;
-    } else {
-        std::cerr << argv[1] << std::endl;
-    }
-
     CConfig::readConfiguration("../../src/chunker/config/Configuration.ini");
+
+    std::cerr << "[BeamChunker Description]: ";
+    bool noDesc = true;
+    if (argc != 1) {
+        for (int i = 1; i < argc; i++) {
+            if (argv[i][0] != '-' || strlen(argv[i]) < 2) {
+                std::cerr << "wrong argument: " << argv[i] << std::endl;
+                exit(0);
+            }
+
+            if (argv[i][1] == 'd') {
+                noDesc = false;
+                i++;
+                std::cerr << argv[i] << std::endl;
+            } else if (argv[i][1] == 'm') {
+                i++;
+                CConfig::strModelDirPath = argv[i];
+            }
+        }
+    }
+    if (noDesc) {
+        std::cerr << "There is no description!" << std::endl;
+    } 
+
 #ifdef PRINT_CONFIGURATION
     std::cerr << "[begin]Configuration setting:" << std::endl;
 

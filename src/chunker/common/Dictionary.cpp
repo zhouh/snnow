@@ -31,9 +31,6 @@ void WordDictionary::makeDictionaries(const ChunkedDataSet &goldSet) {
         wordTable.insert(processWord(line));
     }
 
-#ifdef DEBUG
-    std::cerr << "word table size: " << wordTable.size() << std::endl;
-#endif    
     unordered_set<string> wordSet;
 
     for (auto &sent : goldSet) {

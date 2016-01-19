@@ -26,16 +26,12 @@
 class FeatureManager {
 private:
     std::vector<std::shared_ptr<FeatureExtractor>> m_lFeatExtractorPtrs;
-    std::vector<std::string> m_lEmbeddingNames;
-    std::tr1::unordered_map<std::string, std::string> m_mFeatName2EmbeddingName;
 
 public:
     static const std::string WORDDESCRIPTION;
     static const std::string POSDESCRIPTION;
     static const std::string LABELDESCRIPTION;
     static const std::string CAPDESCRIPTION;
-    static const std::string CHUNKWORDDESCRIPTION;
-    static const std::string CHUNKPOSDESCRIPTION;
     
 public:
     FeatureManager() { }
@@ -48,10 +44,6 @@ public:
     std::vector<FeatureType> getFeatureTypes();
 
     std::vector<std::shared_ptr<Dictionary>> getDictManagerPtrs();
-
-    std::string featName2EmbeddingName(const std::string &name);
-
-    std::vector<std::string> getEmebddingNames();
 
     void saveFeatureManager(std::ostream &os);
 

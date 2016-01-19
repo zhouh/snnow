@@ -15,28 +15,15 @@
 bool CConfig::loadModel = false;
 bool CConfig::saveModel = false;
 
-std::string CConfig::strDictManagerPath;
-std::string CConfig::strNetModelPath;
-std::string CConfig::strFeatureEmbeddingManagerPath;
-std::string CConfig::strFeatureManagerPath;
-std::string CConfig::strActionStandardSystemPath;
+std::string CConfig::strModelDirPath;
 
-std::string CConfig::strEmbeddingPath("../../data/chunk/English/sen.emb");
+std::string CConfig::strEmbeddingPath;
 
-std::string CConfig::strWordTablePath("../../data/chunk/English/giga.dict");
+std::string CConfig::strWordTablePath;
 
-// std::string CConfig::strTrainPath("../../data/chunk/English/small.train");
-// std::string CConfig::strDevPath("../../data/chunk/English/small.train");
-// std::string CConfig::strTestPath("../../data/chunk/English/small.test");
-
-// std::string CConfig::strTrainPath("../../data/chunk/English/test.txt");
-std::string CConfig::strTrainPath("../../data/chunk/English/train.txt");
-std::string CConfig::strDevPath("../../data/chunk/English/test.txt");
-std::string CConfig::strTestPath("../../data/chunk/English/test.txt");
-
-// std::string CConfig::strTrainPath("../../data/chunk/English/single.train");
-// std::string CConfig::strDevPath("../../data/chunk/English/single.dev");
-// std::string CConfig::strTestPath("../../data/chunk/English/single.test");
+std::string CConfig::strTrainPath;
+std::string CConfig::strDevPath;
+std::string CConfig::strTestPath;
 
 int CConfig::nBeamSize = 50;
 int CConfig::nGPUBatchSize = 50;
@@ -53,12 +40,6 @@ int CConfig::nPOSEmbeddingDim = 10;
 int CConfig::nLabelFeatureNum = 2;
 int CConfig::nLabelEmbeddingDim = 5;
 
-int CConfig::nChunkWordFeatureNum = 4;
-int CConfig::nChunkWordEmbeddingDim = 50;
-
-int CConfig::nChunkPOSFeatureNum = 4;
-int CConfig::nChunkPOSEmbeddingDim = 10;
-
 int CConfig::nHiddenSize = 300;
 
 int CConfig::nRound = 2000; 
@@ -68,6 +49,7 @@ int CConfig::nBeamBatchDecoderItemSize = 10;
 int CConfig::nGreedyBatchSize = 10000;
 
 int CConfig::nEvaluatePerIters = 20;
+int CConfig::nSaveModelPerIters = 1000;
 
 int CConfig::nThread = 10;
 
@@ -83,8 +65,14 @@ bool CConfig::bDropOut = true;
 float CConfig::fDropoutProb = 0.5;
 
 bool CConfig::bFineTune = true;
+bool CConfig::bReadPretrain = true;
  
 std::ostream& operator<< (std::ostream &os, const CConfig &config) {
+    std::cerr << "saved model dir:  " << CConfig::strModelDirPath << std::endl;
+
+    std::cerr << "save model:       " << CConfig::saveModel << std::endl;
+    std::cerr << "load model:       " << CConfig::loadModel << std::endl;
+
     std::cerr << "embedding path:   " << CConfig::strEmbeddingPath << std::endl;
     std::cerr << "word table path:  " << CConfig::strWordTablePath << std::endl;
     std::cerr << "train path:       " << CConfig::strTrainPath << std::endl;
@@ -99,10 +87,6 @@ std::ostream& operator<< (std::ostream &os, const CConfig &config) {
     std::cerr << "cap feat dim:       " << CConfig::nCapEmbeddingDim << std::endl;
     std::cerr << "label feat num:     " << CConfig::nLabelFeatureNum << std::endl;
     std::cerr << "label feat dim:     " << CConfig::nLabelEmbeddingDim << std::endl;
-    std::cerr << "chunkword feat num: " << CConfig::nChunkWordFeatureNum << std::endl;
-    std::cerr << "chunkword feat dim: " << CConfig::nChunkWordEmbeddingDim << std::endl;
-    std::cerr << "chunkPOS feat num:  " << CConfig::nChunkPOSFeatureNum << std::endl;
-    std::cerr << "chunkPOS feat dim:  " << CConfig::nChunkPOSEmbeddingDim << std::endl;
 
     std::cerr << "thread num:         " << CConfig::nThread << std::endl;
 
@@ -122,6 +106,7 @@ std::ostream& operator<< (std::ostream &os, const CConfig &config) {
     std::cerr << "dropout prob:       " << CConfig::fDropoutProb << std::endl;
 
     std::cerr << "fine-tune:          " << CConfig::bFineTune << std::endl;
+    std::cerr << "readpretrain:       " << CConfig::bReadPretrain << std::endl;
 }
 
 inline void my_trim(std::string &s) {
@@ -139,13 +124,9 @@ void CConfig::readConfiguration(const std::string &configPath) {
     using namespace std;
 
     unordered_set<string> attributes;
+    attributes.insert("strModelDirPath");
     attributes.insert("loadModel");
     attributes.insert("saveModel");
-    attributes.insert("strDictManagerPath");
-    attributes.insert("strNetModelPath");
-    attributes.insert("strFeatureEmbeddingManagerPath");
-    attributes.insert("strFeatureManagerPath");
-    attributes.insert("strActionStandardSystemPath");
     attributes.insert("strTrainPath");
     attributes.insert("strWordTablePath");
     attributes.insert("strDevPath");
@@ -161,16 +142,13 @@ void CConfig::readConfiguration(const std::string &configPath) {
     attributes.insert("nPOSEmbeddingDim");
     attributes.insert("nLabelFeatureNum");
     attributes.insert("nLabelEmbeddingDim");
-    attributes.insert("nChunkWordFeatureNum");
-    attributes.insert("nChunkWordEmbeddingDim");
-    attributes.insert("nChunkPOSFeatureNum");
-    attributes.insert("nChunkPOSEmbeddingDim");
     attributes.insert("nHiddenSize");
     attributes.insert("nRound");
     attributes.insert("nGreedyBatchSize");
     attributes.insert("nBeamBatchSize");
     attributes.insert("nBeamBatchDecoderItemSize");
     attributes.insert("nEvaluatePerIters");
+    attributes.insert("nSaveModelPerIters");
     attributes.insert("nThread");
     attributes.insert("fRegularizationRate");
     attributes.insert("fBPRate");
@@ -179,6 +157,7 @@ void CConfig::readConfiguration(const std::string &configPath) {
     attributes.insert("bDropOut");
     attributes.insert("fDropoutProb");
     attributes.insert("bFineTune");
+    attributes.insert("bReadPretrain");
 
     std::ifstream is(configPath);
     while (!is.eof()) {
@@ -223,16 +202,8 @@ void CConfig::readConfiguration(const std::string &configPath) {
             } else {
                 CConfig::saveModel = false;
             }
-        } else if (att.first == "strDictManagerPath") {
-            CConfig::strDictManagerPath = att.second;
-        } else if (att.first == "strNetModelPath") {
-            CConfig::strNetModelPath = att.second;
-        } else if (att.first == "strFeatureEmbeddingManagerPath") {
-            CConfig::strFeatureEmbeddingManagerPath = att.second;
-        } else if (att.first == "strFeatureManagerPath") {
-            CConfig::strFeatureManagerPath = att.second;
-        } else if (att.first == "strActionStandardSystemPath") {
-            CConfig::strActionStandardSystemPath = att.second;
+        } else if (att.first == "strModelDirPath") {
+            CConfig::strModelDirPath = att.second;
         } else if (att.first == "strTrainPath") {
             CConfig::strTrainPath = att.second;
         } else if (att.first == "strWordTablePath") {
@@ -263,14 +234,6 @@ void CConfig::readConfiguration(const std::string &configPath) {
             CConfig::nLabelFeatureNum = stoi(att.second);
         } else if (att.first == "nLabelEmbeddingDim") {
             CConfig::nLabelEmbeddingDim = stoi(att.second);
-        } else if (att.first == "nChunkWordFeatureNum") {
-            CConfig::nChunkWordFeatureNum = stoi(att.second);
-        } else if (att.first == "nChunkWordEmbeddingDim") {
-            CConfig::nChunkWordEmbeddingDim = stoi(att.second);
-        } else if (att.first == "nChunkPOSFeatureNum") {
-            CConfig::nChunkPOSFeatureNum = stoi(att.second);
-        } else if (att.first == "nChunkPOSEmbeddingDim") {
-            CConfig::nChunkPOSEmbeddingDim = stoi(att.second);
         } else if (att.first == "nHiddenSize") {
             CConfig::nHiddenSize = stoi(att.second);
         } else if (att.first == "nRound") {
@@ -281,6 +244,8 @@ void CConfig::readConfiguration(const std::string &configPath) {
             CConfig::nBeamBatchSize = stoi(att.second);
         } else if (att.first == "nBeamBatchDecoderItemSize") {
             CConfig::nBeamBatchDecoderItemSize = stoi(att.second);
+        } else if (att.first == "nSaveModelPerIters") {
+            CConfig::nSaveModelPerIters = stoi(att.second);
         } else if (att.first == "nEvaluatePerIters") {
             CConfig::nEvaluatePerIters = stoi(att.second);
         } else if (att.first == "nThread") {
@@ -306,6 +271,12 @@ void CConfig::readConfiguration(const std::string &configPath) {
                 CConfig::bFineTune = true;
             } else {
                 CConfig::bFineTune = false;
+            }
+        } else if (att.first == "bReadPretrain") {
+            if (att.second == "true") {
+                CConfig::bReadPretrain = true;
+            } else {
+                CConfig::bReadPretrain = false;
             }
         }
     }

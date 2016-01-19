@@ -31,9 +31,11 @@ private:
     std::shared_ptr<DictManager> m_dictManagerPtr;
     std::shared_ptr<FeatureEmbeddingManager> m_featEmbManagerPtr;
     std::shared_ptr<FeatureManager> m_featManagerPtr;
+    std::shared_ptr<Model<XPU>> m_modelPtr;
 
     int m_nBeamSize;
     bool m_bTrain;
+    int num_in, num_hidden, num_out;
 
     GlobalExamples gExamples;
 public:
@@ -52,6 +54,8 @@ private:
     void initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet);
 
     void initDev(InstanceSet &devSet);
+
+    void saveChunker(int round = -1);
 
     BeamChunker(const BeamChunker &chuker) = delete;
     BeamChunker& operator= (const BeamChunker &chunker) = delete;

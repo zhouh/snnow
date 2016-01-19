@@ -80,6 +80,16 @@ public:
         features[IDIdx++] = pos1UniWord;
         features[IDIdx++] = pos2UniWord;
 
+        // chunk words
+        int neg1StartWord = getWordIndex(state.prevChunkIdx);
+        int neg1EndWord   = getWordIndex(state.currChunkIdx - 1);
+        int pos0StartWord = getWordIndex(state.currChunkIdx);
+        int pos0EndWord   = getWordIndex(state.onGoChunkIdx - 1);
+        features[IDIdx++] = neg1StartWord;
+        features[IDIdx++] = neg1EndWord;
+        features[IDIdx++] = pos0StartWord;
+        features[IDIdx++] = pos0EndWord;
+
         return features;
     }
 };
@@ -109,16 +119,26 @@ public:
 
         features.resize(featType.featSize);
 
-        int neg2UniWord   = getPOSIndex(currentIndex - 2);
-        int neg1UniWord   = getPOSIndex(currentIndex - 1);
-        int pos0UniWord   = getPOSIndex(currentIndex);
-        int pos1UniWord   = getPOSIndex(currentIndex + 1);
-        int pos2UniWord   = getPOSIndex(currentIndex + 2);
-        features[IDIdx++] = neg2UniWord;
-        features[IDIdx++] = neg1UniWord;
-        features[IDIdx++] = pos0UniWord;
-        features[IDIdx++] = pos1UniWord;
-        features[IDIdx++] = pos2UniWord;
+        int neg2UniPOS    = getPOSIndex(currentIndex - 2);
+        int neg1UniPOS    = getPOSIndex(currentIndex - 1);
+        int pos0UniPOS    = getPOSIndex(currentIndex);
+        int pos1UniPOS    = getPOSIndex(currentIndex + 1);
+        int pos2UniPOS    = getPOSIndex(currentIndex + 2);
+        features[IDIdx++] = neg2UniPOS;
+        features[IDIdx++] = neg1UniPOS;
+        features[IDIdx++] = pos0UniPOS;
+        features[IDIdx++] = pos1UniPOS;
+        features[IDIdx++] = pos2UniPOS;
+
+        // chunk pos features
+        int neg1StartPOS  = getPOSIndex(state.prevChunkIdx);
+        int neg1EndPOS    = getPOSIndex(state.currChunkIdx - 1);
+        int pos0StartPOS  = getPOSIndex(state.currChunkIdx);
+        int pos0EndPOS    = getPOSIndex(state.onGoChunkIdx - 1);
+        features[IDIdx++] = neg1StartPOS;
+        features[IDIdx++] = neg1EndPOS;
+        features[IDIdx++] = pos0StartPOS;
+        features[IDIdx++] = pos0EndPOS;
 
         return features;
     }
@@ -200,75 +220,4 @@ public:
     }
 };
 
-class ChunkWordFeatureExtractor : public FeatureExtractor {
-public:
-    ChunkWordFeatureExtractor(const FeatureType &fType, const std::shared_ptr<Dictionary> &dictPtr) :
-        FeatureExtractor(fType, dictPtr)
-    {
-    }
-    ~ChunkWordFeatureExtractor() {}
-
-    std::vector<int> extract(const State &state, const Instance &inst) {
-        std::vector<int> features;
-
-        auto getWordIndex = [&state, &inst, this](int index) -> int {
-            if (index < 0 || index >= state.sentLength) {
-                return this->dictPtr->nullIdx;
-            }
-
-            return inst.wordCache[index];
-        };
-
-        int IDIdx = 0;
-
-        features.resize(featType.featSize);
-
-        int neg1StartWord = getWordIndex(state.prevChunkIdx);
-        int neg1EndWord   = getWordIndex(state.currChunkIdx - 1);
-        int pos0StartWord = getWordIndex(state.currChunkIdx);
-        int pos0EndWord   = getWordIndex(state.onGoChunkIdx - 1);
-        features[IDIdx++] = neg1StartWord;
-        features[IDIdx++] = neg1EndWord;
-        features[IDIdx++] = pos0StartWord;
-        features[IDIdx++] = pos0EndWord;
-
-        return features;
-    }
-};
-
-class ChunkPOSFeatureExtractor : public FeatureExtractor {
-public:
-    ChunkPOSFeatureExtractor(const FeatureType &fType, const std::shared_ptr<Dictionary> &dictPtr) :
-        FeatureExtractor(fType, dictPtr)
-    {
-    }
-    ~ChunkPOSFeatureExtractor() {}
-
-    std::vector<int> extract(const State &state, const Instance &inst) {
-        std::vector<int> features;
-
-        auto getPOSIndex = [&state, &inst, this](int index) -> int {
-            if (index < 0 || index >= state.sentLength) {
-                return this->dictPtr->nullIdx;
-            }
-
-            return inst.tagCache[index];
-        };
-
-        int IDIdx = 0;
-
-        features.resize(featType.featSize);
-
-        int neg1StartPOS  = getPOSIndex(state.prevChunkIdx);
-        int neg1EndPOS    = getPOSIndex(state.currChunkIdx - 1);
-        int pos0StartPOS  = getPOSIndex(state.currChunkIdx);
-        int pos0EndPOS    = getPOSIndex(state.onGoChunkIdx - 1);
-        features[IDIdx++] = neg1StartPOS;
-        features[IDIdx++] = neg1EndPOS;
-        features[IDIdx++] = pos0StartPOS;
-        features[IDIdx++] = pos0EndPOS;
-
-        return features;
-    }
-};
 #endif

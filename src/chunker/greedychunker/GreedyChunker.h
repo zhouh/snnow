@@ -37,6 +37,7 @@ private:
     std::shared_ptr<Model<XPU>> m_modelPtr;
 
     bool m_bTrain;
+    int num_in, num_hidden, num_out;
 
     GlobalExamples gExamples;
 
@@ -67,19 +68,7 @@ private:
 
     void generateMultiThreadsMiniBatchData(std::vector<ExamplePtrs> &multiThread_miniBatch_data);
 
-    void saveChunker() {
-        std::ofstream actionSystemOs(CConfig::strActionStandardSystemPath);
-        m_transSystemPtr->saveActionSystem(actionSystemOs);
-
-        std::ofstream dictOs(CConfig::strDictManagerPath);
-        m_dictManagerPtr->saveDictManager(dictOs);
-
-        std::ofstream featManagerOs(CConfig::strFeatureManagerPath);
-        m_featManagerPtr->saveFeatureManager(featManagerOs);
-
-        std::ofstream modelOs(CConfig::strNetModelPath);
-        m_modelPtr->saveModel(modelOs);
-    }
+    void saveChunker(int round = -1);
 
     GreedyChunker(const GreedyChunker &chunker) = delete;
     GreedyChunker& operator= (const GreedyChunker &chunker) = delete;

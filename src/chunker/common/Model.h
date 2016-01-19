@@ -15,7 +15,6 @@
 #include "chunker.h"
 
 #include "Config.h"
-#include "FeatureEmbeddingManager.h"
 #include "FeatureEmbedding.h"
 #include "FeatureType.h"
 
@@ -57,13 +56,11 @@ public:
     /*
      * parameters of feature embeddings
      */
-    std::shared_ptr<FeatureEmbeddingManager> featEmbManagerPtr;
     std::vector< std::shared_ptr<FeatureEmbedding> > featEmbs;
     std::vector<FeatureType> featTypes;
 
     Model(int num_in, int num_hidden, int num_out, 
-          std::shared_ptr<FeatureEmbeddingManager> fEmbManagerPtr, Stream<xpu> *stream, bool bRndInitialize = false) : rnd(0), featEmbManagerPtr(fEmbManagerPtr) {
-        featTypes = featEmbManagerPtr->getFeatureTypes();
+          const std::vector<FeatureType> featureTypes, Stream<xpu> *stream) : rnd(0), featTypes(featureTypes) {
         /*
          * set streams for data
          */
@@ -81,64 +78,28 @@ public:
         Wh2o.Resize(Shape2(num_hidden, num_out), static_cast<real_t>(0.0)); 
         hbias.Resize(Shape1(num_hidden), static_cast<real_t>(0.0)); 
 
-
-        // if the model is the gradient square, we just need to set them 0
-        if(bRndInitialize){ 
-            rnd.SampleUniform(&Wi2h,  -1.0 * CConfig::fInitRange, CConfig::fInitRange);
-            rnd.SampleUniform(&Wh2o,  -1.0 * CConfig::fInitRange, CConfig::fInitRange);
-            rnd.SampleUniform(&hbias, -1.0 * CConfig::fInitRange, CConfig::fInitRange);
-        }
-
         /*
          * initialize the feature embeddings
          * the feature embedding need to be all zeros here
          */
-        if (bRndInitialize) {
-            featEmbs = featEmbManagerPtr->getInitialzedEmebddings(CConfig::fInitRange);
-            if (CConfig::loadModel) {
-                std::fstream is(CConfig::strNetModelPath);
-                loadModel(is);
-            }
-        } else {
-            featEmbs = featEmbManagerPtr->getAllZeroEmebddings();
+        featEmbs.resize(featTypes.size());
+        for (int i = 0; i < static_cast<int>(featTypes.size()); i++) {
+            featEmbs[i].reset(new FeatureEmbedding(featTypes[i]));
         }
     }
 
-    // Model(const Model<xpu> &model) : rnd(0), featTypes(model.featTypes), featEmbs(model.featEmbs){
-    //     this->stream = NewStream<xpu>();
-
-    //     Wi2h.set_stream(this->stream);
-    //     Wh2o.set_stream(this->stream);
-    //     hbias.set_stream(this->stream);
-
-    //     Wi2h = model.Wi2h;
-    //     Wh2o = model.Wh2o;
-    //     hbias = model.hbias;
-    // }
-
-    // Model<xpu>& operator=(const Model<xpu> &model) {
-    //     if (this == &model) {
-    //         return *this;
-    //     }
-
-    //     featTypes = model.featTypes;
-    //     featEmbs = model.featEmbs;
-
-    //     this->stream = NewStream<xpu>();
-
-    //     Wi2h.set_stream(this->stream);
-    //     Wh2o.set_stream(this->stream);
-    //     hbias.set_stream(this->stream);
-
-    //     Wi2h = model.Wi2h;
-    //     Wh2o = model.Wh2o;
-    //     hbias = model.hbias;
-
-    //     return *this;
-    // }
-
     ~Model() {
-        // DeleteStream(stream);
+    }
+
+    void randomInitialize() {
+        // if the model is the gradient square, we just need to set them 0
+        rnd.SampleUniform(&Wi2h,  -1.0 * CConfig::fInitRange, CConfig::fInitRange);
+        rnd.SampleUniform(&Wh2o,  -1.0 * CConfig::fInitRange, CConfig::fInitRange);
+        rnd.SampleUniform(&hbias, -1.0 * CConfig::fInitRange, CConfig::fInitRange);
+
+        for (int i = 0; i < static_cast<int>(featTypes.size()); i++) {
+            featEmbs[i]->init(CConfig::fInitRange);
+        }
     }
 
     /**
@@ -306,7 +267,26 @@ public:
                 os << " ";
         }
 
-        featEmbManagerPtr->saveFeatureEmbeddings(featEmbs);
+        /*
+         * write the featureembedding
+         */
+        os << "embeddingSize" << " " << featEmbs.size() << std::endl;
+        for (int i = 0; i < static_cast<int>(featEmbs.size()); i++){
+            FeatureEmbedding *fe = featEmbs[i].get();
+
+            os << fe->dictSize << " " << fe->embeddingSize << std::endl;
+            for (int di = 0; di < fe->dictSize; di++) {
+                for (int ei = 0; ei < fe->embeddingSize; ei++) {
+                    os << fe->data[di][ei];
+
+                    if (ei == fe->embeddingSize - 1) {
+                        os << std::endl;
+                    } else {
+                        os << " ";
+                    }
+                }
+            }
+        }
     }
 
     void loadModel( std::istream & is ){
@@ -358,7 +338,36 @@ public:
         Copy(Wh2o, sWh2o, Wh2o.stream_);
         Copy(hbias, shbias, hbias.stream_);
 
-        featEmbs = featEmbManagerPtr->loadFeatureEmbeddings();
+        /*
+         * read featEmbs
+         */
+        getline(is, line);
+        std::string tmp;
+        std::istringstream emb_iss(line);
+        int size;
+        emb_iss >> tmp >> size;
+        assert (size == featTypes.size());
+        for (int i = 0; i < size; i++) {
+            FeatureType &type = featTypes[i];
+            FeatureEmbedding *fe = featEmbs[i].get();
+
+            getline(is, line);
+            emb_iss.clear();
+            emb_iss.str(line);
+            int dictSize, embeddingSize;
+            emb_iss >> dictSize >> embeddingSize;
+            assert (dictSize == type.dictSize);
+            assert (embeddingSize == type.featEmbSize);
+
+            for (int di = 0; di < dictSize; di++) {
+                getline(is, line);
+                emb_iss.clear();
+                emb_iss.str(line);
+                for (int ei = 0; ei < embeddingSize; ei++) {
+                    emb_iss >> fe->data[di][ei];
+                }
+            }
+        }
     }
 private:
     Model(const Model<xpu> &model) = delete;

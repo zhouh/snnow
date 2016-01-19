@@ -13,17 +13,11 @@ const std::string FeatureManager::WORDDESCRIPTION = "word";
 const std::string FeatureManager::POSDESCRIPTION = "pos";
 const std::string FeatureManager::LABELDESCRIPTION = "label";
 const std::string FeatureManager::CAPDESCRIPTION  = "capital";
-const std::string FeatureManager::CHUNKWORDDESCRIPTION = "chunkword";
-const std::string FeatureManager::CHUNKPOSDESCRIPTION = "chunkpos";
 
 void FeatureManager::init(const ChunkedDataSet &goldSet, const std::shared_ptr<DictManager> &dictManagerPtr) {
-    if (CConfig::loadModel) {
-        std::ifstream is(CConfig::strFeatureManagerPath);
-        this->loadFeatureManager(is, dictManagerPtr);
-    } else {
-        int dictSize = 0;
-        int featSize = 0;
-        int featEmbSize = 0;
+    int dictSize = 0;
+    int featSize = 0;
+    int featEmbSize = 0;
 
 #define ADDFEATUREEXTRACTOR(name, dictDesc, featDesc, featSize, featEmbSize, FeatureExtractorType) \
             const std::string name ## Description = dictDesc; \
@@ -33,30 +27,13 @@ void FeatureManager::init(const ChunkedDataSet &goldSet, const std::shared_ptr<D
             m_lFeatExtractorPtrs.push_back(std::shared_ptr<FeatureExtractor>(new FeatureExtractorType(name ## FeatType, name ## DictPtr))) \
             
 
-        ADDFEATUREEXTRACTOR(word, DictManager::WORDDESCRIPTION, FeatureManager::WORDDESCRIPTION, CConfig::nWordFeatureNum, CConfig::nWordEmbeddingDim, WordFeatureExtractor);
+    ADDFEATUREEXTRACTOR(word, DictManager::WORDDESCRIPTION, FeatureManager::WORDDESCRIPTION, CConfig::nWordFeatureNum, CConfig::nWordEmbeddingDim, WordFeatureExtractor);
 
-        ADDFEATUREEXTRACTOR(pos, DictManager::POSDESCRIPTION, FeatureManager::POSDESCRIPTION, CConfig::nPOSFeatureNum, CConfig::nPOSEmbeddingDim, POSFeatureExtractor);
+    ADDFEATUREEXTRACTOR(pos, DictManager::POSDESCRIPTION, FeatureManager::POSDESCRIPTION, CConfig::nPOSFeatureNum, CConfig::nPOSEmbeddingDim, POSFeatureExtractor);
 
-        ADDFEATUREEXTRACTOR(cap, DictManager::CAPDESCRIPTION, FeatureManager::CAPDESCRIPTION, CConfig::nCapFeatureNum, CConfig::nCapEmbeddingDim, CapitalFeatureExtractor);
+    ADDFEATUREEXTRACTOR(cap, DictManager::CAPDESCRIPTION, FeatureManager::CAPDESCRIPTION, CConfig::nCapFeatureNum, CConfig::nCapEmbeddingDim, CapitalFeatureExtractor);
 
-        ADDFEATUREEXTRACTOR(label, DictManager::LABELDESCRIPTION, FeatureManager::LABELDESCRIPTION, CConfig::nLabelFeatureNum, CConfig::nLabelEmbeddingDim, LabelFeatureExtractor);
-
-        ADDFEATUREEXTRACTOR(chunkword, DictManager::WORDDESCRIPTION, FeatureManager::CHUNKWORDDESCRIPTION, CConfig::nChunkWordFeatureNum, CConfig::nChunkWordEmbeddingDim, ChunkWordFeatureExtractor);
-
-        ADDFEATUREEXTRACTOR(chunkpos, DictManager::POSDESCRIPTION, FeatureManager::CHUNKPOSDESCRIPTION, CConfig::nChunkPOSFeatureNum, CConfig::nChunkPOSEmbeddingDim, ChunkPOSFeatureExtractor);
-#undef ADDFEATUREEXTRACTOR
-
-        m_lEmbeddingNames.push_back(WORDDESCRIPTION);
-        m_lEmbeddingNames.push_back(POSDESCRIPTION);
-        m_lEmbeddingNames.push_back(LABELDESCRIPTION);
-        m_lEmbeddingNames.push_back(CAPDESCRIPTION);
-        m_mFeatName2EmbeddingName[WORDDESCRIPTION]      = WORDDESCRIPTION;
-        m_mFeatName2EmbeddingName[POSDESCRIPTION]       = POSDESCRIPTION;
-        m_mFeatName2EmbeddingName[LABELDESCRIPTION]     = LABELDESCRIPTION;
-        m_mFeatName2EmbeddingName[CAPDESCRIPTION]       = CAPDESCRIPTION;
-        m_mFeatName2EmbeddingName[CHUNKWORDDESCRIPTION] = WORDDESCRIPTION;
-        m_mFeatName2EmbeddingName[CHUNKPOSDESCRIPTION]  = POSDESCRIPTION;
-    }
+    ADDFEATUREEXTRACTOR(label, DictManager::LABELDESCRIPTION, FeatureManager::LABELDESCRIPTION, CConfig::nLabelFeatureNum, CConfig::nLabelEmbeddingDim, LabelFeatureExtractor);
     // const std::string wordFeatDescription = DictManager::WORDDESCRIPTION;
     // const std::shared_ptr<Dictionary> wordDictPtr = dictManagerPtr->getDictionaryOf(wordFeatDescription);
     // dictSize = wordDictPtr->size();
@@ -122,23 +99,6 @@ std::vector<std::shared_ptr<Dictionary>> FeatureManager::getDictManagerPtrs() {
     return dictPtrs;
 }
 
-std::string FeatureManager::featName2EmbeddingName(const std::string &name) {
-    auto found = m_mFeatName2EmbeddingName.find(name);
-    if (found == m_mFeatName2EmbeddingName.end()) {
-        std::cerr << name << " can not be mapped to embeddingname!" << std::endl;
-
-        exit(0);
-    }
-
-    return found->second;
-}
-
-std::vector<std::string> FeatureManager::getEmebddingNames() {
-    std::vector<std::string> ret(m_lEmbeddingNames);
-
-    return ret;
-}
-
 void FeatureManager::extractFeature(const State &state, const Instance &inst, FeatureVector &featVec) {
     for (auto &fe : m_lFeatExtractorPtrs) {
         featVec.push_back(fe->extract(state, inst));
@@ -151,16 +111,6 @@ void FeatureManager::saveFeatureManager(std::ostream &os) {
     std::vector<FeatureType> featTypes = getFeatureTypes();
     for (FeatureType &ft : featTypes) {
         os << ft;
-    }
-
-    os << "embNameSize" << " " << m_lEmbeddingNames.size() << std::endl;
-    for (std::string &s : m_lEmbeddingNames) {
-        os << s << std::endl;
-    }
-
-    os << "featName2EmbeddingNameSize" << " " << m_mFeatName2EmbeddingName.size() << std::endl;
-    for (auto &it : m_mFeatName2EmbeddingName) {
-        os << it.first << " " << it.second << std::endl;
     }
 }
 
@@ -199,42 +149,11 @@ void FeatureManager::loadFeatureManager(std::istream &is, const std::shared_ptr<
             std::string nameDescription = DictManager::LABELDESCRIPTION;
             std::shared_ptr<Dictionary> dictPtr = dictManagerPtr->getDictionaryOf(nameDescription);
             featExtractorPtr.reset(new LabelFeatureExtractor(ft, dictPtr));
-        } else if (typeName == FeatureManager::CHUNKWORDDESCRIPTION) {
-            std::string nameDescription = DictManager::WORDDESCRIPTION;
-            std::shared_ptr<Dictionary> dictPtr = dictManagerPtr->getDictionaryOf(nameDescription);
-            featExtractorPtr.reset(new ChunkWordFeatureExtractor(ft, dictPtr));
-        } else if (typeName == FeatureManager::CHUNKPOSDESCRIPTION) {
-            std::string nameDescription = DictManager::POSDESCRIPTION;
-            std::shared_ptr<Dictionary> dictPtr = dictManagerPtr->getDictionaryOf(nameDescription);
-            featExtractorPtr.reset(new ChunkPOSFeatureExtractor(ft, dictPtr));
         } else {
             std::cerr << "load wrong FeatureType: " << typeName << std::endl;
             exit(0);
         }
 
         m_lFeatExtractorPtrs.push_back(featExtractorPtr);
-    }
-
-    getline(is, line);
-    std::istringstream iss2(line);
-    iss2 >> tmp >> size;
-    for (int i = 0; i < size; i++) {
-        getline(is, line);
-        std::string embName;
-        std::istringstream embNameIss(line);
-        embNameIss >> embName;
-        m_lEmbeddingNames.push_back(embName);
-    }
-
-    getline(is, line);
-    std::istringstream iss3(line);
-    iss3 >> tmp >> size;
-    for (int i = 0; i < size; i++) {
-        getline(is, line);
-        std::string featName, embName;
-        std::istringstream mapIss(line);
-        mapIss >> featName >> embName;
-
-        m_mFeatName2EmbeddingName[featName] = embName;
     }
 }
