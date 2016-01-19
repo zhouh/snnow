@@ -95,6 +95,10 @@ public:
          */
         if (bRndInitialize) {
             featEmbs = featEmbManagerPtr->getInitialzedEmebddings(CConfig::fInitRange);
+            if (CConfig::loadModel) {
+                std::fstream is(CConfig::strNetModelPath);
+                loadModel(is);
+            }
         } else {
             featEmbs = featEmbManagerPtr->getAllZeroEmebddings();
         }
@@ -256,49 +260,60 @@ public:
      * The save and read model module need to be rewrite
      */
     void saveModel( std::ostream & os ){
+        TensorContainer<cpu, 2, real_t> sWi2h(Wi2h.shape_);
+        TensorContainer<cpu, 2, real_t> sWh2o(Wh2o.shape_);
+        TensorContainer<cpu, 1, real_t> shbias(hbias.shape_);
+
+        Copy(sWi2h, Wi2h, Wi2h.stream_);
+        Copy(sWh2o, Wh2o, Wh2o.stream_);
+        Copy(shbias, hbias, hbias.stream_);
+
         /*
          * write the Wi2h
          */
-        os << Wi2h.size(0) << "\t" << Wi2h.size( 1 ) << std::endl;
-        for( index_t i = 0; i < Wi2h.size( 0 ); i++ )
-            for( index_t j = 0; j < Wi2h.size( 1 ); j++ ){
-                os << Wi2h[ i ][ j ];
-                if( j == ( Wi2h.size( 1 ) - 1 ) )
+        os << sWi2h.size(0) << "\t" << sWi2h.size( 1 ) << std::endl;
+        for( index_t i = 0; i < sWi2h.size( 0 ); i++ )
+            for( index_t j = 0; j < sWi2h.size( 1 ); j++ ){
+                os << sWi2h[ i ][ j ];
+                if( j == ( sWi2h.size( 1 ) - 1 ) )
                     os << std::endl;
                 else
                     os << " ";
-
             }
 
         /*
          * write the Wh2o
          */
-        os << Wh2o.size(0) << "\t" << Wh2o.size( 1 ) << std::endl;
-        for( index_t i = 0; i < Wh2o.size( 0 ); i++ )
-            for( index_t j = 0; j < Wh2o.size( 1 ); j++ ){
-                os << Wh2o[ i ][ j ];
-                if( j == ( Wh2o.size( 1 ) - 1 ) )
+        os << sWh2o.size(0) << "\t" << sWh2o.size( 1 ) << std::endl;
+        for( index_t i = 0; i < sWh2o.size( 0 ); i++ )
+            for( index_t j = 0; j < sWh2o.size( 1 ); j++ ){
+                os << sWh2o[ i ][ j ];
+                if( j == ( sWh2o.size( 1 ) - 1 ) )
                     os << std::endl;
                 else
                     os << " ";
-
             }
 
         /*
          * write the hbias
          */
-        os << hbias.size(0) << std::endl;
-        for( index_t i = 0; i < hbias.size( 0 ); i++ ){
-            os << hbias[ i ];
-            if(  i == ( hbias.size( 0 ) - 1 ) )
+        os << shbias.size(0) << std::endl;
+        for( index_t i = 0; i < shbias.size( 0 ); i++ ){
+            os << shbias[ i ];
+            if(  i == ( shbias.size( 0 ) - 1 ) )
                 os << std::endl;
             else
                 os << " ";
-
         }
+
+        featEmbManagerPtr->saveFeatureEmbeddings(featEmbs);
     }
 
     void loadModel( std::istream & is ){
+        TensorContainer<cpu, 2, real_t> sWi2h(Wi2h.shape_);
+        TensorContainer<cpu, 2, real_t> sWh2o(Wh2o.shape_);
+        TensorContainer<cpu, 1, real_t> shbias(hbias.shape_);
+
         std::string line;
         index_t size0, size1;
         /*
@@ -311,7 +326,7 @@ public:
             getline( is, line );
             std::istringstream iss_j( line );
             for( index_t j = 0; j < size1; j++ )
-                iss_j >> Wi2h[ i ][ j ];
+                iss_j >> sWi2h[ i ][ j ];
         }
 
         /*
@@ -324,7 +339,7 @@ public:
             getline( is, line );
             std::istringstream iss_wh2o_j( line );
             for( index_t j = 0; j < size1; j++ )
-                iss_wh2o_j >> Wh2o[ i ][ j ];
+                iss_wh2o_j >> sWh2o[ i ][ j ];
         }
 
         /*
@@ -336,8 +351,14 @@ public:
         getline( is, line );
         std::istringstream iss_hbias_j( line );
         for( index_t i = 0; i < size0; i++  ){
-            iss_hbias_j >> hbias[ i ];
+            iss_hbias_j >> shbias[ i ];
         }
+
+        Copy(Wi2h, sWi2h, Wi2h.stream_);
+        Copy(Wh2o, sWh2o, Wh2o.stream_);
+        Copy(hbias, shbias, hbias.stream_);
+
+        featEmbs = featEmbManagerPtr->loadFeatureEmbeddings();
     }
 private:
     Model(const Model<xpu> &model) = delete;

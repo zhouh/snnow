@@ -41,7 +41,7 @@ public:
     FeatureManager() { }
     ~FeatureManager() { }
 
-    void init(const ChunkedDataSet &goldSet, const std::shared_ptr<DictManager> &dataManagerPtr);
+    void init(const ChunkedDataSet &goldSet, const std::shared_ptr<DictManager> &dictaManagerPtr);
 
     void extractFeature(const State &state, const Instance &inst, FeatureVector &features);
 
@@ -53,6 +53,9 @@ public:
 
     std::vector<std::string> getEmebddingNames();
 
+    void saveFeatureManager(std::ostream &os);
+
+    void loadFeatureManager(std::istream &is, const std::shared_ptr<DictManager> &dictManagerPtr);
 private:
     FeatureManager(const FeatureManager &fManager) = delete;
     FeatureManager& operator= (const FeatureManager &fManager) = delete;

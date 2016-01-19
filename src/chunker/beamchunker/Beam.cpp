@@ -44,6 +44,27 @@ float Beam::getMaxScoreInBeam() {
     return maxScore;
 }
 
+bool Beam::isMaxScoreGold() {
+    float maxScore = 0;
+    int maxIndex;
+
+    if (currentBeamSize == 0) {
+        return false;
+    }
+
+    maxScore = beam[0].score;
+    maxIndex = 0;
+
+    for (int i = 1; i < currentBeamSize; i++) {
+        if (beam[i].score > maxScore) {
+            maxScore = beam[i].score;
+            maxIndex = i;
+        }
+    }
+
+    return beam[maxIndex].bGold;
+}
+
 bool ScoredTransitionMore(const CScoredTransition &x, const CScoredTransition &y) {
     return x.score > y.score;
 }

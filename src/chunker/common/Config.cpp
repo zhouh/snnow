@@ -12,6 +12,15 @@
 
 #include "Config.h"
 
+bool CConfig::loadModel = false;
+bool CConfig::saveModel = false;
+
+std::string CConfig::strDictManagerPath;
+std::string CConfig::strNetModelPath;
+std::string CConfig::strFeatureEmbeddingManagerPath;
+std::string CConfig::strFeatureManagerPath;
+std::string CConfig::strActionStandardSystemPath;
+
 std::string CConfig::strEmbeddingPath("../../data/chunk/English/sen.emb");
 
 std::string CConfig::strWordTablePath("../../data/chunk/English/giga.dict");
@@ -130,6 +139,13 @@ void CConfig::readConfiguration(const std::string &configPath) {
     using namespace std;
 
     unordered_set<string> attributes;
+    attributes.insert("loadModel");
+    attributes.insert("saveModel");
+    attributes.insert("strDictManagerPath");
+    attributes.insert("strNetModelPath");
+    attributes.insert("strFeatureEmbeddingManagerPath");
+    attributes.insert("strFeatureManagerPath");
+    attributes.insert("strActionStandardSystemPath");
     attributes.insert("strTrainPath");
     attributes.insert("strWordTablePath");
     attributes.insert("strDevPath");
@@ -195,7 +211,29 @@ void CConfig::readConfiguration(const std::string &configPath) {
             argumentIsWrong();
         }
 
-        if (att.first == "strTrainPath") {
+        if (att.first == "loadModel") {
+            if (att.second == "true") {
+                CConfig::loadModel = true;
+            } else {
+                CConfig::loadModel = false;
+            }
+        } else if (att.first == "saveModel") {
+            if (att.second == "true") {
+                CConfig::saveModel = true;
+            } else {
+                CConfig::saveModel = false;
+            }
+        } else if (att.first == "strDictManagerPath") {
+            CConfig::strDictManagerPath = att.second;
+        } else if (att.first == "strNetModelPath") {
+            CConfig::strNetModelPath = att.second;
+        } else if (att.first == "strFeatureEmbeddingManagerPath") {
+            CConfig::strFeatureEmbeddingManagerPath = att.second;
+        } else if (att.first == "strFeatureManagerPath") {
+            CConfig::strFeatureManagerPath = att.second;
+        } else if (att.first == "strActionStandardSystemPath") {
+            CConfig::strActionStandardSystemPath = att.second;
+        } else if (att.first == "strTrainPath") {
             CConfig::strTrainPath = att.second;
         } else if (att.first == "strWordTablePath") {
             CConfig::strWordTablePath = att.second;
@@ -287,7 +325,7 @@ void CConfig::readConfiguration(const std::string &configPath) {
     }
 
     if (CConfig::nGreedyBatchSize < CConfig::nGPUBatchSize * CConfig::nThread) {
-        std::cerr << "nGreedyBatchSize: " << nGreedyBatchSize << " should be more than nGPUBatchSize * nThread: " << CConfig::nGPUBatchSize << " * " << CConfig::nThread << ")" << std::endl;
+        std::cerr << "nGreedyBatchSize: " << nGreedyBatchSize << " should be more than nGPUBatchSize * nThread: (" << CConfig::nGPUBatchSize << " * " << CConfig::nThread << ")" << std::endl;
         exit(0);
     }
 }

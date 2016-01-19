@@ -19,6 +19,7 @@ public:
     int beamIdx;
     double score;
     bool bGold;
+    int onGoChunkIdx;
     int currChunkIdx;
     int prevChunkIdx;
 
@@ -38,6 +39,7 @@ public:
         score = s.score;
         beamIdx = s.beamIdx;
         bGold = s.bGold;
+        onGoChunkIdx = s.onGoChunkIdx;
         currChunkIdx = s.currChunkIdx;
         prevChunkIdx = s.prevChunkIdx;
     }
@@ -55,6 +57,7 @@ public:
         this->score = s.score;
         this->beamIdx = s.beamIdx;
         this->bGold = s.bGold;
+        this->onGoChunkIdx = s.onGoChunkIdx;
         this->currChunkIdx = s.currChunkIdx;
         this->prevChunkIdx = s.prevChunkIdx;
 
@@ -75,6 +78,7 @@ public:
         score = 0;
         lastAction = -1;
 
+        onGoChunkIdx = -1;
         currChunkIdx = -1;
         prevChunkIdx = -1;
     }

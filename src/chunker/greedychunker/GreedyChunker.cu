@@ -152,6 +152,9 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
     srand(0);
 
     Stream<XPU> *sstream = NewStream<XPU>();
+
+    m_modelPtr.reset(new Model<XPU>(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, true));
+
     InitTensorEngine<XPU>();
 
     auto featureTypes = m_featManagerPtr->getFeatureTypes();
@@ -165,8 +168,7 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
     }
     std::cerr << "[end]" << std::endl;
 
-    Model<XPU> modelParas(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, true);
-
+    Model<XPU> &modelParas = *(m_modelPtr.get());
     Model<XPU> adaGradSquares(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, false);
 
     ChunkedResultType bestDevFB1 = std::make_tuple(0.0, 0.0, -1.0);
@@ -314,9 +316,9 @@ void GreedyChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
     m_featManagerPtr.reset(new FeatureManager());
     m_featManagerPtr->init(goldSet, m_dictManagerPtr);
 
-    m_featEmbManagerPtr.reset(new FeatureEmbeddingManager(
-                m_featManagerPtr,
-                static_cast<real_t>(CConfig::fInitRange)));
+
+    m_featEmbManagerPtr.reset(new FeatureEmbeddingManager());
+    m_featEmbManagerPtr->init(m_featManagerPtr, static_cast<real_t>(CConfig::fInitRange));
 
     std::cerr << "  total input embedding dim: " << m_featEmbManagerPtr->getTotalFeatEmbSize() << std::endl;
     m_transSystemPtr.reset(new ActionStandardSystem());

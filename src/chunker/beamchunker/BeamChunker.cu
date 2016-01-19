@@ -110,7 +110,7 @@ std::pair<BeamChunker::ChunkedResultType, BeamChunker::ChunkedResultType> BeamCh
 }
 
 void BeamChunker::generateMultiThreadsMiniBatchData(std::vector<std::vector<GlobalExample *>> &multiThread_miniBatch_data) {
-    // std::random_shuffle(gExamples.begin(), gExamples.end());
+    std::random_shuffle(gExamples.begin(), gExamples.end());
 
     // prepare mini-batch data for each threads
     static int exampleNumOfThread = std::min(CConfig::nBeamBatchSize, static_cast<int>(gExamples.size()))/ CConfig::nThread;
@@ -198,10 +198,10 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
 
         Model<XPU> batchCumulatedGrads(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, false);
         // begin to multi thread Training
-// #pragma omp parallel num_threads(CConfig::nThread)
+#pragma omp parallel num_threads(CConfig::nThread)
         {
-            // int threadIndex = omp_get_thread_num();
-            int threadIndex = 0;
+            int threadIndex = omp_get_thread_num();
+            // int threadIndex = 0;
             auto currentThreadData = multiThread_miniBatch_data[threadIndex];
 
             Model<XPU> cumulatedGrads(num_in, num_hidden, num_out, m_featEmbManagerPtr, sstream, false);
@@ -229,24 +229,23 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
 
                 std::vector<State *> predStates = decoder.decode(tnnets, gExamplePtrs);
 
-                for (int i = 0; i < predStates.size(); i++) {
-                    LabeledSequence sequence(instPtrs[i]->input);
+                // for (int i = 0; i < predStates.size(); i++) {
+                //     LabeledSequence sequence(instPtrs[i]->input);
 
-                    m_transSystemPtr->generateOutput(*predStates[i], sequence);
+                //     m_transSystemPtr->generateOutput(*predStates[i], sequence);
 
-                    std::cerr << sequence << std::endl;
-                    std::cerr << std::endl;
+                //     std::cerr << sequence << std::endl;
+                //     std::cerr << std::endl;
+                // }
 
-                }
-
-                std::cerr << "construct finish" << std::endl;
-                char ch;
-                std::cin >> ch;
-                // tnnets.updateTNNetParas(&cumulatedGrads, decoder.beam, decoder.bEarlyUpdate, decoder.nGoldTransitionIndex, decoder.goldScoredTran);
+                // std::cerr << "construct finish" << std::endl;
+                // char ch;
+                // std::cin >> ch;
+                tnnets.updateTNNetParas(&cumulatedGrads, decoder);
             } // end for instance traverse
 
-// #pragma omp barrier
-// #pragma omp critical
+#pragma omp barrier
+#pragma omp critical
             batchCumulatedGrads.mergeModel(&cumulatedGrads);
 
         } // end multi-processor

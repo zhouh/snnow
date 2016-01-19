@@ -37,6 +37,8 @@ public:
 
     virtual std::vector<int> extract(const State &state, const Instance &inst) = 0;
 
+    // friend std::ostream& operator<< (std::ostream& os, FeatureExtractor &fe);
+    // friend std::istream& operator>> (std::istream& is, FeatureExtractor &fe);
 private:
     FeatureExtractor(const FeatureExtractor &fe) = delete;
     FeatureExtractor& operator= (const FeatureExtractor &fe) = delete;
@@ -217,7 +219,6 @@ public:
             return inst.wordCache[index];
         };
 
-        int currentIndex = state.index + 1;
         int IDIdx = 0;
 
         features.resize(featType.featSize);
@@ -225,7 +226,7 @@ public:
         int neg1StartWord = getWordIndex(state.prevChunkIdx);
         int neg1EndWord   = getWordIndex(state.currChunkIdx - 1);
         int pos0StartWord = getWordIndex(state.currChunkIdx);
-        int pos0EndWord   = getWordIndex(currentIndex);
+        int pos0EndWord   = getWordIndex(state.onGoChunkIdx - 1);
         features[IDIdx++] = neg1StartWord;
         features[IDIdx++] = neg1EndWord;
         features[IDIdx++] = pos0StartWord;
@@ -254,7 +255,6 @@ public:
             return inst.tagCache[index];
         };
 
-        int currentIndex = state.index + 1;
         int IDIdx = 0;
 
         features.resize(featType.featSize);
@@ -262,7 +262,7 @@ public:
         int neg1StartPOS  = getPOSIndex(state.prevChunkIdx);
         int neg1EndPOS    = getPOSIndex(state.currChunkIdx - 1);
         int pos0StartPOS  = getPOSIndex(state.currChunkIdx);
-        int pos0EndPOS    = getPOSIndex(currentIndex);
+        int pos0EndPOS    = getPOSIndex(state.onGoChunkIdx - 1);
         features[IDIdx++] = neg1StartPOS;
         features[IDIdx++] = neg1EndPOS;
         features[IDIdx++] = pos0StartPOS;

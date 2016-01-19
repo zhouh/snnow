@@ -34,6 +34,7 @@ private:
     std::shared_ptr<DictManager> m_dictManagerPtr;
     std::shared_ptr<FeatureEmbeddingManager> m_featEmbManagerPtr;
     std::shared_ptr<FeatureManager> m_featManagerPtr;
+    std::shared_ptr<Model<XPU>> m_modelPtr;
 
     bool m_bTrain;
 
@@ -65,6 +66,20 @@ private:
     void printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &devGoldSet, Model<XPU> &modelParas, double batchObjLoss, double posClassificationRate, ChunkedResultType &bestDevFB1, ChunkedResultType &bestDevNPFB1);
 
     void generateMultiThreadsMiniBatchData(std::vector<ExamplePtrs> &multiThread_miniBatch_data);
+
+    void saveChunker() {
+        std::ofstream actionSystemOs(CConfig::strActionStandardSystemPath);
+        m_transSystemPtr->saveActionSystem(actionSystemOs);
+
+        std::ofstream dictOs(CConfig::strDictManagerPath);
+        m_dictManagerPtr->saveDictManager(dictOs);
+
+        std::ofstream featManagerOs(CConfig::strFeatureManagerPath);
+        m_featManagerPtr->saveFeatureManager(featManagerOs);
+
+        std::ofstream modelOs(CConfig::strNetModelPath);
+        m_modelPtr->saveModel(modelOs);
+    }
 
     GreedyChunker(const GreedyChunker &chunker) = delete;
     GreedyChunker& operator= (const GreedyChunker &chunker) = delete;

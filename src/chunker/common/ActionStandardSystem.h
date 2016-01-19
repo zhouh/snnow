@@ -44,6 +44,13 @@ public:
 
     void makeDictionaries(const ChunkedDataSet &goldSet);
 
+    void saveLabelManager(std::ostream &os) {
+        labelDict.saveDictionary(os);
+    }
+
+    void loadLabelManager(std::istream &is) {
+        labelDict.loadDictionary(is);
+    }
 private:
     LabelManager(const LabelManager &lm) = delete;
     LabelManager& operator= (const LabelManager &lm) = delete;
@@ -101,6 +108,10 @@ public:
     int getBeginIndex() {
         return nBegin;
     }
+
+    void saveActionSystem(std::ostream &os);
+
+    void loadActionSystem(std::istream &is);
 
 private:
     void doOutsideMove(State &srcState, State &dstState, const CScoredTransition &transition);

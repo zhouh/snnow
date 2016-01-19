@@ -134,6 +134,13 @@ void ActionStandardSystem::doOutsideMove(State &srcState, State &dstState, const
     dstState.prevStatePtr = &srcState;
     dstState.chunkedLabelIds.push_back(actionIdx2LabelIdx(transition.action));
     if (transition.action == nBegin || transition.action == nOutside) {
+        if (dstState.onGoChunkIdx == -1) {
+            dstState.onGoChunkIdx = 0;
+        } else {
+            dstState.prevChunkIdx = dstState.currChunkIdx;
+            dstState.currChunkIdx = dstState.onGoChunkIdx;
+            dstState.onGoChunkIdx = dstState.index;
+        }
         dstState.prevChunkIdx = dstState.currChunkIdx;
         dstState.currChunkIdx = dstState.index;
     }
@@ -147,6 +154,13 @@ void ActionStandardSystem::doInsideMove(State &srcState, State &dstState, const 
     dstState.prevStatePtr = &srcState;
     dstState.chunkedLabelIds.push_back(actionIdx2LabelIdx(transition.action));
     if (transition.action == nBegin || transition.action == nOutside) {
+        if (dstState.onGoChunkIdx == -1) {
+            dstState.onGoChunkIdx = 0;
+        } else {
+            dstState.prevChunkIdx = dstState.currChunkIdx;
+            dstState.currChunkIdx = dstState.onGoChunkIdx;
+            dstState.onGoChunkIdx = dstState.index;
+        }
         dstState.prevChunkIdx = dstState.currChunkIdx;
         dstState.currChunkIdx = dstState.index;
     }
@@ -160,10 +174,58 @@ void ActionStandardSystem::doBeginMove(State &srcState, State &dstState, const C
     dstState.prevStatePtr = &srcState;
     dstState.chunkedLabelIds.push_back(actionIdx2LabelIdx(transition.action));
     if (transition.action == nBegin || transition.action == nOutside) {
+        if (dstState.onGoChunkIdx == -1) {
+            dstState.onGoChunkIdx = 0;
+        } else {
+            dstState.prevChunkIdx = dstState.currChunkIdx;
+            dstState.currChunkIdx = dstState.onGoChunkIdx;
+            dstState.onGoChunkIdx = dstState.index;
+        }
         dstState.prevChunkIdx = dstState.currChunkIdx;
         dstState.currChunkIdx = dstState.index;
     }
     dstState.lastAction = const_cast<CScoredTransition &>(transition).action;
     dstState.sentLength = srcState.sentLength;
     dstState.score = const_cast<CScoredTransition &>(transition).score;
+}
+
+void ActionStandardSystem::saveActionSystem(std::ostream &os) {
+    labelManager.saveLabelManager(os);
+    os << "labelSize" << " " << knowLabels.size() << std::endl;
+    os << "nActNum" << " " << nActNum << std::endl;
+    os << "nOutside" << " " << nOutside << std::endl;
+    os << "nBegin" << " " << nBegin << std::endl;
+}
+
+void ActionStandardSystem::loadActionSystem(std::istream &is) {
+    labelManager.loadLabelManager(is);
+    std::string line;
+    getline(is, line);
+    std::istringstream iss(line);
+    std::string tmp;
+    int size;
+    iss >> tmp >> size;
+    for (int i = 0; i < size; i++) {
+        getline(is, line);
+
+        std::istringstream labelIss(line);
+        std::string label;
+        labelIss >> label;
+        knowLabels.push_back(label);
+    }
+
+    getline(is, line);
+    iss.str(line);
+    iss >> tmp >> size;
+    nActNum = size;
+    
+    getline(is, line);
+    iss.str(line);
+    iss >> tmp >> size;
+    nOutside = size;
+
+    getline(is, line);
+    iss.str(line);
+    iss >> tmp >> size;
+    nBegin = size;
 }

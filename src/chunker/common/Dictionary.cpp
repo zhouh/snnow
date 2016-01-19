@@ -5,6 +5,7 @@
 	> Created Time: Fri 25 Dec 2015 03:26:31 PM CST
  ************************************************************************/
 #include <fstream>
+#include <sstream>
 
 #include "Dictionary.h"
 #include "Config.h"

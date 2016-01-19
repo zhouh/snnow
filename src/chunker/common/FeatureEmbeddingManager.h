@@ -30,23 +30,10 @@ private:
     int totalFeatEmbSize;
 
 public:
-    FeatureEmbeddingManager(const std::shared_ptr<FeatureManager> &featManagerPtr, const real_t initRange) : m_featManagerPtr(featManagerPtr) {
-        std::vector<FeatureType> featTypes = m_featManagerPtr->getFeatureTypes();
-        std::vector<std::shared_ptr<Dictionary>> dictPtrs = m_featManagerPtr->getDictManagerPtrs();
+    FeatureEmbeddingManager() { }
 
-        totalFeatEmbSize = 0;
+    void init(const std::shared_ptr<FeatureManager> &featManagerPtr, const real_t initRange);
 
-        for (auto &fType : featTypes) {
-            m_lFeatTypes.push_back(fType);
-            totalFeatEmbSize += fType.featSize * fType.featEmbSize;
-        }
-
-        for (auto &dictPtr : dictPtrs) {
-            m_lFeatDictPtrs.push_back(dictPtr);
-        }
-
-        m_lEmbeddingNames = m_featManagerPtr->getEmebddingNames();
-    }
     ~FeatureEmbeddingManager() {}
 
     std::vector<FeatureType> getFeatureTypes() {
@@ -55,6 +42,9 @@ public:
 
     std::vector<std::shared_ptr<FeatureEmbedding>> getInitialzedEmebddings(const real_t initRange);
 
+    std::vector<std::shared_ptr<FeatureEmbedding>> loadFeatureEmbeddings();
+
+    void saveFeatureEmbeddings(std::vector<std::shared_ptr<FeatureEmbedding>> &featEmbPtrs);
 
     std::vector<std::shared_ptr<FeatureEmbedding>> getAllZeroEmebddings();
 

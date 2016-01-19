@@ -39,6 +39,8 @@ public:
     int insert(const CScoredTransition &transition);
 
     float getMaxScoreInBeam();
+
+    bool isMaxScoreGold();
 };
 
 #endif

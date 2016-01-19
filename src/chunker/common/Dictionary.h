@@ -52,6 +52,37 @@ public:
 
     virtual void makeDictionaries(const ChunkedDataSet &goldSet) = 0;
 
+    virtual void saveDictionary(std::ostream &os) {
+        os << "elementSize" << " " << m_lKnownElements.size() << std::endl;
+
+        for (std::string &e : m_lKnownElements) {
+            os << e << " " << m_mElement2Idx[e] << std::endl;
+        }
+    }
+
+    virtual void loadDictionary(std::istream &is) {
+        std::string line;
+        std::string tmp;
+        int size;
+    
+        getline(is, line);
+        std::istringstream iss(line);
+        iss >> tmp >> size;
+    
+        std::string element;
+        int idx;
+        for (int i = 0; i < size; i++) {
+            getline(is, line);
+            std::istringstream iss_j(line);
+            iss_j >> element >> idx;
+
+            processElementAndIdx(element, idx);
+    
+            m_mElement2Idx[element] = idx;
+            m_lKnownElements.push_back(element);
+        }
+    }
+
     void printDict() {
         for (auto &s : m_lKnownElements) {
             std::cerr << "  " <<  s << ": " << m_mElement2Idx[s] << std::endl;
@@ -61,6 +92,14 @@ public:
 private:
     Dictionary(const Dictionary &dManager) = delete;
     Dictionary& operator= (const Dictionary &dManager) = delete;
+
+    virtual void processElementAndIdx(const std::string &element, const int idx) {
+        if (element == nullstr) {
+            nullIdx = idx;
+        } else if (element == unknownstr) {
+            unkIdx = idx;
+        }
+    }
 };
 
 class WordDictionary : public Dictionary {

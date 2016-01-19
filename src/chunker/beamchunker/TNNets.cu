@@ -40,6 +40,10 @@ void TNNets::updateTNNetParas(Model<XPU> *cumulatedGrads, Beam & beam, bool earl
    float sum =0;
    float maxScore = beam.getMaxScoreInBeam();
 
+   // TODO: predict correctly ?
+   if (!earlyUpdate && beam.isMaxScoreGold()) {
+       return ;
+   }
    /*
     * construct the training data
     */
@@ -94,14 +98,14 @@ void TNNets::updateTNNetParas(Model<XPU> *cumulatedGrads, Beam & beam, bool earl
 
 void TNNets::updateTNNetParas(Model<XPU> *cumulatedGrads, BatchBeamDecoder &batchDecoder) {
     const int itemSize = batchDecoder.m_nInstSize;
-    std::vector<real_t> sums(itemSize, 0.0);
     std::vector<real_t> maxScores(itemSize, 0.0);
     std::vector<std::vector<real_t>> updateParasVec(itemSize);
 
     std::vector<std::vector<CScoredTransition *>> trainingDatas(itemSize);
+    std::vector<bool> predictCorrect(itemSize, false);
 
     for (int insti = 0; insti < itemSize; insti++) {
-        real_t &sum = sums[insti];
+        real_t sum = 0.0;
         real_t &maxScore = maxScores[insti];
 
         Beam &beam = *(batchDecoder.m_lBeamPtrs[insti].get());
@@ -109,6 +113,11 @@ void TNNets::updateTNNetParas(Model<XPU> *cumulatedGrads, BatchBeamDecoder &batc
         maxScore = beam.getMaxScoreInBeam();
 
         bool earlyUpdate = batchDecoder.m_lbEarlyUpdates[insti];
+
+        if (!earlyUpdate && beam.isMaxScoreGold()) {
+            predictCorrect[insti] = true;
+        }
+
         int &goldTransitIndex = batchDecoder.m_lnGoldTransitionIndex[insti];
         CScoredTransition &goldTransit = batchDecoder.m_lGoldScoredTrans[insti];
         std::vector<CScoredTransition *> &trainingData = trainingDatas[insti];
@@ -121,7 +130,7 @@ void TNNets::updateTNNetParas(Model<XPU> *cumulatedGrads, BatchBeamDecoder &batc
             goldTransitIndex = trainingData.size() - 1;
         }
 
-        updateParasVec.push_back(std::vector<real_t>(trainingData.size(), 0.0));
+        updateParasVec[insti] = std::vector<real_t>(trainingData.size(), 0.0);
 
         std::vector<real_t> &updateParas = updateParasVec[insti];
         for (int beami = 0; beami < static_cast<int>(trainingData.size()); beami++) {
@@ -139,7 +148,7 @@ void TNNets::updateTNNetParas(Model<XPU> *cumulatedGrads, BatchBeamDecoder &batc
 
         int baseIndex = 0;
         for (int insti = 0; insti < itemSize; insti++, baseIndex += batchDecoder.m_nBeamSize) {
-            if (batchDecoder.m_lnExpandRounds[insti] < backRound + 1) {
+            if (predictCorrect[insti] || batchDecoder.m_lnExpandRounds[insti] < backRound + 1) {
                 continue;
             }
            

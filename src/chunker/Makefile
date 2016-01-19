@@ -30,8 +30,8 @@ CUDA_COMMON_OBJ = $(OBJ_DIR)/common/FeatureEmbeddingManager.o
 # CUOBJ = $(OBJ_DIR)/Chunker.o
 .PHONY: clean all
 
-# all: directoires $(GREEDY_BIN)
-all: directoires $(BEAM_BIN)
+all: directoires $(GREEDY_BIN)
+# all: directoires $(BEAM_BIN)
 # all: directoires $(GREEDY_BIN) $(BEAM_BIN)
 
 directoires:
@@ -76,7 +76,7 @@ $(OBJ_DIR)/beamchunker/BeamDecoder.o : $(BEAM_CHUNKER_DIR)/BeamDecoder.cu $(BEAM
 	$(NVCC) -c -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" $(filter %.cu, $^)
 
 $(OBJ_DIR)/beamchunker/BatchBeamDecoder.o : $(BEAM_CHUNKER_DIR)/BatchBeamDecoder.cu $(BEAM_CHUNKER_DIR)/BatchBeamDecoder.h $(BEAM_CHUNKER_DIR)/TNNets.h
-	$(NVCC) -c -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" $(filter %.cu, $^)
+	$(NVCC) -c  -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" $(filter %.cu, $^)
 
 $(OBJ_DIR)/beamchunker/TNNets.o : $(BEAM_CHUNKER_DIR)/TNNets.h $(BEAM_CHUNKER_DIR)/TNNets.cu $(BEAM_CHUNKER_DIR)/BatchBeamDecoder.h
 	$(NVCC) -c -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" $(filter %.cu, $^)
@@ -91,13 +91,13 @@ $(COMMON_OBJ) :
 	$(CXX) -c $(CFLAGS) $(firstword $(filter %.cpp %.c, $^) ) -o $@
 
 $(CUDA_COMMON_OBJ) :
-	$(NVCC) -g -c -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" $(filter %.cu, $^)
+	$(NVCC) -c -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" $(filter %.cu, $^)
 
 $(GREEDY_CUOBJ) :
-	$(NVCC) -g -c -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" $(filter %.cu, $^)
+	$(NVCC) -c -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" $(filter %.cu, $^)
 
 $(BEAM_CUOBJ) :
-	$(NVCC) -g -c -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" $(filter %.cu, $^)
+	$(NVCC) -c -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" $(filter %.cu, $^)
 
 $(CUBIN) :
 	$(NVCC) -o $@ $(NVCCFLAGS) -Xcompiler "$(CFLAGS)" -Xlinker "$(LDFLAGS)" $(filter %.cu %.cpp %.o, $^)

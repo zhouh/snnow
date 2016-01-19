@@ -12,6 +12,15 @@
 
 class CConfig {
 public:
+    static bool loadModel;
+    static bool saveModel;
+
+    static std::string strDictManagerPath;
+    static std::string strNetModelPath;
+    static std::string strFeatureEmbeddingManagerPath;
+    static std::string strFeatureManagerPath;
+    static std::string strActionStandardSystemPath;
+
     static std::string strEmbeddingPath;
 
     static std::string strWordTablePath;

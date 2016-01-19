@@ -78,7 +78,7 @@ std::vector<State *> BatchBeamDecoder::decode(TNNets &tnnet, std::vector<GlobalE
         std::vector<FeatureVector> batchFeatureVectors;
         tnnet.moveToNextNet();
         for (int insti = 0; insti < m_nInstSize; insti++) {
-            if (itemCompeleteds[insti]) {
+            if (!itemCompeleteds[insti]) {
                 m_lnExpandRounds[insti] = nRound;
             }
         }
@@ -161,9 +161,8 @@ void BatchBeamDecoder::generateBatchInput(const int num_in, const int nRound, co
     int input_index = 0;
     TensorContainer<cpu, 2, real_t> branch_input(Shape2(m_nBeamSize, num_in));
     // fill full in the batch input
-    for (int insti = 0; insti < m_nInstSize; insti++) {
+    for (int insti = 0; insti < m_nInstSize; insti++, input_index += m_nBeamSize) {
         if (itemCompeleteds[insti]) {
-            input_index += m_nBeamSize;
             continue;
         }
 
@@ -191,8 +190,6 @@ void BatchBeamDecoder::generateBatchInput(const int num_in, const int nRound, co
                 input[input_index + beami][num_ini] = branch_input[beami][num_ini];
             }
         }
-
-        input_index += m_nBeamSize;
     }
 }
 
@@ -260,7 +257,7 @@ void BatchBeamDecoder::lazyExpandBeams(const int nRound, const std::vector<bool>
         State *&retval = retvals[insti];
 
         for (int beami = 0; beami < beam.currentBeamSize; beami++) {
-            const CScoredTransition transition = beam.beam[beami];
+            const CScoredTransition &transition = beam.beam[beami];
 
             State *target = lattice_index[nRound] + beami;
             *target = *(transition.source);
