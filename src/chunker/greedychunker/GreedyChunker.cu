@@ -82,10 +82,12 @@ void GreedyChunker::printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &de
     ChunkedResultType &currentNPFB1 = std::get<1>(res);
     if (std::get<2>(currentFB1) > std::get<2>(bestDevFB1)) {
         bestDevFB1 = currentFB1;
-    }
-    if (std::get<2>(currentNPFB1) > std::get<2>(bestDevNPFB1)) {
         bestDevNPFB1 = currentNPFB1;
+        saveChunker(0);
     }
+    // if (std::get<2>(currentNPFB1) > std::get<2>(bestDevNPFB1)) {
+    //     bestDevNPFB1 = currentNPFB1;
+    // }
 
     double loss = batchObjLoss;
 
@@ -232,7 +234,7 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
                 }
                 m_featEmbManagerPtr->returnInput(featureVectors, modelParas.featEmbs, input);
 
-                nnet->Forward(input, pred, false);
+                nnet->Forward(input, pred, CConfig::bDropOut);
 
                 for (unsigned insti = 0; insti < static_cast<unsigned>(CConfig::nGPUBatchSize); insti++) {
                     int optAct = -1;

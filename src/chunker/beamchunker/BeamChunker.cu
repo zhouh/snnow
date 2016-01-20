@@ -165,10 +165,12 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
 
             if (std::get<2>(currentFB1) > std::get<2>(bestDevFB1)) {
                 bestDevFB1 = currentFB1;
-            }
-            if (std::get<2>(currentNPFB1) > std::get<2>(bestDevNPFB1)) {
                 bestDevNPFB1 = currentNPFB1;
+                saveChunker(0);
             }
+            // if (std::get<2>(currentNPFB1) > std::get<2>(bestDevNPFB1)) {
+            //     bestDevNPFB1 = currentNPFB1;
+            // }
             auto sf = std::cerr.flags();
             auto sp = std::cerr.precision();
             std::cerr.flags(std::ios::fixed);

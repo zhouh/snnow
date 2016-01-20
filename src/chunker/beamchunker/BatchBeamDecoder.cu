@@ -163,6 +163,9 @@ void BatchBeamDecoder::generateBatchInput(const int num_in, const int nRound, co
     // fill full in the batch input
     for (int insti = 0; insti < m_nInstSize; insti++, input_index += m_nBeamSize) {
         if (itemCompeleteds[insti]) {
+            for (int i = 0; i < m_nBeamSize; i++) {
+                batchFeatureVectors.push_back(FeatureVector ());
+            }
             continue;
         }
 
@@ -194,7 +197,8 @@ void BatchBeamDecoder::generateBatchInput(const int num_in, const int nRound, co
 }
 
 void BatchBeamDecoder::generateBeams(const TensorContainer<cpu, 2, real_t> &pred, const int nRound, std::vector<GlobalExample *> &gExamplePtrs, std::vector<bool> &itemCompeleteds) {
-    for (int insti = 0; insti < m_nInstSize; insti++) {
+    int pred_base_index = 0;
+    for (int insti = 0; insti < m_nInstSize; insti++, pred_base_index += m_nBeamSize) {
         if (itemCompeleteds[insti]) {
             continue;
         }
@@ -218,7 +222,7 @@ void BatchBeamDecoder::generateBeams(const TensorContainer<cpu, 2, real_t> &pred
                 }
 
                 noValid = false;
-                CScoredTransition trans(currentState, actId, currentState->score + pred[stateIdx][actId]);
+                CScoredTransition trans(currentState, actId, currentState->score + pred[pred_base_index + stateIdx][actId]);
 
                 if (currentState->bGold && actId == gExample->goldActs[nRound - 1]) {
                     trans.bGold = true;
@@ -231,7 +235,7 @@ void BatchBeamDecoder::generateBeams(const TensorContainer<cpu, 2, real_t> &pred
         }
 
         m_lbEarlyUpdates[insti] = true;
-        for (int beami = 0; beami < m_nBeamSize; beami++) {
+        for (int beami = 0; beami < beam.currentBeamSize; beami++) {
             if (beam.beam[beami].bGold) {
                 m_lbEarlyUpdates[insti] = false;
             }

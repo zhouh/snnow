@@ -85,10 +85,14 @@ public:
         int neg1EndWord   = getWordIndex(state.currChunkIdx - 1);
         int pos0StartWord = getWordIndex(state.currChunkIdx);
         int pos0EndWord   = getWordIndex(state.onGoChunkIdx - 1);
+        int onGoStartWord = getWordIndex(state.onGoChunkIdx);
+        int onGoEndWord   = getWordIndex(currentIndex);
         features[IDIdx++] = neg1StartWord;
         features[IDIdx++] = neg1EndWord;
         features[IDIdx++] = pos0StartWord;
         features[IDIdx++] = pos0EndWord;
+        features[IDIdx++] = onGoStartWord;
+        features[IDIdx++] = onGoEndWord;
 
         return features;
     }
@@ -135,10 +139,14 @@ public:
         int neg1EndPOS    = getPOSIndex(state.currChunkIdx - 1);
         int pos0StartPOS  = getPOSIndex(state.currChunkIdx);
         int pos0EndPOS    = getPOSIndex(state.onGoChunkIdx - 1);
+        int onGoStartPOS  = getPOSIndex(state.onGoChunkIdx);
+        int onGOEndPOS    = getPOSIndex(currentIndex);
         features[IDIdx++] = neg1StartPOS;
         features[IDIdx++] = neg1EndPOS;
         features[IDIdx++] = pos0StartPOS;
         features[IDIdx++] = pos0EndPOS;
+        features[IDIdx++] = onGoStartPOS;
+        features[IDIdx++] = onGOEndPOS;
 
         return features;
     }
