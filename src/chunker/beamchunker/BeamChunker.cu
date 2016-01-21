@@ -221,18 +221,6 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
 
                 std::vector<State *> predStates = decoder.decode(tnnets, gExamplePtrs);
 
-                // for (int i = 0; i < predStates.size(); i++) {
-                //     LabeledSequence sequence(instPtrs[i]->input);
-
-                //     m_transSystemPtr->generateOutput(*predStates[i], sequence);
-
-                //     std::cerr << sequence << std::endl;
-                //     std::cerr << std::endl;
-                // }
-
-                // std::cerr << "construct finish" << std::endl;
-                // char ch;
-                // std::cin >> ch;
                 tnnets.updateTNNetParas(&cumulatedGrads, decoder);
             } // end for instance traverse
 

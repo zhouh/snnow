@@ -23,7 +23,6 @@
 #include "FeatureManager.h"
 #include "FeatureEmbedding.h"
 #include "FeatureEmbeddingManager.h"
-#include "BeamExample.h"
 
 class TNNets;
 
@@ -128,6 +127,7 @@ private:
     void generateBatchInputForBeam(std::vector<State *> &statePtrs, std::vector<Instance *> &instPtrs, std::vector<std::vector<FeatureVector>> &featVecVecs);
 
     void generateBatchInputForState(State *state, Instance *inst, std::vector<FeatureVector> &featVecs);
+
 };
 
 #endif

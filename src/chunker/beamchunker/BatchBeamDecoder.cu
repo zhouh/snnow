@@ -115,45 +115,6 @@ std::vector<State *> BatchBeamDecoder::decode(TNNets &tnnet, std::vector<GlobalE
     return retvals;
 }
 
-// void generateBeamExamples(std::vector<BeamExample> &beamExamples) {
-
-// }
-
-// void generateBeamExamplesOf(std::vector<BeamExample> &beamExamples, int instId) {
-//     Beam &beam = *(m_lBeamPtrs[instId].get());
-//     bool earlyUpdate = m_lbEarlyUpdates[instId];
-//     int goldTransitIndex = m_lnGoldTransitionIndex[instId];
-//     CScoredTransition &goldTransit = m_lGoldScoredTrans[instId];
-
-//     real_t sum = 0.0;
-//     real_t maxScore = beam.getMaxScoreInBeam();
-
-//     std::vector<CScoredTransition *> trainingData;
-
-//     for (int bi = 0; bi < beam.currentBeamSize; bi++) {
-//         trainingData.push_back(beam.beam + bi);
-//     }
-
-//     if (earlyUpdate) {
-//         trainingData.push_back(&goldTransit);
-//         goldTransitIndex = static_cast<int>(trainingData.size()) - 1;
-//     }
-
-//     std::vector<real_t> updateParas(trainingData.size(), 0.0);
-
-//     for (int bi = 0; bi < static_cast<int>(trainingData.size()); bi++) {
-//         updateParas[bi] = exp(trainingData[bi]->score - maxScore);
-//         sum += updateParas[bi];
-//     }
-//     for (int bi = 0; bi < static_cast<int>(trainingData.size()); bi++) {
-//         updateParas[bi] = updateParas[bi] / sum;
-//     }
-//     updateParas[goldTransitIndex] -= 1.0;
-
-//     // for (int backRound = m_lnExpandRounds[instId] - 1; backRound >= 0; --backRound) {
-//     //     TensorContainer<cpu, 2, real_t> 
-//     // }
-// }
 
 void BatchBeamDecoder::generateBatchInput(const int num_in, const int nRound, const TNNets &tnnet, const std::vector<bool> &itemCompeleteds, TensorContainer<cpu, 2, real_t> &input, std::vector<FeatureVector> &batchFeatureVectors) {
     input = 0.0;
@@ -224,6 +185,9 @@ void BatchBeamDecoder::generateBeams(const TensorContainer<cpu, 2, real_t> &pred
                 noValid = false;
                 CScoredTransition trans(currentState, actId, currentState->score + pred[pred_base_index + stateIdx][actId]);
 
+                trans.bGold = true;
+                m_lGoldScoredTrans[insti] = trans;
+
                 if (currentState->bGold && actId == gExample->goldActs[nRound - 1]) {
                     trans.bGold = true;
                     m_lGoldScoredTrans[insti] = trans;
@@ -234,12 +198,13 @@ void BatchBeamDecoder::generateBeams(const TensorContainer<cpu, 2, real_t> &pred
             assert (noValid == false);
         }
 
-        m_lbEarlyUpdates[insti] = true;
-        for (int beami = 0; beami < beam.currentBeamSize; beami++) {
-            if (beam.beam[beami].bGold) {
-                m_lbEarlyUpdates[insti] = false;
-            }
-        }
+        m_lbEarlyUpdates[insti] = false;
+        // m_lbEarlyUpdates[insti] = true;
+        // for (int beami = 0; beami < beam.currentBeamSize; beami++) {
+        //     if (beam.beam[beami].bGold) {
+        //         m_lbEarlyUpdates[insti] = false;
+        //     }
+        // }
 
         if (m_lbEarlyUpdates[insti]) {
             itemCompeleteds[insti] = true;
