@@ -4,3 +4,6 @@ Debug/*
 OBJ/*
 results/*
 *.o
+*.p
+*.q
+*.out

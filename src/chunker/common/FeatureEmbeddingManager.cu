@@ -10,6 +10,7 @@
 #include "Config.h"
 #include "FeatureEmbeddingManager.h"
 #include "FeatureType.h"
+#include "mshadow/tensor.h"
 
 void FeatureEmbeddingManager::init(const std::shared_ptr<FeatureManager> &featManagerPtr) {
     std::vector<FeatureType> featTypes = featManagerPtr->getFeatureTypes();
@@ -35,11 +36,7 @@ void FeatureEmbeddingManager::readPretrainedEmbeddings(Model<XPU> &model) {
     }
 }
 
-void FeatureEmbeddingManager::returnInput(std::vector<FeatureVector> &featVecs, std::vector<std::shared_ptr<FeatureEmbedding>> &featEmbs, TensorContainer<cpu, 2, real_t> &input){
-    // TODO: if neccessary ?
-	// initialize the input
-	// input.Resize( Shape2( beamSize, totalFeatEmbSize ), static_cast<real_t>(0.0));
-
+void FeatureEmbeddingManager::returnInput(std::vector<FeatureVector> &featVecs, std::vector<std::shared_ptr<FeatureEmbedding>> &featEmbs, TensorContainer<EMBEDDING_XPU, 2, real_t> &input, int input_offset){
 	for(unsigned beamIndex = 0; beamIndex < static_cast<unsigned>(featVecs.size()); beamIndex++) { // for every beam item
 
         FeatureVector &featVector = featVecs[beamIndex];
@@ -52,24 +49,12 @@ void FeatureEmbeddingManager::returnInput(std::vector<FeatureVector> &featVecs, 
             std::shared_ptr<FeatureEmbedding> &curFeatEmb = featEmbs[featTypeIndex];
 
             for (auto featId : curFeatVec) {
-                for (int embIndex = 0; embIndex < curEmbSize; embIndex++) {
-                    // std::cerr << "[data]dim0 size: " << curFeatEmb->data.shape_[0] << std::endl;
-                    // std::cerr << "featId: " << featId << std::endl;
-                    // std::cerr << "[data]dim1 size: " << curFeatEmb->data.shape_[1] << std::endl;
-                    // std::cerr << "embIndex: " << embIndex << std::endl;
-                    // std::cerr << "[input]dim0 size: " << input.shape_[0] << std::endl;
-                    // std::cerr << "beamIndex: " << beamIndex << std::endl;
-                    // std::cerr << "[input]dim1 size: " << input.shape_[1] << std::endl;
-                    // std::cerr << "inputIndex: " << inputIndex << std::endl;
-                    input[beamIndex][inputIndex++] = curFeatEmb->data[featId][embIndex];
-                    // curFeatEmb->data[featId][embIndex];
-                }
+                Copy(input[input_offset + beamIndex].Slice(inputIndex, inputIndex + curEmbSize), curFeatEmb->data[featId], curFeatEmb->data.stream_);
+                inputIndex += curEmbSize;
+                // for (int embIndex = 0; embIndex < curEmbSize; embIndex++) {
+                //     input[beamIndex][inputIndex++] = curFeatEmb->data[featId][embIndex];
+                // }
             }
-            // for (int featureIndex = 0; featureIndex < curFeatSize; featureIndex++) {
-            //     for (int embIndex = 0; embIndex < curEmbSize; embIndex++) {
-            //         input[beamIndex][inputIndex++] = curFeatEmb->data[curFeatVec[featureIndex]][embIndex];
-            //     }
-            // }
         }
     }
 }

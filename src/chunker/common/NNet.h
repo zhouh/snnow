@@ -40,26 +40,31 @@ class NNet{
 public:
     // initialize the network
     NNet(const int batch_size, const int num_in, const int num_hidden, const int num_out, Model<xpu>* paras) {
+        this->paras = paras;
+
         // setup stream
         // stream = NewStream<xpu>();
-
-        this->paras = paras;
         stream = paras->stream;
 
-        ninput.set_stream(stream);
-        nhidden.set_stream(stream);
-        nhiddenbak.set_stream(stream);
-        nout.set_stream(stream);
         g_hbias.set_stream(stream);
         g_Wi2h.set_stream(stream);
         g_Wh2o.set_stream(stream);
         g_input.set_stream(stream);
+#if EMBEDDING_XPU_GUIDE == 1
+        XPU_g_input.set_stream(stream);
+#endif
   
         g_Wh2o.Resize(paras->Wh2o.shape_, static_cast<real_t>(0.0));
         g_Wi2h.Resize(paras->Wi2h.shape_, static_cast<real_t>(0.0));
         g_hbias.Resize(paras->hbias.shape_, static_cast<real_t>(0.0));
         g_input.Resize(Shape2(batch_size, num_in), static_cast<real_t>(0.0));
-        cpu_g_input.Resize(g_input.shape_, static_cast<real_t>(0.0));
+        XPU_g_input.Resize(g_input.shape_, static_cast<real_t>(0.0));
+
+        ninput.set_stream(stream);
+        nhidden.set_stream(stream);
+        nhiddenbak.set_stream(stream);
+        nout.set_stream(stream);
+
         // setup nodes
         ninput.Resize(Shape2(batch_size, num_in), static_cast<real_t>(0.0));
         nhidden.Resize(Shape2(batch_size, num_hidden), static_cast<real_t>(0.0));
@@ -70,7 +75,7 @@ public:
     // ~NNet() { DeleteStream(stream); }
     ~NNet() {  }
     // forward propagation
-    void Forward(const Tensor<cpu, 2, real_t>& inbatch,
+    void Forward(const Tensor<EMBEDDING_XPU, 2, real_t>& inbatch,
            Tensor<cpu, 2, real_t> &oubatch, bool bDropOut){
         // size is same conventsion as numpy
         index_t batch_size = inbatch.size(0);
@@ -147,7 +152,7 @@ public:
 
         if (CConfig::bFineTune) {
             g_input = dot(nhidden, paras->Wi2h.T());
-            Copy(cpu_g_input, g_input, g_input.stream_);
+            Copy(XPU_g_input, g_input, g_input.stream_);
         }
     }
  
@@ -172,19 +177,12 @@ public:
 
 
                     for (auto &featId : oneFeatTypeVector) {
-                        for (int dimi = 0; dimi < ft.featEmbSize; dimi++) {
-                            curFeatEmbPtr->data[featId][dimi] += cpu_g_input[i][updateIndex++];
-                        }
+                        curFeatEmbPtr->data[featId] += XPU_g_input[i].Slice(updateIndex, updateIndex + ft.featEmbSize);
+                        updateIndex += ft.featEmbSize;
+                        // for (int dimi = 0; dimi < ft.featEmbSize; dimi++) {
+                        //     curFeatEmbPtr->data[featId][dimi] += XPU_g_input[i][updateIndex++];
+                        // }
                     }
-
-                    // for (auto &featId : oneFeatTypeVector) {
-                    //     curFeatEmbPtr->data[featId] += g_input[i][updateIndex];
-                    //     updateIndex += ft.featEmbSize;
-                    // }
-                    // for (int r = 0; r < static_cast<int>(oneFeatTypeVector.size()); r++) {
-                    //     cumulatedGradsPtr->featEmbs[j]->data[oneFeatTypeVector[r]] += g_input[i][updateIndex];
-                    //     updateIndex += ft.featEmbSize;
-                    // }
                 }
             }
         }
@@ -203,7 +201,7 @@ private:
     // weight gradient
     TensorContainer<xpu, 2, real_t> g_Wi2h, g_Wh2o, g_input;
 
-    TensorContainer<cpu, 2, real_t> cpu_g_input;
+    TensorContainer<EMBEDDING_XPU, 2, real_t> XPU_g_input;
 };
 // template<typename xpu>
 // Random<xpu, real_t> NNet<xpu>::rnd(0);

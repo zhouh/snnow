@@ -84,12 +84,15 @@ public:
          */
         featEmbs.resize(featTypes.size());
         for (int i = 0; i < static_cast<int>(featTypes.size()); i++) {
-            featEmbs[i].reset(new FeatureEmbedding(featTypes[i]));
+#if EMBEDDING_XPU_GUIDE == 1
+            featEmbs[i].reset(new FeatureEmbedding(featTypes[i], this->stream));
+#elif EMBEDDING_XPU_GUIDE == 2
+            featEmbs[i].reset(new FeatureEmbedding(featTypes[i], NewStream<EMBEDDING_XPU>()));
+#endif
         }
     }
 
-    ~Model() {
-    }
+    ~Model() { }
 
     void randomInitialize() {
         // if the model is the gradient square, we just need to set them 0
@@ -143,10 +146,12 @@ public:
 
         for (int fi = 0; fi < featEmbs.size(); fi++) {
             auto &featEmb = featEmbs[fi];
+            TensorContainer<cpu, 2, real_t> cpu_data(featEmb->data.shape_);
+            Copy(cpu_data, featEmb->data, featEmb->data.stream_);
 
             for (int i = 0; i < featEmb->dictSize; i++) {
                 for (int j = 0; j < featEmb->embeddingSize; j++) {
-                    res += featEmb->data[i][j] * featEmb->data[i][j];
+                    res += cpu_data[i][j] * cpu_data[i][j];
                 }
             }
         }
@@ -159,10 +164,12 @@ public:
 
         for (int fi = 0; fi < featEmbs.size(); fi++) {
             auto &featEmb = featEmbs[fi];
+            TensorContainer<cpu, 2, real_t> cpu_data(featEmb->data.shape_);
+            Copy(cpu_data, featEmb->data, featEmb->data.stream_);
 
             for (int i = 0; i < featEmb->dictSize; i++) {
                 for (int j = 0; j < featEmb->embeddingSize; j++) {
-                    res += featEmb->data[i][j] * featEmb->data[i][j];
+                    res += cpu_data[i][j] * cpu_data[i][j];
                 }
             }
         }
@@ -273,11 +280,13 @@ public:
         os << "embeddingSize" << " " << featEmbs.size() << std::endl;
         for (int i = 0; i < static_cast<int>(featEmbs.size()); i++){
             FeatureEmbedding *fe = featEmbs[i].get();
+            TensorContainer<cpu, 2, real_t> sdata(fe->data.shape_);
+            Copy(sdata, fe->data, fe->data.stream_);
 
             os << fe->dictSize << " " << fe->embeddingSize << std::endl;
             for (int di = 0; di < fe->dictSize; di++) {
                 for (int ei = 0; ei < fe->embeddingSize; ei++) {
-                    os << fe->data[di][ei];
+                    os << sdata[di][ei];
 
                     if (ei == fe->embeddingSize - 1) {
                         os << std::endl;
@@ -350,6 +359,7 @@ public:
         for (int i = 0; i < size; i++) {
             FeatureType &type = featTypes[i];
             FeatureEmbedding *fe = featEmbs[i].get();
+            TensorContainer<cpu, 2, real_t> ldata(fe->data.shape_);
 
             getline(is, line);
             emb_iss.clear();
@@ -364,9 +374,11 @@ public:
                 emb_iss.clear();
                 emb_iss.str(line);
                 for (int ei = 0; ei < embeddingSize; ei++) {
-                    emb_iss >> fe->data[di][ei];
+                    emb_iss >> ldata[di][ei];
                 }
             }
+
+            Copy(fe->data, ldata, fe->data.stream_);
         }
     }
 private:

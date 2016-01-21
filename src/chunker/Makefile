@@ -10,11 +10,11 @@ export NVCC = nvcc
 include $(BASE_DIR)/make/config.mk
 include $(BASE_DIR)/make/mshadow.mk
 
-# export CFLAGS = -O3 -std=c++11 -I$(INCLUDE_DIR) -I$(CHUNKER_COMMON_DIR) -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
-export CFLAGS = -pg -std=c++11 -I$(INCLUDE_DIR) -I$(CHUNKER_COMMON_DIR) -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
+export CFLAGS = -O3 -std=c++11 -I$(INCLUDE_DIR) -I$(CHUNKER_COMMON_DIR) -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
+# export CFLAGS = -pg -std=c++11 -I$(INCLUDE_DIR) -I$(CHUNKER_COMMON_DIR) -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
 export LDFLAGS = -lm -L$(CUDA_HOME)/lib64 $(MSHADOW_LDFLAGS)
-# export NVCCFLAGS = -O3 -G -std=c++11 --use_fast_math -ccbin $(CXX) $(MSHADOW_NVCCFLAGS)
-export NVCCFLAGS = -pg -G -std=c++11 --use_fast_math -ccbin $(CXX) $(MSHADOW_NVCCFLAGS)
+export NVCCFLAGS = -O3 -G -std=c++11 --use_fast_math -ccbin $(CXX) $(MSHADOW_NVCCFLAGS)
+# export NVCCFLAGS = -pg -G -std=c++11 --use_fast_math -ccbin $(CXX) $(MSHADOW_NVCCFLAGS)
 
 GREEDY_CHUNKER_DIR = $(CHUNKER_DIR)/greedychunker
 BEAM_CHUNKER_DIR = $(CHUNKER_DIR)/beamchunker
@@ -26,7 +26,7 @@ GREEDY_BIN = $(BASE_DIR)/bin/greedychunk
 BEAM_BIN = $(BASE_DIR)/bin/beamchunk
 
 COMMON_OBJ = $(OBJ_DIR)/common/Config.o $(OBJ_DIR)/common/Evalb.o $(OBJ_DIR)/common/Dictionary.o $(OBJ_DIR)/common/DictManager.o $(OBJ_DIR)/common/FeatureManager.o $(OBJ_DIR)/common/ActionStandardSystem.o
-CUDA_COMMON_OBJ = $(OBJ_DIR)/common/FeatureEmbeddingManager.o 
+CUDA_COMMON_OBJ = $(OBJ_DIR)/common/FeatureEmbeddingManager.o $(OBJ_DIR)/common/FeatureEmbedding.o
 # CUOBJ = $(OBJ_DIR)/Chunker.o
 .PHONY: clean all
 
@@ -52,7 +52,9 @@ $(OBJ_DIR)/common/DictManager.o : $(CHUNKER_COMMON_DIR)/DictManager.cpp $(CHUNKE
 $(OBJ_DIR)/common/FeatureManager.o : $(CHUNKER_COMMON_DIR)/FeatureManager.cpp $(CHUNKER_COMMON_DIR)/FeatureManager.h $(CHUNKER_COMMON_DIR)/FeatureExtractor.h $(CHUNKER_COMMON_DIR)/Dictionary.h $(CHUNKER_COMMON_DIR)/DictManager.h $(CHUNKER_COMMON_DIR)/State.h $(CHUNKER_COMMON_DIR)/Instance.h $(CHUNKER_COMMON_DIR)/FeatureType.h $(CHUNKER_COMMON_DIR)/FeatureVector.h $(CHUNKER_COMMON_DIR)/LabeledSequence.h
 
 $(OBJ_DIR)/common/FeatureEmbeddingManager.o : $(CHUNKER_COMMON_DIR)/FeatureEmbeddingManager.cu $(CHUNKER_COMMON_DIR)/FeatureEmbeddingManager.h $(CHUNKER_COMMON_DIR)/FeatureEmbedding.h $(CHUNKER_COMMON_DIR)/FeatureVector.h $(CHUNKER_COMMON_DIR)/FeatureType.h $(CHUNKER_COMMON_DIR)/Dictionary.h $(CHUNKER_COMMON_DIR)/Model.h $(CHUNKER_COMMON_DIR)/NNet.h $(CHUNKER_COMMON_DIR)/Config.h $(CHUNKER_COMMON_DIR)/chunker.h
- 
+
+$(OBJ_DIR)/common/FeatureEmbedding.o : $(CHUNKER_COMMON_DIR)/FeatureEmbedding.cu $(CHUNKER_COMMON_DIR)/FeatureEmbedding.h $(CHUNKER_COMMON_DIR)/FeatureType.h
+
 $(OBJ_DIR)/common/ActionStandardSystem.o : $(CHUNKER_COMMON_DIR)/ActionStandardSystem.cpp $(CHUNKER_COMMON_DIR)/ActionStandardSystem.h $(CHUNKER_COMMON_DIR)/State.h $(CHUNKER_COMMON_DIR)/Instance.h $(CHUNKER_COMMON_DIR)/LabeledSequence.h
 
 $(OBJ_DIR)/beamchunker/Beam.o : $(BEAM_CHUNKER_DIR)/Beam.cpp $(BEAM_CHUNKER_DIR)/Beam.h

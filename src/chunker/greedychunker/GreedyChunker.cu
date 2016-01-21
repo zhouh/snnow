@@ -83,7 +83,9 @@ void GreedyChunker::printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &de
     if (std::get<2>(currentFB1) > std::get<2>(bestDevFB1)) {
         bestDevFB1 = currentFB1;
         bestDevNPFB1 = currentNPFB1;
-        saveChunker(0);
+        if (CConfig::saveModel) {
+            saveChunker(0);
+        }
     }
     // if (std::get<2>(currentNPFB1) > std::get<2>(bestDevNPFB1)) {
     //     bestDevNPFB1 = currentNPFB1;
@@ -189,9 +191,8 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
         if (iter % CConfig::nEvaluatePerIters == 0) {
             double posClassificationRate = 100 * static_cast<double>(batchCorrectSize) / batchSize;
 
-            // std::cerr << "2-norm: " << modelParas.norm2() << std::endl;
-            // std::cerr << "2-embedding-norm: " << modelParas.embeddings_norm2() << std::endl;
             printEvaluationInfor(devSet, devGoldSet, modelParas, batchObjLoss + 0.5 * CConfig::fRegularizationRate * modelParas.norm2(), posClassificationRate, bestDevFB1, bestDevNPFB1);
+            // printEvaluationInfor(devSet, devGoldSet, modelParas, batchObjLoss, posClassificationRate, bestDevFB1, bestDevNPFB1);
         }
         batchCorrectSize = 0;
         batchObjLoss = 0.0;
@@ -218,7 +219,10 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
             std::shared_ptr<NNet<XPU>> nnet(new NNet<XPU>(CConfig::nGPUBatchSize, num_in, num_hidden, num_out, &modelParas));
 
             std::vector<FeatureVector> featureVectors(CConfig::nGPUBatchSize);
-            TensorContainer<cpu, 2, real_t> input(Shape2(CConfig::nGPUBatchSize, num_in));
+            TensorContainer<EMBEDDING_XPU, 2, real_t> input(Shape2(CConfig::nGPUBatchSize, num_in));
+#if EMBEDDING_XPU_GUIDE == 1
+            input.set_stream(modelParas.stream);
+#endif
 
             std::vector<std::vector<int>> validActsVec(CConfig::nGPUBatchSize);
             TensorContainer<cpu, 2, real_t> pred(Shape2(CConfig::nGPUBatchSize, num_out));
@@ -291,7 +295,6 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
 
 #pragma omp critical 
             batchCorrectSize += threadCorrectSize;
-
 #pragma omp critical 
             batchObjLoss += threadObjLoss;
         
@@ -396,7 +399,10 @@ State* GreedyChunker::decode(Instance *inst, Model<XPU> &modelParas, State *latt
 
     lattice[0].clear();
 
-    TensorContainer<cpu, 2, real_t> input(Shape2(1, num_in));
+    TensorContainer<EMBEDDING_XPU, 2, real_t> input(Shape2(1, num_in));
+#if EMBEDDING_XPU_GUIDE == 1
+    input.set_stream(modelParas.stream);
+#endif
     TensorContainer<cpu, 2, real_t> pred(Shape2(1, num_out));
        
     for (int nRound = 1; nRound <= nMaxRound; nRound++){

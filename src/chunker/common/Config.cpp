@@ -68,45 +68,45 @@ bool CConfig::bFineTune = true;
 bool CConfig::bReadPretrain = true;
  
 std::ostream& operator<< (std::ostream &os, const CConfig &config) {
-    std::cerr << "saved model dir:  " << CConfig::strModelDirPath << std::endl;
+    std::cerr << "  saved model dir:    " << CConfig::strModelDirPath << std::endl;
 
-    std::cerr << "save model:       " << CConfig::saveModel << std::endl;
-    std::cerr << "load model:       " << CConfig::loadModel << std::endl;
+    std::cerr << "  save model:         " << CConfig::saveModel << std::endl;
+    std::cerr << "  load model:         " << CConfig::loadModel << std::endl;
 
-    std::cerr << "embedding path:   " << CConfig::strEmbeddingPath << std::endl;
-    std::cerr << "word table path:  " << CConfig::strWordTablePath << std::endl;
-    std::cerr << "train path:       " << CConfig::strTrainPath << std::endl;
-    std::cerr << "dev path:         " << CConfig::strDevPath << std::endl;
-    std::cerr << "test path:        " << CConfig::strTestPath << std::endl;
+    std::cerr << "  embedding path:     " << CConfig::strEmbeddingPath << std::endl;
+    std::cerr << "  word table path:    " << CConfig::strWordTablePath << std::endl;
+    std::cerr << "  train path:         " << CConfig::strTrainPath << std::endl;
+    std::cerr << "  dev path:           " << CConfig::strDevPath << std::endl;
+    std::cerr << "  test path:          " << CConfig::strTestPath << std::endl;
 
-    std::cerr << "word feat num:      " << CConfig::nWordFeatureNum << std::endl;
-    std::cerr << "word feat dim:      " << CConfig::nWordEmbeddingDim << std::endl;
-    std::cerr << "POS feat num:       " << CConfig::nPOSFeatureNum << std::endl;
-    std::cerr << "POS feat dim:       " << CConfig::nPOSEmbeddingDim << std::endl;
-    std::cerr << "cap feat num:       " << CConfig::nCapFeatureNum << std::endl;
-    std::cerr << "cap feat dim:       " << CConfig::nCapEmbeddingDim << std::endl;
-    std::cerr << "label feat num:     " << CConfig::nLabelFeatureNum << std::endl;
-    std::cerr << "label feat dim:     " << CConfig::nLabelEmbeddingDim << std::endl;
+    std::cerr << "  word feat num:      " << CConfig::nWordFeatureNum << std::endl;
+    std::cerr << "  word feat dim:      " << CConfig::nWordEmbeddingDim << std::endl;
+    std::cerr << "  POS feat num:       " << CConfig::nPOSFeatureNum << std::endl;
+    std::cerr << "  POS feat dim:       " << CConfig::nPOSEmbeddingDim << std::endl;
+    std::cerr << "  cap feat num:       " << CConfig::nCapFeatureNum << std::endl;
+    std::cerr << "  cap feat dim:       " << CConfig::nCapEmbeddingDim << std::endl;
+    std::cerr << "  label feat num:     " << CConfig::nLabelFeatureNum << std::endl;
+    std::cerr << "  label feat dim:     " << CConfig::nLabelEmbeddingDim << std::endl;
 
-    std::cerr << "thread num:         " << CConfig::nThread << std::endl;
+    std::cerr << "  thread num:         " << CConfig::nThread << std::endl;
 
-    std::cerr << "beam size:          " << CConfig::nBeamSize << std::endl;
+    std::cerr << "  beam size:          " << CConfig::nBeamSize << std::endl;
 
-    std::cerr << "round size:         " << CConfig::nRound << std::endl;
-    std::cerr << "greedybatch size:   " << CConfig::nGreedyBatchSize << std::endl;
-    std::cerr << "beambatch size:     " << CConfig::nBeamBatchSize << std::endl;
-    std::cerr << "decoderitem size:   " << CConfig::nBeamBatchDecoderItemSize << std::endl;
-    std::cerr << "hidden size:        " << CConfig::nHiddenSize << std::endl;
-    std::cerr << "regular rate:       " << CConfig::fRegularizationRate << std::endl;
-    std::cerr << "BP rate:            " << CConfig::fBPRate << std::endl;
-    std::cerr << "init range:         " << CConfig::fInitRange << std::endl;
-    std::cerr << "adagrad eps:        " << CConfig::fAdaEps << std::endl;
+    std::cerr << "  round size:         " << CConfig::nRound << std::endl;
+    std::cerr << "  greedybatch size:   " << CConfig::nGreedyBatchSize << std::endl;
+    std::cerr << "  beambatch size:     " << CConfig::nBeamBatchSize << std::endl;
+    std::cerr << "  decoderitem size:   " << CConfig::nBeamBatchDecoderItemSize << std::endl;
+    std::cerr << "  hidden size:        " << CConfig::nHiddenSize << std::endl;
+    std::cerr << "  regular rate:       " << CConfig::fRegularizationRate << std::endl;
+    std::cerr << "  BP rate:            " << CConfig::fBPRate << std::endl;
+    std::cerr << "  init range:         " << CConfig::fInitRange << std::endl;
+    std::cerr << "  adagrad eps:        " << CConfig::fAdaEps << std::endl;
 
-    std::cerr << "dropout:            " << CConfig::bDropOut << std::endl;
-    std::cerr << "dropout prob:       " << CConfig::fDropoutProb << std::endl;
+    std::cerr << "  dropout:            " << CConfig::bDropOut << std::endl;
+    std::cerr << "  dropout prob:       " << CConfig::fDropoutProb << std::endl;
 
-    std::cerr << "fine-tune:          " << CConfig::bFineTune << std::endl;
-    std::cerr << "readpretrain:       " << CConfig::bReadPretrain << std::endl;
+    std::cerr << "  fine-tune:          " << CConfig::bFineTune << std::endl;
+    std::cerr << "  readpretrain:       " << CConfig::bReadPretrain << std::endl;
 }
 
 inline void my_trim(std::string &s) {

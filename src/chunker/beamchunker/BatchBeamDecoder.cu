@@ -120,8 +120,7 @@ void BatchBeamDecoder::generateBatchInput(const int num_in, const int nRound, co
     input = 0.0;
 
     int input_index = 0;
-    TensorContainer<cpu, 2, real_t> branch_input(Shape2(m_nBeamSize, num_in));
-    // fill full in the batch input
+    // fill full in the input
     for (int insti = 0; insti < m_nInstSize; insti++, input_index += m_nBeamSize) {
         if (itemCompeleteds[insti]) {
             for (int i = 0; i < m_nBeamSize; i++) {
@@ -130,7 +129,6 @@ void BatchBeamDecoder::generateBatchInput(const int num_in, const int nRound, co
             continue;
         }
 
-        branch_input = 0.0;
         std::vector<FeatureVector> featureVectors;
         Beam &beam = *(m_lBeamPtrs[insti].get());
         State *state = m_lLattice_indexPtrs[insti][nRound - 1];
@@ -146,14 +144,7 @@ void BatchBeamDecoder::generateBatchInput(const int num_in, const int nRound, co
             batchFeatureVectors.push_back(FeatureVector ());
         }
 
-        m_featEmbManagerPtr->returnInput(featureVectors, tnnet.modelParas->featEmbs, branch_input);
-
-        for (int beami = 0; beami < curBeamSize; beami++) {
-            for (int num_ini = 0; num_ini < num_in; num_ini++) {
-                // TODO: to be accelerated
-                input[input_index + beami][num_ini] = branch_input[beami][num_ini];
-            }
-        }
+        m_featEmbManagerPtr->returnInput(featureVectors, tnnet.modelParas->featEmbs, input, input_index);
     }
 }
 
@@ -185,8 +176,8 @@ void BatchBeamDecoder::generateBeams(const TensorContainer<cpu, 2, real_t> &pred
                 noValid = false;
                 CScoredTransition trans(currentState, actId, currentState->score + pred[pred_base_index + stateIdx][actId]);
 
-                trans.bGold = true;
-                m_lGoldScoredTrans[insti] = trans;
+                // trans.bGold = true;
+                // m_lGoldScoredTrans[insti] = trans;
 
                 if (currentState->bGold && actId == gExample->goldActs[nRound - 1]) {
                     trans.bGold = true;
@@ -198,13 +189,13 @@ void BatchBeamDecoder::generateBeams(const TensorContainer<cpu, 2, real_t> &pred
             assert (noValid == false);
         }
 
-        m_lbEarlyUpdates[insti] = false;
-        // m_lbEarlyUpdates[insti] = true;
-        // for (int beami = 0; beami < beam.currentBeamSize; beami++) {
-        //     if (beam.beam[beami].bGold) {
-        //         m_lbEarlyUpdates[insti] = false;
-        //     }
-        // }
+        // m_lbEarlyUpdates[insti] = false;
+        m_lbEarlyUpdates[insti] = true;
+        for (int beami = 0; beami < beam.currentBeamSize; beami++) {
+            if (beam.beam[beami].bGold) {
+                m_lbEarlyUpdates[insti] = false;
+            }
+        }
 
         if (m_lbEarlyUpdates[insti]) {
             itemCompeleteds[insti] = true;

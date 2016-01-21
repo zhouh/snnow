@@ -143,7 +143,7 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
     auto featureTypes = m_featManagerPtr->getFeatureTypes();
 
     Model<XPU> &modelParas = *(m_modelPtr.get());
-    Model<XPU> adaGradSquares(num_in, num_hidden, num_out, featureTypes, sstream);
+    Model<XPU> adaGradSquares(num_in, num_hidden, num_out, featureTypes, NewStream<XPU>());
 
     auto longestSentence = *std::max_element(gExamples.begin(), gExamples.end(), [](GlobalExample &ge1, GlobalExample &ge2) { return ge1.instance.input.size() < ge2.instance.input.size();} );
     const int longestLen = longestSentence.instance.input.size();
@@ -166,7 +166,9 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
             if (std::get<2>(currentFB1) > std::get<2>(bestDevFB1)) {
                 bestDevFB1 = currentFB1;
                 bestDevNPFB1 = currentNPFB1;
-                saveChunker(0);
+                if (CConfig::saveModel) {
+                    saveChunker(0);
+                }
             }
             // if (std::get<2>(currentNPFB1) > std::get<2>(bestDevNPFB1)) {
             //     bestDevNPFB1 = currentNPFB1;
@@ -199,6 +201,8 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
             Model<XPU> cumulatedGrads(num_in, num_hidden, num_out, featureTypes, sstream);
 
             for (int insti = 0; insti < currentThreadData.size(); insti += CConfig::nBeamBatchDecoderItemSize) {
+                // clock_t tstart = clock();
+
                 std::vector<GlobalExample *> gExamplePtrs;
                 std::vector<Instance *> instPtrs;
                 for (int i = 0; i < CConfig::nBeamBatchDecoderItemSize; i++) {
@@ -219,9 +223,12 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
                         true
                         );
 
-                std::vector<State *> predStates = decoder.decode(tnnets, gExamplePtrs);
+                decoder.decode(tnnets, gExamplePtrs);
 
                 tnnets.updateTNNetParas(&cumulatedGrads, decoder);
+
+                // clock_t tend = clock();
+                // std::cerr << threadIndex << ": " << static_cast<double>(tend - tstart) / CLOCKS_PER_SEC << "s for " << gExamplePtrs.size() << " sentences!" << std::endl;
             } // end for instance traverse
 
 #pragma omp barrier
