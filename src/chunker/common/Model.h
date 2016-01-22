@@ -60,7 +60,7 @@ public:
     std::vector<FeatureType> featTypes;
 
     Model(int num_in, int num_hidden, int num_out, 
-          const std::vector<FeatureType> featureTypes, Stream<xpu> *stream) : rnd(0), featTypes(featureTypes) {
+          const std::vector<FeatureType> featureTypes, Stream<xpu> *stream, bool withEmb = true) : rnd(0), featTypes(featureTypes) {
         /*
          * set streams for data
          */
@@ -78,17 +78,19 @@ public:
         Wh2o.Resize(Shape2(num_hidden, num_out), static_cast<real_t>(0.0)); 
         hbias.Resize(Shape1(num_hidden), static_cast<real_t>(0.0)); 
 
-        /*
-         * initialize the feature embeddings
-         * the feature embedding need to be all zeros here
-         */
-        featEmbs.resize(featTypes.size());
-        for (int i = 0; i < static_cast<int>(featTypes.size()); i++) {
+        if (withEmb) {
+            /*
+             * initialize the feature embeddings
+             * the feature embedding need to be all zeros here
+             */
+            featEmbs.resize(featTypes.size());
+            for (int i = 0; i < static_cast<int>(featTypes.size()); i++) {
 #if EMBEDDING_XPU_GUIDE == 1
-            featEmbs[i].reset(new FeatureEmbedding(featTypes[i], this->stream));
+                featEmbs[i].reset(new FeatureEmbedding(featTypes[i], this->stream));
 #elif EMBEDDING_XPU_GUIDE == 2
-            featEmbs[i].reset(new FeatureEmbedding(featTypes[i], NewStream<EMBEDDING_XPU>()));
+                featEmbs[i].reset(new FeatureEmbedding(featTypes[i], NewStream<EMBEDDING_XPU>()));
 #endif
+            }
         }
     }
 

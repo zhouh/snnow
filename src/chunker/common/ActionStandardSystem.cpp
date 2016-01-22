@@ -120,9 +120,6 @@ void ActionStandardSystem::generateValidActs(State &state, std::vector<int> &val
 void ActionStandardSystem::generateOutput(const State &state, LabeledSequence &sent) {
     const State *ptr = &state;
     while (ptr->prevStatePtr != nullptr) {
-#ifdef DEBUGX
-        std::cerr << "current index: " << ptr->index << "\tlabel Idx: " << actionIdx2LabelIdx(ptr->lastAction) << "\t"<< sent.m_lLabeledTerms[ptr->index].word << "\t" << sent.m_lLabeledTerms[ptr->index].tag << std::endl;
-#endif
         sent.setLabel(ptr->index, knowLabels[actionIdx2LabelIdx(ptr->lastAction)]);
 
         ptr = ptr->prevStatePtr;

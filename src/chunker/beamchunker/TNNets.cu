@@ -86,8 +86,6 @@ void TNNets::updateTNNetParas(Model<XPU> *cumulatedGrads, BeamDecoder &decoder) 
         grads = 0.0;
         int i = 0;
         for(auto iter = trainingData.begin(); iter != trainingData.end(); iter++, i++){
-            //( *iter )->source->printActionSequence();
-            //std::cout<<"action :\t"<<(*iter)->action<<std::endl;
             grads[ ( *iter )->source->beamIdx ][ ( *iter )->action ] += updateParas[i] / CConfig::nBeamBatchSize;
             if( backRound != 0 ){ // last time updating, do not need to prepare for next iteration
                  ( *iter )->action = ( *iter )->source->lastAction;
@@ -95,7 +93,8 @@ void TNNets::updateTNNetParas(Model<XPU> *cumulatedGrads, BeamDecoder &decoder) 
             }
         }
 
-        // nets[backRound]->Backprop(grads);
+        // FOR CHECK
+        nets[backRound]->Backprop(grads);
 
         nets[backRound]->SubsideGradsTo(cumulatedGrads, netFeatVecs[backRound]);
     }
@@ -170,6 +169,7 @@ void TNNets::updateTNNetParas(Model<XPU> *cumulatedGrads, BatchBeamDecoder &batc
             }
         }
 
+        // FOR CKECK
         nets[backRound]->Backprop(grads);
         nets[backRound]->SubsideGradsTo(cumulatedGrads, netFeatVecs[backRound]);
     }

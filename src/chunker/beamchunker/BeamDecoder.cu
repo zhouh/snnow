@@ -121,6 +121,7 @@ State* BeamDecoder::decode(TNNets &tnnet, GlobalExample *gExample) {
         }
         m_featEmbManagerPtr->returnInput(featureVectors, tnnet.modelParas->featEmbs, input);
 
+        //  FOR CHECK
         tnnet.Forward(input, pred);
 
         // clear the beam for the next beam expand
@@ -143,7 +144,11 @@ State* BeamDecoder::decode(TNNets &tnnet, GlobalExample *gExample) {
                 noValid = false;
                 // construct scored transition and insert it into beam
                 CScoredTransition trans(currentState, actId, currentState->score + pred[stateIdx][actId]); // TODO: ignore inValid scores ?
-                
+
+                // FOR CHECK
+                // trans.bGold = true;
+                // goldScoredTran = trans;
+
                 // if this is the gold transition
                 if (bTrain && currentState->bGold && actId == gExample->goldActs[nRound - 1]) {
                     trans.bGold = true;
@@ -160,6 +165,9 @@ State* BeamDecoder::decode(TNNets &tnnet, GlobalExample *gExample) {
                 bEarlyUpdate = false;
             }
         }
+
+        // FOR CHECK
+        // bEarlyUpdate = false;
 
         if (bTrain && bEarlyUpdate) {
             break;

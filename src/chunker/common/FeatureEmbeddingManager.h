@@ -43,7 +43,7 @@ public:
         return totalFeatEmbSize;
     }
 
-    void readPretrainedEmbeddings(Model<XPU> &model);
+    void readPretrainedEmbeddings(Model<cpu> &model);
 
     void returnInput(std::vector<FeatureVector> &featVecs, std::vector<std::shared_ptr<FeatureEmbedding>> &featEmbs, TensorContainer<EMBEDDING_XPU, 2, real_t>& input, int input_offset = 0);
 

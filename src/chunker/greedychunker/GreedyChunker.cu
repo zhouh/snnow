@@ -4,7 +4,7 @@
 	> Mail: cc.square0@gmail.com 
 	> Created Time: Mon 07 Dec 2015 08:56:14 PM CST
  ************************************************************************/
-#include <ctime>
+#include <chrono>
 #include <omp.h>
 #include <random>
 #include <algorithm>
@@ -19,6 +19,8 @@
 #include "GreedyChunker.h"
 
 #define DEBUG
+
+const double MICROSECOND = 1000000.0;
 
 GreedyChunker::GreedyChunker() {
 
@@ -38,8 +40,8 @@ std::pair<GreedyChunker::ChunkedResultType, GreedyChunker::ChunkedResultType> Gr
         lattices[i] = new State[longestInst.size() + 1];
     }
 
-    clock_t start, end;
-    start = clock();
+    auto start = std::chrono::high_resolution_clock::now();
+
     ChunkedDataSet predDevSet;
     for (unsigned inst = 0; inst < devInstances.size(); inst++) {
         Instance &currentInstance = devInstances[inst];
@@ -60,9 +62,9 @@ std::pair<GreedyChunker::ChunkedResultType, GreedyChunker::ChunkedResultType> Gr
             m_transSystemPtr->generateOutput(*predState, predSent);
         }
     }
-    end = clock();
+    auto end = std::chrono::high_resolution_clock::now();
 
-    double time_used = (double)(end - start) / CLOCKS_PER_SEC;
+    double time_used = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / MICROSECOND;
     std::cerr << "[" << chunkRound << "] totally chunk " << devInstances.size() << " sentences, time: " << time_used << " average: " << devInstances.size() / time_used << " sentences/second!" << std::endl; chunkRound++;
 
     for (int i = 0; i< lattices.size(); i++) {
@@ -197,8 +199,7 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
         batchCorrectSize = 0;
         batchObjLoss = 0.0;
 
-        clock_t start, end;
-        start = clock();
+        auto start = std::chrono::high_resolution_clock::now();
 
         // random shuffle the training instances in the container,
         // and assign them for each threads
@@ -302,10 +303,10 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
 
         modelParas.update(&batchCumulatedGrads, &adaGradSquares);
 
-        end = clock();
+        auto end = std::chrono::high_resolution_clock::now();
         if (iter % CConfig::nEvaluatePerIters == 0) 
         {
-            double time_used = (double)(end - start) / CLOCKS_PER_SEC;
+            double time_used = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / MICROSECOND;
             std::cerr << "[" << iter << "] totally train " << batchSize << " examples, time: " << time_used << " average: " << batchSize / time_used << " examples/second!" << std::endl; 
         }
     }

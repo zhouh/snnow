@@ -22,6 +22,8 @@
 #include "LabeledSequence.h"
 #include "ActionStandardSystem.h"
 
+class BeamChunkerThread;
+
 class BeamChunker{
 public:
     typedef std::tuple<double, double, double> ChunkedResultType;
@@ -31,7 +33,8 @@ private:
     std::shared_ptr<DictManager> m_dictManagerPtr;
     std::shared_ptr<FeatureEmbeddingManager> m_featEmbManagerPtr;
     std::shared_ptr<FeatureManager> m_featManagerPtr;
-    std::shared_ptr<Model<XPU>> m_modelPtr;
+    std::shared_ptr<Model<cpu>> m_modelPtr;
+    std::vector<std::shared_ptr<BeamChunkerThread>> m_chunkerThreadPtrs;
 
     int m_nBeamSize;
     bool m_bTrain;
@@ -47,13 +50,15 @@ public:
     void train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, ChunkedDataSet &devGoldSet,  InstanceSet &devSet);
     
 private:
-    std::pair<ChunkedResultType, ChunkedResultType> chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, Model<XPU> &modelParas);
+    std::pair<ChunkedResultType, ChunkedResultType> chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, Model<cpu> &modelParas);
 
     void generateMultiThreadsMiniBatchData(std::vector<std::vector<GlobalExample *>> &multiThread_miniBatch_data);
 
     void initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet);
 
     void initDev(InstanceSet &devSet);
+
+    void initBeamChunkerThread(InstanceSet &devSet);
 
     void saveChunker(int round = -1);
 

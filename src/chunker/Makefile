@@ -11,10 +11,10 @@ include $(BASE_DIR)/make/config.mk
 include $(BASE_DIR)/make/mshadow.mk
 
 export CFLAGS = -O3 -std=c++11 -I$(INCLUDE_DIR) -I$(CHUNKER_COMMON_DIR) -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
-# export CFLAGS = -pg -std=c++11 -I$(INCLUDE_DIR) -I$(CHUNKER_COMMON_DIR) -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
+# export CFLAGS = -g -std=c++11 -I$(INCLUDE_DIR) -I$(CHUNKER_COMMON_DIR) -I$(INCLUDE_DIR)/mshadow -fopenmp $(MSHADOW_CFLAGS)
 export LDFLAGS = -lm -L$(CUDA_HOME)/lib64 $(MSHADOW_LDFLAGS)
 export NVCCFLAGS = -O3 -G -std=c++11 --use_fast_math -ccbin $(CXX) $(MSHADOW_NVCCFLAGS)
-# export NVCCFLAGS = -pg -G -std=c++11 --use_fast_math -ccbin $(CXX) $(MSHADOW_NVCCFLAGS)
+# export NVCCFLAGS = -g -G -std=c++11 --use_fast_math -ccbin $(CXX) $(MSHADOW_NVCCFLAGS)
 
 GREEDY_CHUNKER_DIR = $(CHUNKER_DIR)/greedychunker
 BEAM_CHUNKER_DIR = $(CHUNKER_DIR)/beamchunker

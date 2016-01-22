@@ -4,7 +4,7 @@
 	> Mail: cc.square0@gmail.com 
 	> Created Time: Thu 19 Nov 2015 03:59:17 PM CST
  ************************************************************************/
-#include <ctime>
+#include <chrono>
 #include <omp.h>
 #include <random>
 #include <algorithm>
@@ -21,6 +21,10 @@
 
 #include "Example.h"
 
+#include "BeamChunkerThread.h"
+
+const double MICROSECOND = 1000000.0;
+
 BeamChunker::BeamChunker() {
     m_nBeamSize = CConfig::nBeamSize;
     m_bTrain = false;
@@ -34,31 +38,13 @@ BeamChunker::BeamChunker(bool isTrain) {
 BeamChunker::~BeamChunker() {
 }
     
-std::pair<BeamChunker::ChunkedResultType, BeamChunker::ChunkedResultType> BeamChunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, Model<XPU> &modelParas) {
-    const int num_in = m_featEmbManagerPtr->getTotalFeatEmbSize();
-    const int num_hidden = CConfig::nHiddenSize;
-    const int num_out = m_transSystemPtr->getActNumber();
-    const int beam_size = m_nBeamSize;
-
-    static int longestLen = (*std::max_element(devInstances.begin(), devInstances.end(), [](Instance &inst1, Instance &inst2){ return inst1.input.size() < inst2.input.size(); })).input.size();
-    static const int nMaxLatticeSize = (m_nBeamSize + 1) * longestLen;
+std::pair<BeamChunker::ChunkedResultType, BeamChunker::ChunkedResultType> BeamChunker::chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, Model<cpu> &modelParas) {
     int threads_num = CConfig::nThread;
-
-    std::vector<State *> lattices(threads_num);
-    std::vector<State **> lattice_indexes(threads_num);
-    for (int i = 0; i < threads_num; i++) {
-        lattices[i] = new State[nMaxLatticeSize];
-        lattice_indexes[i] = new State*[longestLen + 2];
-    }
-    // std::vector<Model<XPU>> models;
-    // for (int i = 0; i < threads_num; i++) {
-    //     models.push_back(modelParas);
-    // }
 
     static int chunkRound = 1;
 
-    clock_t start, end;
-    start = clock();
+    auto start = std::chrono::high_resolution_clock::now();
+
     ChunkedDataSet predictDevSet(goldDevSet.size());
 
     std::vector<ChunkedDataSet> threadPredictDevSets(threads_num);
@@ -66,31 +52,9 @@ std::pair<BeamChunker::ChunkedResultType, BeamChunker::ChunkedResultType> BeamCh
 #pragma omp parallel num_threads(threads_num)
     {
         int threadIndex = omp_get_thread_num();
+        SetDevice<XPU>(threadIndex);
 
-        // TNNets tnnets(beam_size, num_in, num_hidden, num_out, &models[threadIndex], false);
-        TNNets tnnets(beam_size, num_in, num_hidden, num_out, &modelParas, false);
-        ChunkedDataSet &threadPredictDevSet = threadPredictDevSets[threadIndex];
-
-        for (unsigned inst = threadIndex; inst < static_cast<unsigned>(devInstances.size()); inst += threads_num) {
-            LabeledSequence predictSent(devInstances[inst].input);
-
-            BeamDecoder decoder(&(devInstances[inst]), 
-                                m_transSystemPtr,
-                                m_featManagerPtr,
-                                m_featEmbManagerPtr,
-                                m_nBeamSize, 
-                                lattices[threadIndex],
-                                lattice_indexes[threadIndex],
-                                false);
-
-            decoder.generateLabeledSequence(tnnets, predictSent);
-
-            threadPredictDevSet.push_back(predictSent);
-        }
-    }
-    for (int i = 0; i < threads_num; i++) {
-        delete []lattices[i];
-        delete []lattice_indexes[i];
+        m_chunkerThreadPtrs[threadIndex]->chunk(threads_num, modelParas, devInstances, threadPredictDevSets[threadIndex]);
     }
 
     for (int i = 0; i < threads_num; i++) {
@@ -98,9 +62,10 @@ std::pair<BeamChunker::ChunkedResultType, BeamChunker::ChunkedResultType> BeamCh
             predictDevSet[i + j * threads_num] = threadPredictDevSets[i][j];
         }
     }
-    end = clock();
 
-    double time_used = (double)(end - start) / CLOCKS_PER_SEC;
+    auto end = std::chrono::high_resolution_clock::now();
+
+    double time_used = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / MICROSECOND;
     std::cerr << "[" << chunkRound << "] totally chunk " << devInstances.size() << " sentences, \ttime: " << time_used << " \taverage: " << devInstances.size() / time_used << " sentences/second!" << std::endl; chunkRound++;
 
     auto FB1 = Evalb::eval(predictDevSet, goldDevSet);
@@ -128,32 +93,47 @@ void BeamChunker::generateMultiThreadsMiniBatchData(std::vector<std::vector<Glob
     }
 }
 
+void BeamChunker::initBeamChunkerThread(InstanceSet &devSet) {
+    const int trainLongestLen = (*std::max_element(gExamples.begin(), 
+                gExamples.end(), 
+                [](GlobalExample &ge1, GlobalExample &ge2) { 
+                    return ge1.instance.input.size() < ge2.instance.input.size();
+                })
+            ).instance.input.size();
+    static int devLongestLen = (*std::max_element(devSet.begin(), 
+                devSet.end(), 
+                [](Instance &inst1, Instance &inst2){ 
+                    return inst1.input.size() < inst2.input.size(); 
+                })
+            ).input.size();
+
+    const int longestLen = std::max(trainLongestLen, devLongestLen);
+    std::cerr << "  longest sentence size: " << longestLen << std::endl;
+
+    m_chunkerThreadPtrs.resize(CConfig::nThread);
+    for (int i = 0; i < CConfig::nThread; i++) {
+        m_chunkerThreadPtrs[i].reset(new BeamChunkerThread(i, m_nBeamSize, *(m_modelPtr.get()), m_transSystemPtr, m_featManagerPtr, m_featEmbManagerPtr, longestLen));
+    }
+}
+
 void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, ChunkedDataSet &devGoldSet, InstanceSet &devSet) {
-    std::cerr << "[trainingSet involved initing]Initing DictManager &  FeatureManager & ActionStandardSystem & generateTrainingExamples..." << std::endl;
+
+    std::cerr << "[train involved]Initing DictManager &  FeatureManager & ActionStandardSystem & generateTrainingExamples..." << std::endl;
     initTrain(trainGoldSet, trainSet);
 
-    std::cerr << "[devSet involved initing]Initing generateInstanceSetCache for devSet..." << std::endl;
+    std::cerr << "[dev involved]Initing generateInstanceSetCache for devSet..." << std::endl;
     initDev(devSet);
 
-    const int batch_size = std::min(CConfig::nBeamBatchSize, static_cast<int>(gExamples.size()));
+    std::cerr << "[chunkthreads involved]Initing chunkerthreads ..." << std::endl;
+    initBeamChunkerThread(devSet);
 
-    InitTensorEngine<XPU>();
-    Stream<XPU> *sstream = m_modelPtr->stream;
-
+    Model<cpu> &modelParas = *(m_modelPtr.get());
     auto featureTypes = m_featManagerPtr->getFeatureTypes();
-
-    Model<XPU> &modelParas = *(m_modelPtr.get());
-    Model<XPU> adaGradSquares(num_in, num_hidden, num_out, featureTypes, NewStream<XPU>());
-
-    auto longestSentence = *std::max_element(gExamples.begin(), gExamples.end(), [](GlobalExample &ge1, GlobalExample &ge2) { return ge1.instance.input.size() < ge2.instance.input.size();} );
-    const int longestLen = longestSentence.instance.input.size();
-
-    BatchBeamDecoderMemoryManager decoderMemoryManager(m_nBeamSize, CConfig::nBeamBatchDecoderItemSize, longestLen, CConfig::nThread);
-    TNNetsMemoryManager nnetsMemoryManager(CConfig::nThread, longestLen, m_nBeamSize * CConfig::nBeamBatchDecoderItemSize, num_in, num_hidden, num_out, &modelParas);
+    Model<cpu> adaGradSquares(num_in, num_hidden, num_out, featureTypes, NULL);
 
     ChunkedResultType bestDevFB1 = std::make_tuple(0.0, 0.0, -1.0);
     ChunkedResultType bestDevNPFB1 = std::make_tuple(0.0, 0.0, -1.0);
-    clock_t start, end;
+
     for (int iter = 1; iter <= CConfig::nRound; iter++) {
         if (CConfig::saveModel && iter % CConfig::nSaveModelPerIters == 0) {
             saveChunker(iter);
@@ -170,9 +150,6 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
                     saveChunker(0);
                 }
             }
-            // if (std::get<2>(currentNPFB1) > std::get<2>(bestDevNPFB1)) {
-            //     bestDevNPFB1 = currentNPFB1;
-            // }
             auto sf = std::cerr.flags();
             auto sp = std::cerr.precision();
             std::cerr.flags(std::ios::fixed);
@@ -183,53 +160,24 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
             std::cerr.precision(sp);
         }
 
-        start = clock();
+        auto start = std::chrono::high_resolution_clock::now();
 
-        // random shuffle the training instances in the container,
-        // and assign them for each thread
+        // random shuffle the training instances in the container, and assign them for each thread
         std::vector<std::vector<GlobalExample *>> multiThread_miniBatch_data;
         generateMultiThreadsMiniBatchData(multiThread_miniBatch_data);
 
-        Model<XPU> batchCumulatedGrads(num_in, num_hidden, num_out, featureTypes, sstream);
+        Model<cpu> batchCumulatedGrads(num_in, num_hidden, num_out, featureTypes, NULL);
+
         // begin to multi thread Training
 #pragma omp parallel num_threads(CConfig::nThread)
         {
             int threadIndex = omp_get_thread_num();
-            // int threadIndex = 0;
             auto currentThreadData = multiThread_miniBatch_data[threadIndex];
 
-            Model<XPU> cumulatedGrads(num_in, num_hidden, num_out, featureTypes, sstream);
+            Model<cpu> cumulatedGrads(num_in, num_hidden, num_out, featureTypes, NULL);
 
-            for (int insti = 0; insti < currentThreadData.size(); insti += CConfig::nBeamBatchDecoderItemSize) {
-                // clock_t tstart = clock();
-
-                std::vector<GlobalExample *> gExamplePtrs;
-                std::vector<Instance *> instPtrs;
-                for (int i = 0; i < CConfig::nBeamBatchDecoderItemSize; i++) {
-                    gExamplePtrs.push_back(currentThreadData[insti + i]);
-                    instPtrs.push_back(&(currentThreadData[insti + i]->instance));
-                }
-
-                TNNets tnnets(m_nBeamSize * CConfig::nBeamBatchDecoderItemSize, num_in, num_hidden, num_out, &modelParas, nnetsMemoryManager.getNetPtrVec(threadIndex));
-
-                BatchBeamDecoder decoder(
-                        instPtrs, 
-                        m_transSystemPtr,
-                        m_featManagerPtr,
-                        m_featEmbManagerPtr,
-                        m_nBeamSize,
-                        decoderMemoryManager.getLatticePtrVec(threadIndex),
-                        decoderMemoryManager.getLatticeIndexPtrVec(threadIndex),
-                        true
-                        );
-
-                decoder.decode(tnnets, gExamplePtrs);
-
-                tnnets.updateTNNetParas(&cumulatedGrads, decoder);
-
-                // clock_t tend = clock();
-                // std::cerr << threadIndex << ": " << static_cast<double>(tend - tstart) / CLOCKS_PER_SEC << "s for " << gExamplePtrs.size() << " sentences!" << std::endl;
-            } // end for instance traverse
+            SetDevice<gpu>(threadIndex);
+            m_chunkerThreadPtrs[threadIndex]->train(modelParas, currentThreadData, cumulatedGrads);
 
 #pragma omp barrier
 #pragma omp critical
@@ -239,16 +187,15 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
 
         modelParas.update(&batchCumulatedGrads, &adaGradSquares);
 
-        end = clock();
+        auto end = std::chrono::high_resolution_clock::now();
         if (iter % CConfig::nEvaluatePerIters == 0) {
-            double time_used = (double)(end - start) / CLOCKS_PER_SEC;
+            double time_used = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / MICROSECOND;
 
+            static const int batch_size = std::min(CConfig::nBeamBatchSize, static_cast<int>(gExamples.size()));
             std::cerr << "[" << iter << "] totally train " << batch_size << " sentences, \ttime: " << time_used << " \taverage: " << batch_size / time_used << " sentences/second!" << std::endl; 
         }
     } // end total iteration
 
-    DeleteStream(sstream);
-    ShutdownTensorEngine<XPU>();
 }
 
 void BeamChunker::initDev(InstanceSet &devSet) {
@@ -286,9 +233,9 @@ void BeamChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
 
     srand(0);
 
-    Stream<XPU> *sstream = NewStream<XPU>();
+    // Stream<XPU> *sstream = NewStream<XPU>();
 
-    m_modelPtr.reset(new Model<XPU>(num_in, num_hidden, num_out, m_featEmbManagerPtr->getFeatureTypes(), sstream));
+    m_modelPtr.reset(new Model<cpu>(num_in, num_hidden, num_out, m_featEmbManagerPtr->getFeatureTypes(), NULL));
     if (CConfig::loadModel) {
         std::ifstream model_is(CConfig::strModelDirPath + "/netmodel.model");
         m_modelPtr->loadModel(model_is);
@@ -299,7 +246,6 @@ void BeamChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
     if (!CConfig::loadModel && CConfig::bReadPretrain) {
         m_featEmbManagerPtr->readPretrainedEmbeddings(*(m_modelPtr.get()));
     }
-
 
     Instance::generateInstanceSetCache(*(m_dictManagerPtr.get()), trainSet);
 

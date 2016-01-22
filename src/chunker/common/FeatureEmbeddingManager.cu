@@ -28,7 +28,7 @@ void FeatureEmbeddingManager::init(const std::shared_ptr<FeatureManager> &featMa
     }
 }
 
-void FeatureEmbeddingManager::readPretrainedEmbeddings(Model<XPU> &model) {
+void FeatureEmbeddingManager::readPretrainedEmbeddings(Model<cpu> &model) {
     for (int i = 0; i < static_cast<int>(m_lFeatTypes.size()); i++) {
         if (m_lFeatTypes[i].typeName == FeatureManager::WORDDESCRIPTION) {
             model.featEmbs[i]->readPreTrain(CConfig::strEmbeddingPath, m_lFeatDictPtrs[i]->getWord2IdxMap());
