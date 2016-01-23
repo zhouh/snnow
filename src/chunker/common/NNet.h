@@ -50,9 +50,6 @@ public:
         g_Wi2h.set_stream(stream);
         g_Wh2o.set_stream(stream);
         g_input.set_stream(stream);
-#if EMBEDDING_XPU_GUIDE == 1
-        XPU_g_input.set_stream(stream);
-#endif
   
         g_Wh2o.Resize(paras->Wh2o.shape_, static_cast<real_t>(0.0));
         g_Wi2h.Resize(paras->Wi2h.shape_, static_cast<real_t>(0.0));
@@ -75,7 +72,7 @@ public:
     // ~NNet() { DeleteStream(stream); }
     ~NNet() {  }
     // forward propagation
-    void Forward(const Tensor<EMBEDDING_XPU, 2, real_t>& inbatch,
+    void Forward(const Tensor<cpu, 2, real_t>& inbatch,
            Tensor<cpu, 2, real_t> &oubatch, bool bDropOut){
         // size is same conventsion as numpy
         index_t batch_size = inbatch.size(0);
@@ -201,7 +198,7 @@ private:
     // weight gradient
     TensorContainer<xpu, 2, real_t> g_Wi2h, g_Wh2o, g_input;
 
-    TensorContainer<EMBEDDING_XPU, 2, real_t> XPU_g_input;
+    TensorContainer<cpu, 2, real_t> XPU_g_input;
 };
 // template<typename xpu>
 // Random<xpu, real_t> NNet<xpu>::rnd(0);

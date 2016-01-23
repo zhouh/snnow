@@ -24,6 +24,8 @@
 #include "FeatureEmbeddingManager.h"
 #include "ActionStandardSystem.h"
 
+class GreedyChunkerThread;
+
 class GreedyChunker {
 public:
     typedef std::vector<Example *> ExamplePtrs;
@@ -34,7 +36,8 @@ private:
     std::shared_ptr<DictManager> m_dictManagerPtr;
     std::shared_ptr<FeatureEmbeddingManager> m_featEmbManagerPtr;
     std::shared_ptr<FeatureManager> m_featManagerPtr;
-    std::shared_ptr<Model<XPU>> m_modelPtr;
+    std::shared_ptr<Model<cpu>> m_modelPtr;
+    std::vector<std::shared_ptr<GreedyChunkerThread>> m_chunkerThreadPtrs;
 
     bool m_bTrain;
     int num_in, num_hidden, num_out;
@@ -51,20 +54,15 @@ public:
     void train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, ChunkedDataSet &devGoldSet, InstanceSet &devSet);
 
 private:
-    std::pair<ChunkedResultType, ChunkedResultType> chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, Model<XPU> &modelParas);
+    std::pair<ChunkedResultType, ChunkedResultType> chunk(InstanceSet &devInstances, ChunkedDataSet &goldDevSet, Model<cpu> &modelParas);
 
     void initDev(InstanceSet &devSet);
 
     void initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet);
 
-    State *decode(Instance *inst, Model<XPU> &modelParas, State *lattice);
+    void initGreedyChunkerThread(InstanceSet &devSet);
 
-    /* generate the feature vector in all the beam states,
-     * and return the input layer of neural network in batch.
-    */
-    void generateInputBatch(State *state, Instance *inst, std::vector<FeatureVector> &featvecs); 
-
-    void printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &devGoldSet, Model<XPU> &modelParas, double batchObjLoss, double posClassificationRate, ChunkedResultType &bestDevFB1, ChunkedResultType &bestDevNPFB1);
+    void printEvaluationInfor(InstanceSet &devSet, ChunkedDataSet &devGoldSet, Model<cpu> &modelParas, double batchObjLoss, double posClassificationRate, ChunkedResultType &bestDevFB1, ChunkedResultType &bestDevNPFB1);
 
     void generateMultiThreadsMiniBatchData(std::vector<ExamplePtrs> &multiThread_miniBatch_data);
 

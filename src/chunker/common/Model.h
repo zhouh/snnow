@@ -85,11 +85,7 @@ public:
              */
             featEmbs.resize(featTypes.size());
             for (int i = 0; i < static_cast<int>(featTypes.size()); i++) {
-#if EMBEDDING_XPU_GUIDE == 1
-                featEmbs[i].reset(new FeatureEmbedding(featTypes[i], this->stream));
-#elif EMBEDDING_XPU_GUIDE == 2
-                featEmbs[i].reset(new FeatureEmbedding(featTypes[i], NewStream<EMBEDDING_XPU>()));
-#endif
+                featEmbs[i].reset(new FeatureEmbedding(featTypes[i]));
             }
         }
     }

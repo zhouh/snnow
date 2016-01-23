@@ -233,8 +233,6 @@ void BeamChunker::initTrain(ChunkedDataSet &goldSet, InstanceSet &trainSet) {
 
     srand(0);
 
-    // Stream<XPU> *sstream = NewStream<XPU>();
-
     m_modelPtr.reset(new Model<cpu>(num_in, num_hidden, num_out, m_featEmbManagerPtr->getFeatureTypes(), NULL));
     if (CConfig::loadModel) {
         std::ifstream model_is(CConfig::strModelDirPath + "/netmodel.model");

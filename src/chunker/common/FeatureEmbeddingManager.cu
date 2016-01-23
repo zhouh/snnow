@@ -36,7 +36,7 @@ void FeatureEmbeddingManager::readPretrainedEmbeddings(Model<cpu> &model) {
     }
 }
 
-void FeatureEmbeddingManager::returnInput(std::vector<FeatureVector> &featVecs, std::vector<std::shared_ptr<FeatureEmbedding>> &featEmbs, TensorContainer<EMBEDDING_XPU, 2, real_t> &input, int input_offset){
+void FeatureEmbeddingManager::returnInput(std::vector<FeatureVector> &featVecs, std::vector<std::shared_ptr<FeatureEmbedding>> &featEmbs, TensorContainer<cpu, 2, real_t> &input, int input_offset){
 	for(unsigned beamIndex = 0; beamIndex < static_cast<unsigned>(featVecs.size()); beamIndex++) { // for every beam item
 
         FeatureVector &featVector = featVecs[beamIndex];

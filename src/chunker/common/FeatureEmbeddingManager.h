@@ -45,7 +45,7 @@ public:
 
     void readPretrainedEmbeddings(Model<cpu> &model);
 
-    void returnInput(std::vector<FeatureVector> &featVecs, std::vector<std::shared_ptr<FeatureEmbedding>> &featEmbs, TensorContainer<EMBEDDING_XPU, 2, real_t>& input, int input_offset = 0);
+    void returnInput(std::vector<FeatureVector> &featVecs, std::vector<std::shared_ptr<FeatureEmbedding>> &featEmbs, TensorContainer<cpu, 2, real_t>& input, int input_offset = 0);
 
 private:
     FeatureEmbeddingManager(const FeatureEmbeddingManager &fEmbManager) = delete;

@@ -9,14 +9,6 @@
 
 #define XPU gpu
 
-#define EMBEDDING_XPU_GUIDE 2
-
-#if EMBEDDING_XPU_GUIDE == 1
-    #define EMBEDDING_XPU gpu
-#elif EMBEDDING_XPU_GUIDE == 2
-    #define EMBEDDING_XPU cpu
-#endif
-
 typedef double real_t;
 
 #endif

@@ -20,8 +20,7 @@ using namespace mshadow;
 
 class FeatureEmbedding {
 public:
-    FeatureEmbedding(const FeatureType& featType, Stream<EMBEDDING_XPU> *stream) : dictSize(featType.dictSize), embeddingSize(featType.featEmbSize){
-        data.set_stream(stream);
+    FeatureEmbedding(const FeatureType& featType) : dictSize(featType.dictSize), embeddingSize(featType.featEmbSize){
         data.Resize(Shape2(dictSize, embeddingSize), static_cast<real_t>(0.0));
     }
 
@@ -38,7 +37,7 @@ public:
 public:
     int dictSize;
     int embeddingSize;
-    TensorContainer<EMBEDDING_XPU, 2, real_t> data;
+    TensorContainer<cpu, 2, real_t> data;
 
 private:
     FeatureEmbedding(const FeatureEmbedding &fe) = delete;

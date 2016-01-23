@@ -5,7 +5,7 @@
 
 #include "FeatureEmbedding.h"
 void FeatureEmbedding::init(const real_t initRange){
-    Random<EMBEDDING_XPU, real_t> rnd(0);  
+    Random<cpu, real_t> rnd(0);  
 
     rnd.SampleUniform(&data, -1.0 * initRange, initRange);
 }
