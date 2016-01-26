@@ -89,8 +89,8 @@ void TNNets::updateTNNetParas(Model<XPU> *cumulatedGrads, BeamDecoder &decoder, 
         grads = 0.0;
         int i = 0;
         for(auto iter = trainingData.begin(); iter != trainingData.end(); iter++, i++){
-            // grads[ ( *iter )->source->beamIdx ][ ( *iter )->action ] += updateParas[i] / CConfig::nBeamBatchSize;
             grads[ ( *iter )->source->beamIdx ][ ( *iter )->action ] += updateParas[i] / decoder.mMiniBatchSize;
+
             if( backRound != 0 ){ // last time updating, do not need to prepare for next iteration
                 ( *iter )->action = ( *iter )->source->lastAction;
                 ( *iter )->source = ( *iter )->source->prevStatePtr;

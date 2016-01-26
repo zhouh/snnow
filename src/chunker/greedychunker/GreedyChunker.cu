@@ -42,13 +42,21 @@ std::pair<GreedyChunker::ChunkedResultType, GreedyChunker::ChunkedResultType> Gr
     ChunkedDataSet predictDevSet(goldDevSet.size());
 
     std::vector<ChunkedDataSet> threadPredictDevSets(threads_num);
+    std::vector<std::vector<int>> devInstIndexes(threads_num);
+    for (int i = 0; i < static_cast<int>(devInstances.size()); i++) {
+        int index = i % threads_num;
+        devInstIndexes[index].push_back(i);
+    }
 
 #pragma omp parallel num_threads(threads_num)
     {
         int threadIndex =  omp_get_thread_num();
-        SetDevice<gpu>(threadIndex);
 
-        m_chunkerThreadPtrs[threadIndex]->chunk(threads_num, modelParas, devInstances, threadPredictDevSets[threadIndex]);
+        int device_id = threadIndex % 4;
+
+        SetDevice<gpu>(device_id);
+
+        m_chunkerThreadPtrs[threadIndex]->chunk(modelParas, devInstances, devInstIndexes[threadIndex], threadPredictDevSets[threadIndex]);
 #pragma omp barrier
     }
 
@@ -185,7 +193,9 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
 #pragma omp parallel num_threads(CConfig::nThread)
         {
             int threadIndex = omp_get_thread_num();
-            SetDevice<gpu>(threadIndex);
+
+            int device_id = threadIndex % 4;
+            SetDevice<gpu>(device_id);
 
             int threadCorrectSize = 0;
             double threadObjLoss = 0.0;
@@ -229,7 +239,9 @@ void GreedyChunker::initGreedyChunkerThread(InstanceSet &devSet) {
     
     m_chunkerThreadPtrs.resize(CConfig::nThread);
     for (int i = 0; i < CConfig::nThread; i++) {
-        m_chunkerThreadPtrs[i].reset(new GreedyChunkerThread(i, CConfig::nGPUBatchSize, *(m_modelPtr.get()), m_transSystemPtr, m_featManagerPtr, m_featEmbManagerPtr, longestLen));
+        int thread_id = i % 4;
+
+        m_chunkerThreadPtrs[i].reset(new GreedyChunkerThread(thread_id, CConfig::nGPUBatchSize, *(m_modelPtr.get()), m_transSystemPtr, m_featManagerPtr, m_featEmbManagerPtr, longestLen));
     }
 }
 

@@ -17,18 +17,18 @@ GreedyChunkerThread::GreedyChunkerThread(
         m_transSystemPtr(transitionSystemPtr),
         m_featManagerPtr(featureMangerPtr),
         m_featEmbManagerPtr(featureEmbManagerPtr),
-        m_nThreadId(threadId), 
+        m_nDeviceID(threadId), 
         m_nBatchSize(batchSize)
 {
     m_nNumIn = paraModel.Wi2h.shape_[0];
     m_nNumHidden = paraModel.Wi2h.shape_[1];
     m_nNumOut = paraModel.Wh2o.shape_[1];
 
-    InitTensorEngine<gpu>(threadId);
+    InitTensorEngine<gpu>(m_nDeviceID);
 
     stream = NewStream<gpu>();
 
-    modelPtr.reset(new Model<gpu>(m_nNumIn, m_nNumHidden, m_nNumOut, paraModel.featTypes, stream, false, m_nThreadId));
+    modelPtr.reset(new Model<gpu>(m_nNumIn, m_nNumHidden, m_nNumOut, paraModel.featTypes, stream, false, m_nDeviceID));
     modelPtr->featEmbs = paraModel.featEmbs;
     modelPtr->featTypes = paraModel.featTypes;
 
@@ -130,15 +130,17 @@ void GreedyChunkerThread::train(Model<cpu> &paraModel, std::vector<Example *> &e
     }
 }
 
-void GreedyChunkerThread::chunk(const int threads_num, Model<cpu> &paraModel, InstanceSet &devInstances, ChunkedDataSet &labeledSents) {
+void GreedyChunkerThread::chunk(Model<cpu> &paraModel, InstanceSet &devInstances, std::vector<int> &threadDevInstanceIndexes, ChunkedDataSet &labeledSents) {
     Copy(modelPtr->Wi2h, paraModel.Wi2h, stream);
     Copy(modelPtr->Wh2o, paraModel.Wh2o, stream);
     Copy(modelPtr->hbias, paraModel.hbias, stream);
 
-    for (unsigned inst = m_nThreadId; inst < static_cast<unsigned>(devInstances.size()); inst += threads_num) {
-        LabeledSequence predictSent(devInstances[inst].input);
+    for (unsigned i = 0; i < static_cast<unsigned>(threadDevInstanceIndexes.size()); i++) {
+        Instance &inst = devInstances[threadDevInstanceIndexes[i]];
 
-        State* predState = decode(&(devInstances[inst]));
+        LabeledSequence predictSent(inst.input);
+
+        State* predState = decode(&inst);
 
         m_transSystemPtr->generateOutput(*predState, predictSent);
 

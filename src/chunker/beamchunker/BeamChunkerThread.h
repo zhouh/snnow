@@ -32,7 +32,7 @@ public:
     std::shared_ptr<FeatureManager> m_featManagerPtr;
     std::shared_ptr<FeatureEmbeddingManager> m_featEmbManagerPtr;
 
-    int m_nThreadId;
+    int m_nDeviceID;
     int m_nNumIn;
     int m_nNumHidden;
     int m_nNumOut;
@@ -59,7 +59,7 @@ public:
 
     void train(Model<cpu> &paraModel, std::vector<GlobalExample *> &gExamplePtrs, Model<cpu> &cumulatedGrads, double &threadLoss);
 
-    void chunk(const int threads_num, Model<cpu> &paraModel, InstanceSet &devInstances, ChunkedDataSet &labeledSents);
+    void chunk(Model<cpu> &paraModel, InstanceSet &devInstances, std::vector<int> &threadDevInstanceIndexes, ChunkedDataSet &labeledSents);
 
 };
 

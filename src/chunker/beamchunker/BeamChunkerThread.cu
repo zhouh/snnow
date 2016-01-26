@@ -29,7 +29,7 @@ BeamChunkerThread::BeamChunkerThread(
         m_transSystemPtr(transitionSystemPtr),
         m_featManagerPtr(featureMangerPtr),
         m_featEmbManagerPtr(featureEmbManagerPtr),
-        m_nThreadId(threadId), 
+        m_nDeviceID(threadId), 
         m_nBeamSize(beamSize),
         m_nMiniBatchSize(miniBatchSize)
 {
@@ -37,11 +37,11 @@ BeamChunkerThread::BeamChunkerThread(
     m_nNumHidden = paraModel.Wi2h.shape_[1];
     m_nNumOut = paraModel.Wh2o.shape_[1];
 
-    InitTensorEngine<gpu>(threadId);
+    InitTensorEngine<gpu>(m_nDeviceID);
 
     stream = NewStream<gpu>();
 
-    modelPtr.reset(new Model<gpu>(m_nNumIn, m_nNumHidden, m_nNumOut, paraModel.featTypes, stream, false));
+    modelPtr.reset(new Model<gpu>(m_nNumIn, m_nNumHidden, m_nNumOut, paraModel.featTypes, stream, false, m_nDeviceID));
     modelPtr->featEmbs = paraModel.featEmbs;
     modelPtr->featTypes = paraModel.featTypes;
 
@@ -106,17 +106,19 @@ void BeamChunkerThread::train(Model<cpu> &paraModel, std::vector<GlobalExample *
     }
 }
 
-void BeamChunkerThread::chunk(const int threads_num, Model<cpu> &paraModel, InstanceSet &devInstances, ChunkedDataSet &labeledSents) {
+void BeamChunkerThread::chunk(Model<cpu> &paraModel, InstanceSet &devInstances, std::vector<int> &threadDevInstanceIndexes,  ChunkedDataSet &labeledSents) {
     Copy(modelPtr->Wi2h, paraModel.Wi2h, stream);
     Copy(modelPtr->Wh2o, paraModel.Wh2o, stream);
     Copy(modelPtr->hbias, paraModel.hbias, stream);
 
     TNNets tnnets(m_nBeamSize, m_nNumIn, m_nNumHidden, m_nNumOut, modelPtr.get(), false);
 
-    for (unsigned inst = m_nThreadId; inst < static_cast<unsigned>(devInstances.size()); inst += threads_num) {
-        LabeledSequence predictSent(devInstances[inst].input);
+    for (unsigned i = 0; i < static_cast<unsigned>(threadDevInstanceIndexes.size()); i++) {
+        Instance &inst = devInstances[threadDevInstanceIndexes[i]];
 
-        BeamDecoder decoder(&(devInstances[inst]), 
+        LabeledSequence predictSent(inst.input);
+
+        BeamDecoder decoder(&inst, 
                             m_transSystemPtr,
                             m_featManagerPtr,
                             m_featEmbManagerPtr,

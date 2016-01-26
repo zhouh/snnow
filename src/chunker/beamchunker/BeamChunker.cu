@@ -48,13 +48,21 @@ std::pair<BeamChunker::ChunkedResultType, BeamChunker::ChunkedResultType> BeamCh
     ChunkedDataSet predictDevSet(goldDevSet.size());
 
     std::vector<ChunkedDataSet> threadPredictDevSets(threads_num);
+    std::vector<std::vector<int>> devInstIndexes(threads_num);
+    for (int i = 0; i < static_cast<int>(devInstances.size()); i++) {
+        int index = i % threads_num;
+        devInstIndexes[index].push_back(i);
+    }
 
 #pragma omp parallel num_threads(threads_num)
     {
         int threadIndex = omp_get_thread_num();
-        SetDevice<XPU>(threadIndex);
 
-        m_chunkerThreadPtrs[threadIndex]->chunk(threads_num, modelParas, devInstances, threadPredictDevSets[threadIndex]);
+        int device_id = threadIndex % 4;
+
+        SetDevice<XPU>(device_id);
+
+        m_chunkerThreadPtrs[threadIndex]->chunk(modelParas, devInstances, devInstIndexes[threadIndex], threadPredictDevSets[threadIndex]);
 #pragma barrier
     }
 
@@ -77,7 +85,7 @@ std::pair<BeamChunker::ChunkedResultType, BeamChunker::ChunkedResultType> BeamCh
 
 void BeamChunker::generateMultiThreadsMiniBatchData(std::vector<std::vector<GlobalExample *>> &multiThread_miniBatch_data) {
     // FOR CHECK
-    // std::random_shuffle(gExamples.begin(), gExamples.end());
+    std::random_shuffle(gExamples.begin(), gExamples.end());
 
     // prepare mini-batch data for each threads
     static int exampleNumOfThread = std::min(CConfig::nBeamBatchSize, static_cast<int>(gExamples.size()))/ CConfig::nThread;
@@ -116,7 +124,8 @@ void BeamChunker::initBeamChunkerThread(InstanceSet &devSet) {
 
     m_chunkerThreadPtrs.resize(CConfig::nThread);
     for (int i = 0; i < CConfig::nThread; i++) {
-        m_chunkerThreadPtrs[i].reset(new BeamChunkerThread(i, m_nBeamSize, batch_size, *(m_modelPtr.get()), m_transSystemPtr, m_featManagerPtr, m_featEmbManagerPtr, longestLen));
+        int thread_id = i % 4;
+        m_chunkerThreadPtrs[i].reset(new BeamChunkerThread(thread_id, m_nBeamSize, batch_size, *(m_modelPtr.get()), m_transSystemPtr, m_featManagerPtr, m_featEmbManagerPtr, longestLen));
     }
 }
 
@@ -179,15 +188,17 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
         // begin to multi thread Training
 #pragma omp parallel num_threads(CConfig::nThread)
         {
-            // int threadIndex = omp_get_thread_num();
-            int threadIndex = 0;
+            int threadIndex = omp_get_thread_num();
+            // int threadIndex = 0;
             auto currentThreadData = multiThread_miniBatch_data[threadIndex];
 
             double threadObjLoss = 0.0;
 
             Model<cpu> cumulatedGrads(num_in, num_hidden, num_out, featureTypes, NULL);
 
-            SetDevice<gpu>(threadIndex);
+            int device_id = threadIndex % 4;
+
+            SetDevice<gpu>(device_id);
             m_chunkerThreadPtrs[threadIndex]->train(modelParas, currentThreadData, cumulatedGrads, threadObjLoss);
 
 #pragma omp barrier
