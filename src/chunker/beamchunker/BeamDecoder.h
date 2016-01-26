@@ -43,6 +43,7 @@ public:
     int nRound;
     int nMaxRound;
     int nSentLen;
+    int mMiniBatchSize;
 
     Instance * inst;
 
@@ -52,6 +53,7 @@ public:
                 std::shared_ptr<FeatureManager> featureMangerPtr,
                 std::shared_ptr<FeatureEmbeddingManager> featureEmbManagerPtr, 
                 int beamSize, 
+                int miniBatchSize,
                 bool bTrain);
 
     BeamDecoder(Instance *inst, 
@@ -59,6 +61,7 @@ public:
                 std::shared_ptr<FeatureManager> featureMangerPtr,
                 std::shared_ptr<FeatureEmbeddingManager> featureEmbManagerPtr, 
                 int beamSize, 
+                int miniBatchSize,
                 State *lattice,
                 State **lattice_index,
                 bool bTrain);

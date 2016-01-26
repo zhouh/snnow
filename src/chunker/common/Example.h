@@ -8,6 +8,7 @@
 #define _CHUNKER_COMMON_EXAMPLE_H_
 
 #include <vector>
+#include <iostream>
 
 #include "Instance.h"
 #include "FeatureVector.h"
@@ -113,7 +114,6 @@ public:
         }
     }
 };
-
 #undef DEBUG
 
 #endif

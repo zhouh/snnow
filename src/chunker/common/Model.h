@@ -60,7 +60,7 @@ public:
     std::vector<FeatureType> featTypes;
 
     Model(int num_in, int num_hidden, int num_out, 
-          const std::vector<FeatureType> featureTypes, Stream<xpu> *stream, bool withEmb = true) : rnd(0), featTypes(featureTypes) {
+          const std::vector<FeatureType> featureTypes, Stream<xpu> *stream, bool withEmb = true, int rnd_seed = 0) : rnd(rnd_seed), featTypes(featureTypes) {
         /*
          * set streams for data
          */

@@ -49,6 +49,7 @@ std::pair<GreedyChunker::ChunkedResultType, GreedyChunker::ChunkedResultType> Gr
         SetDevice<gpu>(threadIndex);
 
         m_chunkerThreadPtrs[threadIndex]->chunk(threads_num, modelParas, devInstances, threadPredictDevSets[threadIndex]);
+#pragma omp barrier
     }
 
     for (int i = 0; i < threads_num; i++) {
@@ -164,7 +165,9 @@ void GreedyChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, C
 
             double posClassificationRate = 100 * static_cast<double>(batchCorrectSize) / batchSize;
 
-            printEvaluationInfor(devSet, devGoldSet, modelParas, batchObjLoss + 0.5 * CConfig::fRegularizationRate * modelParas.norm2(), posClassificationRate, bestDevFB1, bestDevNPFB1);
+            double regular_loss = 0.5 * CConfig::fRegularizationRate * modelParas.norm2();
+            printEvaluationInfor(devSet, devGoldSet, modelParas, batchObjLoss + regular_loss, posClassificationRate, bestDevFB1, bestDevNPFB1);
+            // std::cerr << "Regularization loss: " << regular_loss << std::endl;
             // printEvaluationInfor(devSet, devGoldSet, modelParas, batchObjLoss, posClassificationRate, bestDevFB1, bestDevNPFB1);
         }
         batchCorrectSize = 0;

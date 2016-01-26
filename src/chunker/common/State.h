@@ -130,7 +130,6 @@ struct CScoredTransition {
 
         bGold = false;
     }
-
 };
 
 #endif

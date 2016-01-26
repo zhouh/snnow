@@ -71,6 +71,7 @@ public:
   
     // ~NNet() { DeleteStream(stream); }
     ~NNet() {  }
+
     // forward propagation
     void Forward(const Tensor<cpu, 2, real_t>& inbatch,
            Tensor<cpu, 2, real_t> &oubatch, bool bDropOut){
@@ -81,29 +82,31 @@ public:
         Copy(ninput, inbatch, ninput.stream_);
   
         // first layer, fullc
-        nhidden = dot(ninput, paras->Wi2h);
+        nhidden  = dot(ninput, paras->Wi2h);
   
-        nhidden+= repmat(paras->hbias, batch_size);
-        // activation, sigmloid, backup activation in nhidden
+        nhidden += repmat(paras->hbias, batch_size);
 
-        // TODO
-        // nhidden = F<cube>(nhidden);
-        nhidden = F<cube>(nhidden);
-  
         if(bDropOut){
             TensorContainer<xpu,2, real_t> mask;
             mask.set_stream(stream);
-            mask.Resize(nhidden.shape_);
+            mask.Resize(nhiddenbak.shape_);
+
             paras->rnd.SampleUniform(&mask, 0.0, 1.0);
+
             mask = F<threshold>(mask, CConfig::fDropoutProb);
+
             nhidden = nhidden * mask;
         } //dropout
+
+        // activation, sigmloid, backup activation in nhidden
+        nhiddenbak = F<cube>(nhidden);
   
-        Copy(nhiddenbak, nhidden, nhiddenbak.stream_);
         // second layer fullc
         nout = dot(nhiddenbak, paras->Wh2o);
+
         // softmax calculation
-      //  Softmax(nout, nout); // in TNN training, we do not need softmax in each step
+        //  Softmax(nout, nout); // in TNN training, we do not need softmax in each step
+        
         // copy result out
         Copy(oubatch, nout, nout.stream_);
     }
@@ -135,14 +138,19 @@ public:
     void Backprop(const Tensor<cpu, 2, real_t>& gradout){
         // copy gradient to output layer
         Copy(nout, gradout, nout.stream_);
+
         // calc grad of layer 2
         g_Wh2o  = dot(nhiddenbak.T(), nout);
+
         // backprop to layer 1
         nhiddenbak = dot(nout, paras->Wh2o.T());
+
         //// calculate gradient of sigmoid layer
         //nhidden = nhidden * (1.0f-nhidden) * nhiddenbak;
+        
         // calculate gradient of cube layer
         nhidden = 3 * nhidden * nhidden * nhiddenbak;
+
         // calc grad of layer 1
         g_hbias = sum_rows(nhidden);
         g_Wi2h  = dot(ninput.T(), nhidden);

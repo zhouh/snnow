@@ -28,7 +28,7 @@ GreedyChunkerThread::GreedyChunkerThread(
 
     stream = NewStream<gpu>();
 
-    modelPtr.reset(new Model<gpu>(m_nNumIn, m_nNumHidden, m_nNumOut, paraModel.featTypes, stream, false));
+    modelPtr.reset(new Model<gpu>(m_nNumIn, m_nNumHidden, m_nNumOut, paraModel.featTypes, stream, false, m_nThreadId));
     modelPtr->featEmbs = paraModel.featEmbs;
     modelPtr->featTypes = paraModel.featTypes;
 
@@ -72,7 +72,7 @@ void GreedyChunkerThread::train(Model<cpu> &paraModel, std::vector<Example *> &e
 
         nnet->Forward(input, pred, CConfig::bDropOut);
 
-        for (unsigned insti = 0; insti < m_nBatchSize; insti++) {
+        for (unsigned insti = 0; (insti < m_nBatchSize) && (inst + insti < static_cast<int>(examplePtrs.size())); insti++) {
             int optAct = -1;
             int goldAct = -1;
 

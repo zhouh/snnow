@@ -19,6 +19,8 @@ int LabelManager::label2Idx(const std::string &s) const {
 
 void LabelManager::makeDictionaries(const ChunkedDataSet &goldSet) {
     labelDict.makeDictionaries(goldSet);
+    std::cerr << "ActionLabel: " << std::endl;
+    labelDict.printDict();
 }
 
 void ActionStandardSystem::init(const ChunkedDataSet &goldSet) {
@@ -138,8 +140,6 @@ void ActionStandardSystem::doOutsideMove(State &srcState, State &dstState, const
             dstState.currChunkIdx = dstState.onGoChunkIdx;
             dstState.onGoChunkIdx = dstState.index;
         }
-        dstState.prevChunkIdx = dstState.currChunkIdx;
-        dstState.currChunkIdx = dstState.index;
     }
     dstState.lastAction = const_cast<CScoredTransition &>(transition).action;
     dstState.sentLength = srcState.sentLength;
@@ -158,8 +158,6 @@ void ActionStandardSystem::doInsideMove(State &srcState, State &dstState, const 
             dstState.currChunkIdx = dstState.onGoChunkIdx;
             dstState.onGoChunkIdx = dstState.index;
         }
-        dstState.prevChunkIdx = dstState.currChunkIdx;
-        dstState.currChunkIdx = dstState.index;
     }
     dstState.lastAction = const_cast<CScoredTransition &>(transition).action;
     dstState.sentLength = srcState.sentLength;
@@ -178,8 +176,6 @@ void ActionStandardSystem::doBeginMove(State &srcState, State &dstState, const C
             dstState.currChunkIdx = dstState.onGoChunkIdx;
             dstState.onGoChunkIdx = dstState.index;
         }
-        dstState.prevChunkIdx = dstState.currChunkIdx;
-        dstState.currChunkIdx = dstState.index;
     }
     dstState.lastAction = const_cast<CScoredTransition &>(transition).action;
     dstState.sentLength = srcState.sentLength;

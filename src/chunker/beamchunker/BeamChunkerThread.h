@@ -37,6 +37,7 @@ public:
     int m_nNumHidden;
     int m_nNumOut;
     int m_nBeamSize;
+    int m_nMiniBatchSize;
     Stream<gpu> *stream;
     std::shared_ptr<Model<gpu>> modelPtr;
 
@@ -47,6 +48,7 @@ public:
     BeamChunkerThread(
             const int threadId, 
             const int beamSize, 
+            const int miniBatchSize,
             Model<cpu> &paraModel, 
             std::shared_ptr<ActionStandardSystem> transitionSystemPtr, 
             std::shared_ptr<FeatureManager> featureMangerPtr,
@@ -55,7 +57,7 @@ public:
 
     ~BeamChunkerThread();
 
-    void train(Model<cpu> &paraModel, std::vector<GlobalExample *> &gExamplePtrs, Model<cpu> &cumulatedGrads);
+    void train(Model<cpu> &paraModel, std::vector<GlobalExample *> &gExamplePtrs, Model<cpu> &cumulatedGrads, double &threadLoss);
 
     void chunk(const int threads_num, Model<cpu> &paraModel, InstanceSet &devInstances, ChunkedDataSet &labeledSents);
 

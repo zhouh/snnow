@@ -7,9 +7,20 @@
 #include "BeamChunkerThread.h"
 #include "BeamDecoder.h"
 
+std::ostream& operator<< (std::ostream &os, const GlobalExample &ge) {
+    os << ge.instance;
+    for (int i = 0; i < ge.goldActs.size(); i++) {
+        os << ge.goldActs[i] << " ";
+    }
+    os << std::endl;
+
+    return os;
+}
+
 BeamChunkerThread::BeamChunkerThread(
         const int threadId, 
         const int beamSize, 
+        const int miniBatchSize,
         Model<cpu> &paraModel, 
         std::shared_ptr<ActionStandardSystem> transitionSystemPtr, 
         std::shared_ptr<FeatureManager> featureMangerPtr,
@@ -19,7 +30,8 @@ BeamChunkerThread::BeamChunkerThread(
         m_featManagerPtr(featureMangerPtr),
         m_featEmbManagerPtr(featureEmbManagerPtr),
         m_nThreadId(threadId), 
-        m_nBeamSize(beamSize)
+        m_nBeamSize(beamSize),
+        m_nMiniBatchSize(miniBatchSize)
 {
     m_nNumIn = paraModel.Wi2h.shape_[0];
     m_nNumHidden = paraModel.Wi2h.shape_[1];
@@ -56,7 +68,7 @@ BeamChunkerThread::~BeamChunkerThread() {
     delete []stateIndexPtr;
 }
 
-void BeamChunkerThread::train(Model<cpu> &paraModel, std::vector<GlobalExample *> &gExamplePtrs, Model<cpu> &cumulatedGrads) {
+void BeamChunkerThread::train(Model<cpu> &paraModel, std::vector<GlobalExample *> &gExamplePtrs, Model<cpu> &cumulatedGrads, double &threadLoss) {
     // copy from the parameter model to current model
     Copy(modelPtr->Wi2h, paraModel.Wi2h, stream);
     Copy(modelPtr->Wh2o, paraModel.Wh2o, stream);
@@ -75,13 +87,14 @@ void BeamChunkerThread::train(Model<cpu> &paraModel, std::vector<GlobalExample *
                             m_featManagerPtr,
                             m_featEmbManagerPtr,
                             m_nBeamSize,
+                            m_nMiniBatchSize,
                             statePtr,
                             stateIndexPtr,
                             true);
 
         decoder.decode(tnnets, gePtr);
 
-        tnnets.updateTNNetParas(&grads, decoder);
+        tnnets.updateTNNetParas(&grads, decoder, threadLoss);
     }
 
     // copy grads from current grads to cumulatedGrads
@@ -108,6 +121,7 @@ void BeamChunkerThread::chunk(const int threads_num, Model<cpu> &paraModel, Inst
                             m_featManagerPtr,
                             m_featEmbManagerPtr,
                             m_nBeamSize, 
+                            m_nMiniBatchSize,
                             statePtr,
                             stateIndexPtr,
                             false);

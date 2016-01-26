@@ -14,11 +14,13 @@ BeamDecoder::BeamDecoder(Instance *inst,
             std::shared_ptr<FeatureManager> featureMangerPtr,
             std::shared_ptr<FeatureEmbeddingManager> featureEmbManagerPtr, 
             int beamSize, 
+            int miniBatchSize,
             bool bTrain) : 
             m_transSystemPtr(transitionSystemPtr),
             m_featManagerPtr(featureMangerPtr),
             m_featEmbManagerPtr(featureEmbManagerPtr),
-            beam(beamSize) {
+            beam(beamSize),
+            mMiniBatchSize(miniBatchSize){
     nSentLen = inst->input.size();
     nMaxRound = nSentLen;
 
@@ -39,13 +41,15 @@ BeamDecoder::BeamDecoder(Instance *inst,
             std::shared_ptr<FeatureManager> featureMangerPtr,
             std::shared_ptr<FeatureEmbeddingManager> featureEmbManagerPtr, 
             int beamSize, 
+            int miniBatchSize,
             State *lattice,
             State **lattice_index,
             bool bTrain) : 
             m_transSystemPtr(transitionSystemPtr),
             m_featManagerPtr(featureMangerPtr),
             m_featEmbManagerPtr(featureEmbManagerPtr),
-            beam(beamSize) {
+            beam(beamSize),
+            mMiniBatchSize(miniBatchSize) {
     nSentLen = inst->input.size();
     nMaxRound = nSentLen;
 
@@ -176,7 +180,7 @@ State* BeamDecoder::decode(TNNets &tnnet, GlobalExample *gExample) {
         float dMaxScore = 0.0;
         // lazy expand the target states in the beam
         for (int i = 0; i < beam.currentBeamSize; ++i) {
-            const CScoredTransition transition = beam.beam[i];
+            const CScoredTransition &transition = beam.beam[i];
 
             State *target = lattice_index[nRound] + i;
             *target = *(transition.source);

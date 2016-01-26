@@ -36,7 +36,7 @@ std::vector<NNet<XPU> *> TNNetsMemoryManager::getNetPtrVec(const int threadId) {
 /*
  * computes the gradients of beam contrastive learning
  */
-void TNNets::updateTNNetParas(Model<XPU> *cumulatedGrads, BeamDecoder &decoder) {
+void TNNets::updateTNNetParas(Model<XPU> *cumulatedGrads, BeamDecoder &decoder, double &loss) {
     Beam &beam = decoder.beam;
     bool earlyUpdate = decoder.bEarlyUpdate;
     int goldTransitIndex = decoder.nGoldTransitionIndex;
@@ -71,6 +71,9 @@ void TNNets::updateTNNetParas(Model<XPU> *cumulatedGrads, BeamDecoder &decoder) 
         updateParas[b_j] = exp( trainingData[b_j]->score - maxScore );
         sum += updateParas[b_j];
     }
+
+    loss += (std::log(sum) - (updateParas[goldTransitIndex] - maxScore)) / decoder.mMiniBatchSize;
+
     for (int b_j = 0; b_j < trainingData.size(); b_j++)
         updateParas[b_j] = updateParas[b_j] / sum;
     updateParas[ goldTransitIndex ] -= 1.0;
@@ -86,10 +89,11 @@ void TNNets::updateTNNetParas(Model<XPU> *cumulatedGrads, BeamDecoder &decoder) 
         grads = 0.0;
         int i = 0;
         for(auto iter = trainingData.begin(); iter != trainingData.end(); iter++, i++){
-            grads[ ( *iter )->source->beamIdx ][ ( *iter )->action ] += updateParas[i] / CConfig::nBeamBatchSize;
+            // grads[ ( *iter )->source->beamIdx ][ ( *iter )->action ] += updateParas[i] / CConfig::nBeamBatchSize;
+            grads[ ( *iter )->source->beamIdx ][ ( *iter )->action ] += updateParas[i] / decoder.mMiniBatchSize;
             if( backRound != 0 ){ // last time updating, do not need to prepare for next iteration
-                 ( *iter )->action = ( *iter )->source->lastAction;
-                 ( *iter )->source = ( *iter )->source->prevStatePtr;
+                ( *iter )->action = ( *iter )->source->lastAction;
+                ( *iter )->source = ( *iter )->source->prevStatePtr;
             }
         }
 

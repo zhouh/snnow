@@ -108,7 +108,7 @@ public:
         nets[netIdx - 1]->Forward(inbatch, oubatch, bTrain && CConfig::bDropOut);
     }
 
-    void updateTNNetParas(Model<XPU> *cumulatedGrads, BeamDecoder &decoder);
+    void updateTNNetParas(Model<XPU> *cumulatedGrads, BeamDecoder &decoder, double &loss);
 
     void updateTNNetParas(Model<XPU> *cumulatedGrads, BatchBeamDecoder &batchDecoder);
 
