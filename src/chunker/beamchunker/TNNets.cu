@@ -36,18 +36,19 @@ std::vector<NNet<XPU> *> TNNetsMemoryManager::getNetPtrVec(const int threadId) {
 /*
  * computes the gradients of beam contrastive learning
  */
-void TNNets::updateTNNetParas(Model<XPU> *cumulatedGrads, BeamDecoder &decoder, double &loss) {
+void TNNets::updateTNNetParas(Model<XPU> *cumulatedGrads, BeamDecoder &decoder, int &correctSize, double &loss) {
     Beam &beam = decoder.beam;
     bool earlyUpdate = decoder.bEarlyUpdate;
     int goldTransitIndex = decoder.nGoldTransitionIndex;
     CScoredTransition &goldTransit = decoder.goldScoredTran;
    
-    float sum =0;
-    float maxScore = beam.getMaxScoreInBeam();
+    real_t sum =0;
+    real_t maxScore = beam.getMaxScoreInBeam();
 
     // TODO: predict correctly ?
     if (!earlyUpdate && beam.isMaxScoreGold()) {
-        return ;
+        correctSize++;
+    //     return ;
     }
     /*
      * construct the training data
@@ -61,8 +62,9 @@ void TNNets::updateTNNetParas(Model<XPU> *cumulatedGrads, BeamDecoder &decoder, 
         goldTransitIndex = trainingData.size() - 1;
     }
 
-    std::vector<double> updateParas(trainingData.size(), 0); // updating parameter vector
+    std::vector<real_t> updateParas(trainingData.size(), 0); // updating parameter vector
 
+    real_t goldScore = goldTransit.score;
     /*
      * get gradients with beam contrastive learning
      * sentence-level loglikelihood and softmax
@@ -72,7 +74,7 @@ void TNNets::updateTNNetParas(Model<XPU> *cumulatedGrads, BeamDecoder &decoder, 
         sum += updateParas[b_j];
     }
 
-    loss += (std::log(sum) - (updateParas[goldTransitIndex] - maxScore)) / decoder.mMiniBatchSize;
+    loss += (std::log(sum) - (goldScore - maxScore)) / decoder.mMiniBatchSize;
 
     for (int b_j = 0; b_j < trainingData.size(); b_j++)
         updateParas[b_j] = updateParas[b_j] / sum;

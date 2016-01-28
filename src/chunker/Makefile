@@ -32,9 +32,9 @@ BEAM_CUDA_OBJ = $(OBJ_DIR)/beamchunker/BeamChunker.o $(OBJ_DIR)/beamchunker/Beam
 
 .PHONY: clean all
 
-all: directoires $(GREEDY_BIN)
-all: directoires $(BEAM_BIN)
-# all: directoires $(GREEDY_BIN) $(BEAM_BIN)
+# all: directoires $(GREEDY_BIN)
+# all: directoires $(BEAM_BIN)
+all: directoires $(GREEDY_BIN) $(BEAM_BIN)
 
 directoires:
 	mkdir -p $(OBJ_DIR)/common $(OBJ_DIR)/greedychunker $(OBJ_DIR)/beamchunker

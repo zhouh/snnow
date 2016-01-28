@@ -57,7 +57,7 @@ public:
 
     ~BeamChunkerThread();
 
-    void train(Model<cpu> &paraModel, std::vector<GlobalExample *> &gExamplePtrs, Model<cpu> &cumulatedGrads, double &threadLoss);
+    void train(Model<cpu> &paraModel, std::vector<GlobalExample *> &gExamplePtrs, Model<cpu> &cumulatedGrads, int &threadCorrectSize, double &threadLoss);
 
     void chunk(Model<cpu> &paraModel, InstanceSet &devInstances, std::vector<int> &threadDevInstanceIndexes, ChunkedDataSet &labeledSents);
 

@@ -68,7 +68,7 @@ BeamChunkerThread::~BeamChunkerThread() {
     delete []stateIndexPtr;
 }
 
-void BeamChunkerThread::train(Model<cpu> &paraModel, std::vector<GlobalExample *> &gExamplePtrs, Model<cpu> &cumulatedGrads, double &threadLoss) {
+void BeamChunkerThread::train(Model<cpu> &paraModel, std::vector<GlobalExample *> &gExamplePtrs, Model<cpu> &cumulatedGrads, int &threadCorrectSize, double &threadLoss) {
     // copy from the parameter model to current model
     Copy(modelPtr->Wi2h, paraModel.Wi2h, stream);
     Copy(modelPtr->Wh2o, paraModel.Wh2o, stream);
@@ -94,7 +94,7 @@ void BeamChunkerThread::train(Model<cpu> &paraModel, std::vector<GlobalExample *
 
         decoder.decode(tnnets, gePtr);
 
-        tnnets.updateTNNetParas(&grads, decoder, threadLoss);
+        tnnets.updateTNNetParas(&grads, decoder, threadCorrectSize, threadLoss);
     }
 
     // copy grads from current grads to cumulatedGrads

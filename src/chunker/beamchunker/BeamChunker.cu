@@ -147,6 +147,7 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
     ChunkedResultType bestDevFB1 = std::make_tuple(0.0, 0.0, -1.0);
     ChunkedResultType bestDevNPFB1 = std::make_tuple(0.0, 0.0, -1.0);
 
+    int batchCorrectSize = 0;
     double batchObjLoss = 0.0;
 
     for (int iter = 1; iter <= CConfig::nRound; iter++) {
@@ -165,16 +166,19 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
                     saveChunker(0);
                 }
             }
+            static const int batch_size = std::min(CConfig::nBeamBatchSize, static_cast<int>(gExamples.size()));
             auto sf = std::cerr.flags();
             auto sp = std::cerr.precision();
             std::cerr.flags(std::ios::fixed);
             std::cerr.precision(2);
             std::cerr << "current iteration FB1-score  : " << std::setiosflags(std::ios::fixed) << std::setprecision(2) << std::get<0>(currentFB1) << "/" << std::get<1>(currentFB1) << "/" << std::get<2>(currentFB1) << "\t best FB1-score  : " << std::get<0>(bestDevFB1) << "/" << std::get<1>(bestDevFB1) << "/" << std::get<2>(bestDevFB1) << std::endl;
             std::cerr << "current iteration NPFB1-score: " << std::setiosflags(std::ios::fixed) << std::setprecision(2) << std::get<0>(currentNPFB1) << "/" << std::get<1>(currentNPFB1) << "/" << std::get<2>(currentNPFB1) << "\t best NPFB1-score: " << std::get<0>(bestDevNPFB1)  << "/" << std::get<1>(bestDevNPFB1) << "/" << std::get<2>(bestDevNPFB1) << std::endl;
-            std::cerr << "current objective fun-score  : " << batchObjLoss << std::endl;
+            std::cerr << "current objective fun-score  : " << batchObjLoss << "\t classification rate: " << static_cast<double>(batchCorrectSize) / batch_size << std::endl;
             std::cerr.flags(sf);
             std::cerr.precision(sp);
         }
+
+        batchCorrectSize = 0;
         batchObjLoss = 0.0;
 
         auto start = std::chrono::high_resolution_clock::now();
@@ -192,6 +196,7 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
             // int threadIndex = 0;
             auto currentThreadData = multiThread_miniBatch_data[threadIndex];
 
+            int threadCorrectSize = 0;
             double threadObjLoss = 0.0;
 
             Model<cpu> cumulatedGrads(num_in, num_hidden, num_out, featureTypes, NULL);
@@ -199,11 +204,14 @@ void BeamChunker::train(ChunkedDataSet &trainGoldSet, InstanceSet &trainSet, Chu
             int device_id = threadIndex % 4;
 
             SetDevice<gpu>(device_id);
-            m_chunkerThreadPtrs[threadIndex]->train(modelParas, currentThreadData, cumulatedGrads, threadObjLoss);
+            m_chunkerThreadPtrs[threadIndex]->train(modelParas, currentThreadData, cumulatedGrads, threadCorrectSize, threadObjLoss);
 
 #pragma omp barrier
 #pragma omp critical
             batchCumulatedGrads.mergeModel(&cumulatedGrads);
+
+#pragma omp critical
+            batchCorrectSize += threadCorrectSize;
 
 #pragma omp critical
             batchObjLoss += threadObjLoss;

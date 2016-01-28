@@ -86,6 +86,8 @@ public:
   
         nhidden += repmat(paras->hbias, batch_size);
 
+        // nhiddenbak = F<sigmoid>(nhidden);
+
         if(bDropOut){
             TensorContainer<xpu,2, real_t> mask;
             mask.set_stream(stream);
@@ -96,6 +98,7 @@ public:
             mask = F<threshold>(mask, CConfig::fDropoutProb);
 
             nhidden = nhidden * mask;
+            // nhiddenbak = nhiddenbak * mask;
         } //dropout
 
         // activation, sigmloid, backup activation in nhidden
@@ -110,29 +113,6 @@ public:
         // copy result out
         Copy(oubatch, nout, nout.stream_);
     }
-  
-    void display1Tensor( Tensor<xpu, 1, real_t> & tensor ){
-       for(int i = 0; i < tensor.size(0); i++)
-           std::cout<<tensor[i]<<" ";
-       std::cout<<std::endl;
-    }
-  
-    void display2Tensor( Tensor<xpu, 2, double> tensor ){
-       std::cout<<"size 0 :" << tensor.size(0)<<" size 1: "<<tensor.size(1)<<std::endl;
-       for(int i = 0; i < tensor.size(0); i++){
-          for(int j = 0; j < tensor.size(1); j++)
-              std::cout<<tensor[i][j]<<" ";
-          std::cout<<std::endl;
-       }
-    }
-  
-    void display2TensorGPU( Tensor<gpu, 2, real_t> & tensor ){
-       for(int i = 0; i < tensor.size(0); i++) {
-          for(int j = 0; j < tensor.size(1); j++)
-              std::cout<<tensor[i][j]<<" ";
-          std::cout<<std::endl;
-        }
-    }
 
     // back propagation
     void Backprop(const Tensor<cpu, 2, real_t>& gradout){
@@ -146,7 +126,7 @@ public:
         nhiddenbak = dot(nout, paras->Wh2o.T());
 
         //// calculate gradient of sigmoid layer
-        //nhidden = nhidden * (1.0f-nhidden) * nhiddenbak;
+        // nhidden = nhidden * (1.0f - nhidden) * nhiddenbak;
         
         // calculate gradient of cube layer
         nhidden = 3 * nhidden * nhidden * nhiddenbak;
@@ -207,6 +187,31 @@ private:
     TensorContainer<xpu, 2, real_t> g_Wi2h, g_Wh2o, g_input;
 
     TensorContainer<cpu, 2, real_t> XPU_g_input;
+
+public: 
+    void display1Tensor( Tensor<xpu, 1, real_t> & tensor ){
+       for(int i = 0; i < tensor.size(0); i++)
+           std::cout<<tensor[i]<<" ";
+       std::cout<<std::endl;
+    }
+  
+    void display2Tensor( Tensor<xpu, 2, double> tensor ){
+       std::cout<<"size 0 :" << tensor.size(0)<<" size 1: "<<tensor.size(1)<<std::endl;
+       for(int i = 0; i < tensor.size(0); i++){
+          for(int j = 0; j < tensor.size(1); j++)
+              std::cout<<tensor[i][j]<<" ";
+          std::cout<<std::endl;
+       }
+    }
+  
+    void display2TensorGPU( Tensor<gpu, 2, real_t> & tensor ){
+       for(int i = 0; i < tensor.size(0); i++) {
+          for(int j = 0; j < tensor.size(1); j++)
+              std::cout<<tensor[i][j]<<" ";
+          std::cout<<std::endl;
+        }
+    }
+
 };
 // template<typename xpu>
 // Random<xpu, real_t> NNet<xpu>::rnd(0);
