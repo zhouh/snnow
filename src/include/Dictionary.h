@@ -11,11 +11,16 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <memory>
 
+class Dict;
+
+typedef  std::vector<std::shared_ptr<Dict>> Dicts;
 
 class Dict {
 public:
-	Dict(std::vector<std::string> wordlist){
+	Dict(std::vector<std::string> wordlist, std::string name){
+		this->dictionary_name = name;
 		words = wordlist;
 		int index = 0;
 		for(unsigned i = 0; i < wordlist.size(); ++i)
@@ -54,6 +59,7 @@ public:
 	}
 
 private:
+	std::string dictionary_name;
     std::vector<std::string> words;
     std::unordered_map<std::string, int> map;
 

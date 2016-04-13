@@ -1,6 +1,7 @@
 data/*
 bin/*
 Debug/*
+chunk/*
 OBJ/*
 results/*
 *.o
