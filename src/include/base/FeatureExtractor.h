@@ -10,7 +10,6 @@
 #include <string>
 #include <memory>
 
-#include "Dictionary.h"
 #include "State.h"
 #include "Input.h"
 #include "FeatureType.h"
@@ -23,7 +22,7 @@ public:
 
     virtual ~FeatureExtractor() {}
 
-    virtual FeatureVectors getFeatureVectors(const State& state, const Input& input, const ) = 0;
+    virtual std::shared_ptr<FeatureVector>  getFeatureVectors(const State& state, const Input& input ) = 0;
 
     virtual void getDictionaries(DataSet& data) = 0;
 

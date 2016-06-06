@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <memory>
+#include <fstream>
 
 #include "DataSet.h"
 #include "DepParseTree.h"
@@ -21,21 +22,24 @@ public:
 
     DepParseDataSet(std::string file_name){
 
+
+
         size = 0;
 
         std::ifstream is(file_name.c_str());
 
         int index = 0;
         while(true){
-            std::shared_ptr<DepParseTree> tree_ptr;
-            if( !( is >>  *tree_ptr ) ){ // if input ends
+            DepParseTree tree;
+            if( !( is >>  tree ) ){ // if input ends
                 break;
             }
             size++;
-            std::shared_ptr<DepParseInput> input_ptr;
-            tree_ptr->extractInput(input_ptr);
-            inputs.push_back(input_ptr);
-            outputs.push_back(tree_ptr);
+
+            DepParseInput input;
+            tree.extractInput(input);
+            inputs.push_back(input);
+            outputs.push_back(tree);
         }
     }
 

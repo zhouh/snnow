@@ -8,8 +8,8 @@
 #include <iostream>
 #include <fstream>
 
-#include "DepParser.h"
 #include "DepParseDataSet.h"
+#include "DepParser.h"
 
 /*
  * define the command line parameters
@@ -19,6 +19,7 @@ DEFINE_string(embedding_file, "./data/sen.emb", "Embedding file for pre-training
 DEFINE_string(training_file, "./data/small.train", "Traing file name");
 DEFINE_string(test_file, "./data/testr.txt", "Testing file name");
 DEFINE_string(dev_file, "./data/small.train", "Dev file name");
+DEFINE_string(model_file, "./data/model.txt", "model file name");
 
 DEFINE_int32(max_training_iteration_num, 10000, "The max number of training iterations to perform");
 DEFINE_int32(batch_size, 10, "mini batch size");
@@ -41,13 +42,12 @@ DEFINE_double(adagrad_eps, 1e-6, "bias for the adaGrad updating");
 
 
 int main(int argc, char* argv[]){
-    std::cout<<"Begin to Training Parse!"<<std::endl;
+    std::cout<<"Begin to Training!"<<std::endl;
 
     //CConfig::ReadConfig( argv[1] );
     DepParser parser(true);
 
     // load data
-
     std::clog<< "### Begin to load data."<<std::endl;
     DepParseDataSet training_data(FLAGS_training_file);
     DepParseDataSet dev_data(FLAGS_dev_file);

@@ -4,6 +4,8 @@
 
 #include "DepArcStandardSystem.h"
 
+DepArcStandardSystem::c_root_str = "_root_str_";
+
 // the move action is a simple call to do action according to the action code
 void DepArcStandardSystem::Move(State & state, Action& action) {
 
@@ -79,14 +81,14 @@ Action* DepArcStandardSystem::StandardMove(State & state, const Output& tree) {
     if( stackSize >= 2 && tree.nodes[w1].head == w2)
         return DepParseShiftReduceActionFactory::makeAction(
                 DepParseAction::left_type,
-                dep_label_map_ptr.operator*()[tree.nodes[w1].label]
+                dep_label_map_ptr[tree.nodes[w1].label]
         );
     if( stackSize >= 2 && tree.nodes[w2].head == w1 && !state.hasChildOnQueue(w2, tree) )
         return DepParseShiftReduceActionFactory::makeAction(
                 DepParseAction::right_type,
-                dep_label_map_ptr.operator*()[tree.nodes[w2].label]
+                dep_label_map_ptr[tree.nodes[w2].label]
         );
-    return DepParseAction::shift_type;
+    return DepParseShiftReduceActionFactory::shift_action;
 }
 
 void DepArcStandardSystem::StandardMoveStep(State & state, const Output& tree) {

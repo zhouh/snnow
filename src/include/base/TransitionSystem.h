@@ -8,6 +8,7 @@
 #include "Action.h"
 #include "Input.h"
 #include "Output.h"
+#include "State.h"
 
 class TransitionSystem{
 
@@ -23,7 +24,7 @@ public:
      */
     virtual void getValidActs(State& state, std::vector<int>& ret_val) = 0;
 
-    virtual int StandardMove(State& state, const Output& tree);
+    virtual Action* StandardMove(State& state, const Output& tree);
 
     virtual void GenerateOutput(const State& state, const Input& input, Output& output);
 

@@ -21,13 +21,18 @@ public:
 
     int size;
 
-    std::vector<std::shared_ptr<Input>>& inputs;
-    std::vector<std::shared_ptr<Output>>& outputs;
+    std::vector<Input> inputs;
+    std::vector<Output> outputs;
+
+    DataSet() = default;
+
 
     /**
      * construct the data set from file stream
      */
-    DataSet(std::string file_name) = 0;
+    DataSet(std::string file_name) {
+
+    }
 
     int getSize(){ return size; }
 };

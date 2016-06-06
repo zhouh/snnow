@@ -11,7 +11,7 @@
 class Evalb {
 
     // return the evaluation score
-    double evalb(std::vector<Input>& inputs,
+    virtual double evalb(std::vector<Input>& inputs,
                  std::vector<Output>& predicted_outputs,
                  std::vector<Output>& gold_outputs) = 0;
 

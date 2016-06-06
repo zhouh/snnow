@@ -18,142 +18,202 @@
 #include "DepParseDataSet.h"
 #include "base/FeatureExtractor.h"
 #include "base/TrainingExample.h"
+#include "Dict.h"
+#include "nets/Model.h"
 
 class DepParseFeatureExtractor : public FeatureExtractor{
     
 public:
-	StringVector labelMap;
-	StringVector wordMap;
-	StringVector tagMap;
 
-    StringSet know_dependency_labels;  // prepare the know labels for build the transition system of parsing
+    // total feature num
+	const static int c_featureNum = 48;
 
+    // index of different dictionaries in the dict table
+	const static int c_word_dict_index = 0;
+	const static int c_tag_dict_index = 1;
+	const static int c_dep_label_dict_index = 2;
 
-	const static int featureNum = 48;
+    static std::string word_string;
+    static std::string tag_string;
+    static std::string label_string;
 
 public:
-    DepParseFeatureExtractor(){}
+    int feature_nums[3];
+
+    // set of all feature dictionary
+    DictionaryVectorPtrs dictionary_ptrs_table;
+    FeatureTypes feature_types;
+
+public:
+
+    DepParseFeatureExtractor() : feature_nums({18, 18, 12}){}
+
+    void setFeatureTypes(FeatureTypes ft) {
+        this->feature_types = ft;
+    }
+
+    inline int getTotalInputSize(){
+
+        int retval = 0;
+        for (int i = 0; i < feature_types.size(); ++i) {
+            retval += feature_types[i].feature_embedding_size * feature_nums[i];
+
+        }
+        return retval;
+    }
 
     /**
      * return the know label set
      */
-    StringSet getKnownDepLabelSet() {
-        return know_dependency_labels;
+    const std::vector<std::string>& getKnownDepLabelVector() {
+        return dictionary_ptrs_table[c_dep_label_dict_index]->getKnownStringVector();
     }
-
-    /*
-     * return the whole size of feature dictionary
-     */
-    inline int getDicSize(){
-        return wordMap.size() + tagMap.size() + labelMap.size(); 
+    const String2IndexMap& getKnownDepLabelVectorMap() {
+        return dictionary_ptrs_table[c_dep_label_dict_index]->getMap();
     }
 
     inline void displayDict(){
-        std::clog<< "knowLabels Size:" << labelMap.size() << std::endl;
-        std::clog<< "knowWords Size:" << wordMap.size() << std::endl;
-        std::clog<< "knowTags Size:" << tagMap.size() << std::endl;
+        std::clog<< "###knowLabels Size:" << dictionary_ptrs_table[c_dep_label_dict_index]->size() << std::endl;
+        std::clog<< "###knowWords Size:" << dictionary_ptrs_table[c_word_dict_index]->size() << std::endl;
+        std::clog<< "###knowTags Size:" << dictionary_ptrs_table[c_tag_dict_index]->size() << std::endl;
     }
 
     /**
-     * getting index function, for checking whether the looking up is a unk
+     * directly get the index from the dictionary
      */
-    inline int getWord(std::string s) {
-		auto got = wordMap.find(s);
-		return got == wordMap.end() ? c_unk_index : got->second;
+    inline int getWordIndex(std::string& s) {
+		return dictionary_ptrs_table[c_word_dict_index]->getStringIndex(s);
 	}
 
-	inline int getTag(std::string s) {
-		auto got = tagMap.find(s);
-		return got == tagMap.end() ? c_unk_index : got->second;
+	inline int getTagIndex(std::string& s) {
+        return dictionary_ptrs_table[c_tag_dict_index]->getStringIndex(s);
+
 	}
 
-	inline int getLabel(std::string s) {
-		auto got = labelMap.find(s);
-
-        if( got == labelMap.end() ){
-            std::cerr<<"dep label not found : "<<s<<std::endl;
-            exit(0);
-        }
-        return got->second;
+	inline int getLabelIndex(std::string& s) {
+        return dictionary_ptrs_table[c_dep_label_dict_index]->getStringIndex(s);
 	}
     //=====================================================================
 
 
+    /**
+     *  @index the index in the sentence
+     *  @list cache of dictionary index for the sentence
+     */
     inline int getWordIndex(int index, std::vector<int> & list){
 
         if(index == -1) {
-            return c_null_index;
+            return dictionary_ptrs_table[c_word_dict_index]->getNullIndex();
         }
 
-        if(index >= list.size()){
-            std::cerr<<"in getWordIndex, the index out ot label set size! index : "<< index<<std::endl;
-            exit(0);
-        }
         return list[index];
     }
 
-
+    /**
+     *  @index the index in the sentence
+     *  @list cache of dictionary index for the sentence
+     */
 	inline int getTagIndex(int index, std::vector<int> & list){
 		if(index == -1)
-			return c_null_index;
+			return dictionary_ptrs_table[c_tag_dict_index]->getNullIndex();
 		return list[index];
 	}
 
-	inline int getLabelIndex(int index, State* state){
+    /**
+     *  @index the index of query label in the tree
+     *  @DepParseState cache of dep label is maintained by the state
+     */
+	inline int getLabelIndex(int index, DepParseState* state){
 		if(index == -1)
-			return c_null_index;
+			return dictionary_ptrs_table[c_dep_label_dict_index]->getNullIndex();
 		return state->label(index);
 	}
+    //================================================================
 
     /**
      *   get the dictionary
      */
     void getDictionaries(DataSet& data);
-    
-    void featureExtract(State* state, std::vector<int>& wordIndexCache,
-    		std::vector<int>& tagIndexCache, std::vector<int> & features);
-    /**
-     *   generate training examples for global learning
-     *   assign the global example to gExamples, which is a member of class Depparser
-     */
-    void generateTrainingExamples(ArcStandardSystem * tranSystem, std::vector<Instance> & instances,
-            std::vector<DepTree> & goldTrees, std::vector<GlobalExample> & gExamples);
 
+    std::shared_ptr<FeatureVector> getFeatureVectors(const State& state, const Input& input);
+
+//    /**
+//     *   generate training examples for global learning
+//     *   assign the global example to gExamples, which is a member of class Depparser
+//     */
+//    void generateTrainingExamples(ArcStandardSystem * tranSystem, std::vector<Instance> & instances,
+//            std::vector<DepTree> & goldTrees, std::vector<GlobalExample> & gExamples);
 	void generateGreedyTrainingExamples(DepArcStandardSystem* transit_system, DepParseDataSet& training_data, std::vector<std::shared_ptr<Example>> & examples);
 
-
+    /**
+     * get cache for the input
+     */
     void getCache(DepParseInput& input){
-    
-        inst.wordCache.resize(inst.input.size());
-        inst.tagCache.resize(inst.input.size());
+
+        // resize the cache
+        input.word_cache.resize(input.size());
+        input.tag_cache.resize(input.size());
     
     	int index = 0;
-    	for (auto iter = inst.input.begin(); iter != inst.input.end(); iter++) {
+    	for (auto iter = input.begin(); iter != input.end(); iter++) {
     
-            int wordIdx = getWord(iter->first);
-            int tagIdx = getTag(iter->second);
+            int word_idx = getWordIndex(iter->first);
+            int tag_idx = getTagIndex(iter->second);
     
-    		if ( wordIdx == -1 ) {
+    		if ( word_idx == -1 ) {
     			std::cerr << "Dep word " << iter->first << " is not in wordMap!"
     					<< std::endl;
     			exit(1);
     		}
     
-    		if ( tagIdx == -1 ) {
+    		if ( tag_idx == -1 ) {
     			std::cerr << "Dep tag " << iter->second << " is not in tagMap!"
     					<< std::endl;
     			exit(1);
     		}
-    
-    		inst.wordCache[index] = wordIdx;
-    		inst.tagCache[index] = tagIdx;
+
+            input.word_cache[index] = word_idx;
+            input.tag_cache[index] = tag_idx;
     		index++;
         }
     }
 
-    void getInstancesCache(std::vector<Instance> & insts){
-        for(auto & inst : insts)
+    /**
+     * get cache for the inputs
+     */
+    void getInputsCache(std::vector<DepParseInput> & inputs){
+        for(auto & inst : inputs)
             getCache(inst);
+    }
+
+    void readPretrainedEmbeddings(Model<cpu> & model, std::string file_name) {
+        for (int i = 0; i < static_cast<int>(feature_types.size()); i++) {
+            if (feature_types[i].type_name == DepParseFeatureExtractor::word_string) {
+                model.featEmbs[i]->readPreTrain(file_name, dictionary_ptrs_table[i]);
+            }
+        }
+    }
+
+    void returnInput(std::vector<FeatureVector> &featVecs,
+                                              std::vector<std::shared_ptr<FeatureEmbedding>> &featEmbs,
+                                              TensorContainer<cpu, 2, real_t> & input){
+        for(unsigned beamIndex = 0; beamIndex < static_cast<unsigned>(featVecs.size()); beamIndex++) { // for every beam item
+
+            FeatureVector &featVector = featVecs[beamIndex];
+
+            int inputIndex = 0;
+            for (int featTypeIndex = 0; featTypeIndex < static_cast<int>(featVector.size()); featTypeIndex++) {
+                const std::vector<int> &curFeatVec = featVector[featTypeIndex];
+                const int curFeatSize = feature_types[featTypeIndex].featSize;
+                const int curEmbSize  = feature_types[featTypeIndex].featEmbSize;
+                std::shared_ptr<FeatureEmbedding> &curFeatEmb = featEmbs[featTypeIndex];
+
+                for (auto featId : curFeatVec) {
+                    Copy(input[input_offset + beamIndex].Slice(inputIndex, inputIndex + curEmbSize), curFeatEmb->data[featId], curFeatEmb->data.stream_);
+                    inputIndex += curEmbSize;
+                }
+            }
+        }
     }
 
 };

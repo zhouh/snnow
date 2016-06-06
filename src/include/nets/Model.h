@@ -10,11 +10,9 @@
 
 #include <memory>
 
+#include "Macros.h"
 #include "mshadow/tensor.h"
 
-#include "chunker.h"
-
-#include "Config.h"
 #include "FeatureEmbedding.h"
 #include "FeatureType.h"
 
@@ -38,6 +36,7 @@ struct mySqrt{
 /*
  * parameters of a neural net
  */
+template<typename xpu>
 class Model{
 public:
     Stream<xpu> *stream;
@@ -56,10 +55,10 @@ public:
      * parameters of feature embeddings
      */
     std::vector< std::shared_ptr<FeatureEmbedding> > featEmbs;
-    std::vector<FeatureType> featTypes;
+    FeatureTypes featTypes;
 
     Model(int num_in, int num_hidden, int num_out, 
-          const std::vector<FeatureType> featureTypes, Stream<xpu> *stream, bool withEmb = true, int rnd_seed = 0) : rnd(rnd_seed), featTypes(featureTypes) {
+          const FeatureTypes featureTypes, Stream<xpu> *stream, bool withEmb = true, int rnd_seed = 0) : rnd(rnd_seed), featTypes(featureTypes) {
         /*
          * set streams for data
          */

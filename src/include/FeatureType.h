@@ -13,10 +13,6 @@
 #include <vector>
 #include <memory>
 
-class FeatureType;
-
-typedef  std::vector<std::shared_ptr<FeatureType>> FeatureTypes;
-
 /**
  * The Feature Type is used to define the specific feature in a feature embedding framework
  */
@@ -27,10 +23,10 @@ public:
     int dictionary_size;
     int feature_embedding_size;
 
-    const static std::string c_word_type_name = "word";
-    const static std::string c_tag_type_name = "tag";
-    const static std::string c_label_type_name = "label";
-    const static std::string c_capital_type_name = "capital";
+//    const static std::string c_word_type_name = "word";
+//    const static std::string c_tag_type_name = "tag";
+//    const static std::string c_label_type_name = "label";
+//    const static std::string c_capital_type_name = "capital";
 
 public:
     FeatureType(const std::string &name, 
@@ -71,5 +67,7 @@ inline std::istream& operator>> (std::istream &is, FeatureType &feat_type) {
 
     return is;
 }
+
+typedef  std::vector<FeatureType> FeatureTypes;
 
 #endif

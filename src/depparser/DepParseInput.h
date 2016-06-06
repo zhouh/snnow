@@ -11,18 +11,18 @@
 
 
 #include "base/Input.h"
-#include "Dictionary.h"
 
 /**
  * The dep parse input do not includes the ROOT nodes.
  */
 class DepParseInput : public Input, public std::vector<std::pair<std::string, std::string>>{
 
+public:
     /*
      * cache for fast obtaining the index of tag and word
      */
-    std::vector<int> tagCache;
-    std::vector<int> wordCache;
+    std::vector<int> tag_cache;
+    std::vector<int> word_cache;
 
 };
 

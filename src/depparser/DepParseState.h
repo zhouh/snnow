@@ -13,6 +13,7 @@
 #include "assert.h"
 
 #include "base/State.h"
+#include "DepParseTree.h"
 
 
 class DepParseState : public State{
@@ -47,7 +48,7 @@ class DepParseState : public State{
     public:
         // constructors and destructor
         DepParseState() {
-            bGold = true; // initial DepParseState is true DepParseState
+            be_gold = true; // initial DepParseState is true DepParseState
             //initially, only push root (0) into the stack
             clear();
         }
@@ -80,7 +81,7 @@ class DepParseState : public State{
             last_action = item.last_action;
             score = item.score;
             len_ = item.len_;
-            previous_ = item.previous_;
+            previous = item.previous;
             be_gold = item.be_gold;
             index_in_beam = item.index_in_beam;
 
@@ -223,12 +224,12 @@ class DepParseState : public State{
             m_Stack.clear();
             score = 0;
             previous = nullptr;
-            last_action = nullptr;
+//            last_action = nullptr;
             m_Stack.push_back(0); //push the root onto stack
             m_nNextWord = 1;
         }
 
-        bool hasChildOnQueue(int head, DepTree tree){
+        bool hasChildOnQueue(int head, DepParseTree& tree){
 
 #ifdef DEBUG
             std::cout<<"nextWord\t"<<m_nNextWord<<"\tLen\t"<<len_<<std::endl;
@@ -255,7 +256,7 @@ class DepParseState : public State{
             std::cout<<"input len: "<<len_<<std::endl;
             std::cout<<"stack: "<<stack2top()<<" "<<stacktop()<<" size: "<<stacksize()<<std::endl;
             std::cout<<"next word "<<m_nNextWord<<std::endl;
-            std::cout<<"last action: "<<last_action<<std::endl;
+            std::cout<<"last action: "<<last_action.getActionCode()<<std::endl;
             std::cout<<"--------------"<<std::endl;
         }
 

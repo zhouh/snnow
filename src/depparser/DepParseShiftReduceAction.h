@@ -12,9 +12,9 @@
 class DepParseAction : public Action{
 
 public:
-    static int shift_type = 0;
-    static int left_type = 1;
-    static int right_type = 2;
+    const static int shift_type = 0;
+    const static int left_type = 1;
+    const static int right_type = 2;
 
     DepParseAction(int action_type, int action_label){
         this->action_type = action_type;
@@ -28,8 +28,8 @@ public:
     static int getActionCode(int action_type, int action_label){
         switch (action_type){
             case shift_type : return shift_type;
-            case left_type : return left_type + action_label;
-            case right_type : return action_label + 1 + DepParseShiftReduceActionFactory::action_la bel_num;
+            case DepParseAction::left_type : return (left_type + action_label);
+            case right_type : return (action_label + 1 + ActionFactory::action_label_num);
 
         }
     }
@@ -54,7 +54,7 @@ public:
     }
 
     // return the action given action type and label
-    virtual static DepParseAction* makeAction(int action_type, int action_label) {
+    virtual Action* makeAction(int action_type, int action_label) {
 
         int action_code = DepParseAction::getActionCode(action_type, action_label);
 
@@ -62,7 +62,7 @@ public:
             return action_table[action_code].get();
         }
         else{
-            std::shared_ptr<Action> new_action_ptr = new DepParseAction(action_type, action_label);
+            std::shared_ptr<DepParseAction> new_action_ptr ( new DepParseAction(action_type, action_label) );
             action_table[action_code] = new_action_ptr;
 
             if( action_type == DepParseAction::shift_type )
@@ -74,7 +74,7 @@ public:
             else
                 exit(1);  //it is not a valid action type
 
-            return new_action_ptr;
+            return static_cast<Action*>(new_action_ptr.get());
         }
 
     }

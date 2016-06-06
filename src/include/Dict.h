@@ -11,61 +11,91 @@
 #include <vector>
 #include <string>
 #include <cctype>
+#include <memory>
 #include <tr1/unordered_map>
 #include <tr1/unordered_set>
 
+class Dictionary;
+
+typedef std::vector< std::shared_ptr< Dictionary > > DictionaryVectorPtrs;
+
+/**
+ * The dictionary object to matain the mapping from the
+ * sparse atomic feature the index in the feature embedding matrix
+ *
+ */
 class Dictionary {
-protected:
-    std::vector<std::string> m_lKnownElements;
-    std::tr1::unordered_map<std::string, int> m_mElement2Idx;
+
+private:
+    std::vector<std::string> known_strings;
+    std::tr1::unordered_map<std::string, int> str_2_index_map;
+
+    int unk_index;
+    int null_index;
+
+    const int c_dictionary_begin_index = 0;
+    const std::string c_unk_str = "_Dict_UNK_Str_";
+
+public:
     std::string dictionary_name;
 
 public:
-    const static int c_null_index = 0;
-    const static int c_unk_index = 1;
-    const static int c_dictionary_begin_index = 2;
+    Dictionary()  = delete;
 
-    static const std::string c_null_str = "_Dict_NULL_Str_";
-    static const std::string c_unk_str = "_Dict_UNK_Str_";
+    /**
+     * get all the known strings and construct a map from them
+     * @name the name of the dictionary, because we may have many dictionary in our system.
+     */
+    Dictionary(std::tr1::unordered_set<std::string> known_string_set, std::string name){
 
-public:
-    Dictionary() {}
-
-    Dictionary(std::vector<std::string> element_list, std::string name){
         this->dictionary_name = name;
-        m_lKnownElements = element_list;
-        int index = c_dictionary_begin_index;
-        for(unsigned i = 0; i < element_list.size(); ++i)
-            m_mElement2Idx[element_list[i]] = index++;
+        int index = 0;
+        std::for_each(known_string_set.begin(), known_string_set.end(), [&] (std::string s) {
+                known_strings.push_back(s);
+                str_2_index_map[s] = index++;
+             });
+
+        null_index = str_2_index_map.size() ;
+        unk_index = null_index + 1;
+    }
+
+    /**
+     * get element index of the dictionary,
+     * if not found, return the index of unk
+     */
+    inline int getStringIndex(std::string s) {
+        auto got = str_2_index_map.find(s);
+        return got == str_2_index_map.end() ? unk_index : got->second;
+    }
+
+    /**
+     * return the null index,
+     * used in the feature extractor!!
+     */
+    inline int getNullIndex() {
+        return null_index;
     }
 
     virtual ~Dictionary() {}
 
     int size() {
-        return static_cast<int>(m_mElement2Idx.size());
+        return static_cast<int>(str_2_index_map.size() + 1); // + 1 for the unk string
     }
 
-    const std::vector<std::string>& getKnownElements() const {
-        return m_lKnownElements;
+    const std::vector<std::string>& getKnownStringVector() const {
+        return known_strings;
     }
 
-    const std::tr1::unordered_map<std::string, int>& getWord2IdxMap() const {
-        return m_mElement2Idx;
-    }
+    const std::tr1::unordered_map<std::string, int>& getMap() const {
+        return str_2_index_map;
+    };
 
-    virtual int element2Idx(const std::string &s) const {
-        auto it = m_mElement2Idx.find(s);
+    virtual void saveDictionary(std::ostream & os) {
+        os << "element size" << " " << known_strings.size() << std::endl;
+        os << "dictionary name" << " " << dictionary_name << std::endl;
 
-        return (it == m_mElement2Idx.end()) ? c_unk_index: it->second;
-    }
-
-    virtual void makeDictionaries(const ChunkedDataSet &goldSet) = 0;
-
-    virtual void saveDictionary(std::ostream &os) {
-        os << "elementSize" << " " << m_lKnownElements.size() << std::endl;
-
-        for (std::string &e : m_lKnownElements) {
-            os << e << " " << m_mElement2Idx[e] << std::endl;
+        for (std::string & e : known_strings) {
+            os << e << " " << str_2_index_map[e] << std::endl;
         }
     }
 
@@ -73,11 +103,15 @@ public:
         std::string line;
         std::string tmp;
         int size;
-    
+
         getline(is, line);
         std::istringstream iss(line);
         iss >> tmp >> size;
-    
+        iss >> tmp >> dictionary_name;
+
+        null_index = size ;
+        unk_index = size + 1;
+
         std::string element;
         int idx;
         for (int i = 0; i < size; i++) {
@@ -85,22 +119,16 @@ public:
             std::istringstream iss_j(line);
             iss_j >> element >> idx;
 
-            processElementAndIdx(element, idx);
-    
-            m_mElement2Idx[element] = idx;
-            m_lKnownElements.push_back(element);
+            str_2_index_map[element] = idx;
+            known_strings.push_back(element);
         }
     }
 
     void printDict() {
-        for (auto &s : m_lKnownElements) {
-            std::cerr << "  " <<  s << ": " << m_mElement2Idx[s] << std::endl;
+        for (auto &s : known_strings) {
+            std::cerr << "  " <<  s << ": " << str_2_index_map[s] << std::endl;
         }
     }
-
-private:
-    Dictionary(const Dictionary &dManager) = delete;
-    Dictionary& operator= (const Dictionary &dManager) = delete;
 
 };
 

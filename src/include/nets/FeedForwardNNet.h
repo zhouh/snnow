@@ -19,6 +19,7 @@ using namespace mshadow;
 // this namespace contains all operator overloads
 using namespace mshadow::expr;
 
+template<typename xpu>
 class FeedForwardNNet{
 
 public:

@@ -13,21 +13,16 @@
 #include "FeatureVector.h"
 
 
-
-class GlobalTrainingExample;
-
-typedef std::vector<std::shared_ptr<GlobalExample>> GlobalTrainingExamplePtrs;
-
 /**
  * example for greedy training
  */
 class Example {
 
 public:
-    FeatureVectors feature_vectors;
-    std::vector<int> predict_labels;
+    FeatureVector feature_vector;
+    int predict_label;
 
-    Example(const FeatureVectors& fs, const std::vector<int>& l) : feature_vectors(fs), predict_labels(l){
+    Example(const FeatureVector& fs, int l) : feature_vector(fs), predict_label(l){
     }
 
     ~Example() {}
@@ -42,8 +37,11 @@ public:
     std::vector<int> gold_actions;
     Input input;
 
-    GlobalExample(std::vector<Example> &exs, std::vector<int> &gActs, Instance &inst): examples(exs), gold_actions(gActs), instance(inst) {}
+    GlobalExample(std::vector<Example> &exs, std::vector<int> &gActs): examples(exs), gold_actions(gActs){}
     ~GlobalExample() {}
 };
+
+
+typedef std::vector<std::shared_ptr<GlobalExample>> GlobalTrainingExamplePtrs;
 
 #endif //SNNOW_TRAININGEXAMPLE_H

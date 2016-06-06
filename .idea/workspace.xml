@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="BookmarkManager">
+    <bookmark url="file://$PROJECT_DIR$/src/include/Dict.h" line="88" mnemonic="0" />
+  </component>
   <component name="CMakeRunConfigurationManager" shouldGenerate="true" assignedExecutableTargets="true" buildAllGenerated="true">
     <generated>
       <config projectName="snnow" targetName="depparser" />
@@ -15,164 +18,42 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="20d303fc-18d8-4b28-aae1-a14a67467ce0" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.cproject" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.project" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/Makefile" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/beamchunker/BatchBeamDecoder.cu" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/beamchunker/BatchBeamDecoder.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/beamchunker/Beam.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/beamchunker/Beam.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/beamchunker/BeamChunker.cu" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/beamchunker/BeamChunker.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/beamchunker/BeamChunkerThread.cu" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/beamchunker/BeamChunkerThread.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/beamchunker/BeamDecoder.cu" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/beamchunker/BeamDecoder.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/beamchunker/BeamExample.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/beamchunker/TNNets.cu" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/beamchunker/TNNets.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/beamchunker/chunk.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/ActionStandardSystem.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/ActionStandardSystem.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/Config.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/Config.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/DictManager.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/DictManager.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/Dictionary.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/Dictionary.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/Evalb.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/Evalb.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/Example.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/FeatureEmbedding.cu" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/FeatureEmbedding.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/FeatureEmbeddingManager.cu" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/FeatureEmbeddingManager.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/FeatureExtractor.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/FeatureManager.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/FeatureManager.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/FeatureType.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/FeatureVector.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/Instance.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/LabeledSequence.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/Model.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/NNet.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/State.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/common/chunker.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/config/Configuration.ini" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/greedychunker/GreedyChunker.cu" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/greedychunker/GreedyChunker.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/greedychunker/GreedyChunkerThread.cu" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/greedychunker/GreedyChunkerThread.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/greedychunker/chunk.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/runbeam.sh" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/chunker/rungreedy.sh" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/ArcStandardSystem.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/ArcStandardSystem.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/Beam.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/Beam.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/BeamDecodor.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/Classifier.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/Classifier.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/Config.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/Config.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/DepAction.bak" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/DepAction.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/DepTree.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/DepTreeNode.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/Depparser.cu" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/Depparser.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/Evalb.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/Example.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/FeatureExtractor.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/FeatureExtractor.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/GlobalExample.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/Instance.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/State.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/depparser/parser.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/Utils.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow-ps/.gitignore" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow-ps/README.md" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow-ps/mshadow_ps.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow-ps/ps_dist-inl.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow-ps/ps_local-inl.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow-ps/ps_rabit-inl.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow-ps/thread.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow-ps/thread_util.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/README.md" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/base.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/cuda/reduce.cuh" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/cuda/tensor_gpu-inl.cuh" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/dot_engine-inl.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/expr_engine-inl.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/expr_scalar-inl.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/expression.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/extension.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/extension/broadcast.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/extension/channel_pool.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/extension/channel_unpool.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/extension/concat.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/extension/crop.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/extension/mirror.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/extension/pack_col2patch.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/extension/pad.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/extension/reduceto1d.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/extension/reshape.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/extension/spatial_pool.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/extension/spatial_unpool.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/extension/swapaxis.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/extension/unpack_patch2col.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/io.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/random.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/sse-inl.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/stream_gpu-inl.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/tensor.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/tensor_blob.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/tensor_container.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/tensor_cpu-inl.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/tensor_gpu-inl.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/mshadow/utils.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/.gitignore" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/.travis.yml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/LICENSE" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/Makefile" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/.gitignore" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/Makefile" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/README.md" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/basic.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/basic_stream.cu" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/defop.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/exp-template/.gitignore" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/exp-template/Makefile" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/exp-template/README.md" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/mshadow-ps/.gitignore" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/mshadow-ps/2-levels.png" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/mshadow-ps/Makefile" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/mshadow-ps/README.md" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/mshadow-ps/dbstr.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/mshadow-ps/dist_async_sum-inl.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/mshadow-ps/dist_async_sum.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/mshadow-ps/local.sh" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/mshadow-ps/local_sum-inl.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/mshadow-ps/local_sum.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/mshadow-ps/local_sum.cu" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/neuralnet/Makefile" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/neuralnet/README.md" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/neuralnet/convnet.cu" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/neuralnet/nnet.cu" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/neuralnet/nnet_ps.cu" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/guide/neuralnet/util.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/make/README.md" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/make/config.mk" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/make/mshadow.mk" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/thirdparty/mshadow/scripts/travis_script.sh" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/virtual/FeatureExtractor.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/virtual/GLobalInstance.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/virtual/Instance.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/virtual/NLPCore.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/virtual/State.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/virtual/TransitionSystem.h" afterPath="" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/src/include/Dict.h" afterPath="$PROJECT_DIR$/src/include/Dictionary.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/Dict.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/Dictionary.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/FeatureManager.cpp" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/include/FeatureManager.h" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Makefile" afterPath="$PROJECT_DIR$/Makefile" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/chunker/greedychunker/GreedyChunkerThread.cu" afterPath="$PROJECT_DIR$/chunker/greedychunker/GreedyChunkerThread.cu" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/depparser/DepArcStandardSystem.cpp" afterPath="$PROJECT_DIR$/src/depparser/DepArcStandardSystem.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/depparser/DepArcStandardSystem.h" afterPath="$PROJECT_DIR$/src/depparser/DepArcStandardSystem.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/depparser/DepParseDataSet.h" afterPath="$PROJECT_DIR$/src/depparser/DepParseDataSet.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/depparser/DepParseEvalb.h" afterPath="$PROJECT_DIR$/src/depparser/DepParseEvalb.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/depparser/DepParseFeatureExtractor.cpp" afterPath="$PROJECT_DIR$/src/depparser/DepParseFeatureExtractor.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/depparser/DepParseFeatureExtractor.h" afterPath="$PROJECT_DIR$/src/depparser/DepParseFeatureExtractor.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/depparser/DepParseInput.h" afterPath="$PROJECT_DIR$/src/depparser/DepParseInput.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/depparser/DepParseMacro.h" afterPath="$PROJECT_DIR$/src/depparser/DepParseMacro.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/depparser/DepParseShiftReduceAction.h" afterPath="$PROJECT_DIR$/src/depparser/DepParseShiftReduceAction.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/depparser/DepParseState.h" afterPath="$PROJECT_DIR$/src/depparser/DepParseState.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/depparser/DepParseTree.h" afterPath="$PROJECT_DIR$/src/depparser/DepParseTree.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/depparser/DepParser.cu" afterPath="$PROJECT_DIR$/src/depparser/DepParser.cu" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/depparser/DepParser.h" afterPath="$PROJECT_DIR$/src/depparser/DepParser.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/depparser/DepTreeNode.h" afterPath="$PROJECT_DIR$/src/depparser/DepTreeNode.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/depparser/parser.cpp" afterPath="$PROJECT_DIR$/src/depparser/parser.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/include/DataSet.h" afterPath="$PROJECT_DIR$/src/include/DataSet.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/include/Dict.h" afterPath="$PROJECT_DIR$/src/include/Dict.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/include/FeatureType.h" afterPath="$PROJECT_DIR$/src/include/FeatureType.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/include/FeatureVector.h" afterPath="$PROJECT_DIR$/src/include/FeatureVector.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/include/Macros.h" afterPath="$PROJECT_DIR$/src/include/Macros.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/include/base/Action.h" afterPath="$PROJECT_DIR$/src/include/base/Action.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/include/base/Evalb.h" afterPath="$PROJECT_DIR$/src/include/base/Evalb.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/include/base/FeatureExtractor.h" afterPath="$PROJECT_DIR$/src/include/base/FeatureExtractor.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/include/base/NLPCore.h" afterPath="$PROJECT_DIR$/src/include/base/NLPCore.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/include/base/State.h" afterPath="$PROJECT_DIR$/src/include/base/State.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/include/base/TrainingExample.h" afterPath="$PROJECT_DIR$/src/include/base/TrainingExample.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/include/base/TransitionSystem.h" afterPath="$PROJECT_DIR$/src/include/base/TransitionSystem.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/include/nets/FeedForwardNNet.h" afterPath="$PROJECT_DIR$/src/include/nets/FeedForwardNNet.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/include/nets/Model.h" afterPath="$PROJECT_DIR$/src/include/nets/Model.h" />
     </list>
     <ignored path="snnow.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -193,60 +74,106 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Dict.h" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/include/Dict.h">
+      <file leaf-file-name="FeatureEmbeddingManager.cu" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/include/FeatureEmbeddingManager.cu">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1474">
-              <caret line="82" column="39" selection-start-line="82" selection-start-column="39" selection-end-line="82" selection-end-column="39" />
-              <folding>
-                <element signature="e#353#372#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Dict.cpp" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/include/Dict.cpp">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="374">
-              <caret line="17" column="0" selection-start-line="17" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
+            <state relative-caret-position="729">
+              <caret line="54" column="35" selection-start-line="54" selection-start-column="35" selection-end-line="54" selection-end-column="35" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Dictionary.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/include/Dictionary.h">
+      <file leaf-file-name="FeatureEmbedding.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/include/FeatureEmbedding.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="286">
-              <caret line="25" column="35" selection-start-line="25" selection-start-column="35" selection-end-line="25" selection-end-column="35" />
+            <state relative-caret-position="619">
+              <caret line="30" column="4" selection-start-line="30" selection-start-column="4" selection-end-line="30" selection-end-column="4" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="FeatureEmbedding.cu" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/include/FeatureEmbedding.cu">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-503">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
               <folding>
-                <element signature="e#121#138#0" expanded="true" />
+                <element signature="e#0#18#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="DepParseFeatureExtractor.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/depparser/DepParseFeatureExtractor.h">
+      <file leaf-file-name="Input.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/include/base/Input.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="198">
-              <caret line="30" column="0" selection-start-line="30" selection-start-column="0" selection-end-line="30" selection-end-column="0" />
-              <folding>
-                <element signature="e#326#344#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="154">
+              <caret line="7" column="6" selection-start-line="7" selection-start-column="6" selection-end-line="7" selection-end-column="6" />
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="DepParseFeatureExtractor.cpp" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/depparser/DepParseFeatureExtractor.cpp">
+      <file leaf-file-name="FeatureType.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/include/base/FeatureType.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-151">
+              <caret line="13" column="7" selection-start-line="13" selection-start-column="7" selection-end-line="13" selection-end-column="7" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="State.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/include/base/State.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="245">
+              <caret line="15" column="0" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="NLPCore.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/include/base/NLPCore.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="462">
+              <caret line="23" column="12" selection-start-line="23" selection-start-column="12" selection-end-line="23" selection-end-column="12" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Model.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/include/nets/Model.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="2046">
+              <caret line="177" column="7" selection-start-line="177" selection-start-column="7" selection-end-line="177" selection-end-column="7" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="parser.cpp" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/depparser/parser.cpp">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="-22">
-              <caret line="20" column="19" selection-start-line="20" selection-start-column="19" selection-end-line="20" selection-end-column="19" />
+              <caret line="17" column="58" selection-start-line="17" selection-start-column="58" selection-end-line="17" selection-end-column="58" />
               <folding>
-                <element signature="e#260#278#0" expanded="true" />
+                <element signature="e#228#254#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="DepParser.h" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/depparser/DepParser.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="308">
+              <caret line="27" column="27" selection-start-line="27" selection-start-column="27" selection-end-line="27" selection-end-column="27" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -259,57 +186,57 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/src/include/base/FeatureType.h" />
-        <option value="$PROJECT_DIR$/src/include/Beam.cpp" />
-        <option value="$PROJECT_DIR$/cmake/FindOpenBLAS.cmake" />
-        <option value="$PROJECT_DIR$/main.cpp" />
         <option value="$PROJECT_DIR$/src/depparser/CMakeLists.txt" />
         <option value="$PROJECT_DIR$/src/CMakeLists.txt" />
         <option value="$PROJECT_DIR$/src/include/CMakeLists.txt" />
         <option value="$PROJECT_DIR$/src/depparser/DepParseAction.h" />
-        <option value="$PROJECT_DIR$/src/include/base/NLPCore.h" />
         <option value="$PROJECT_DIR$/src/depparser/GlobalExample.h" />
-        <option value="$PROJECT_DIR$/src/depparser/DepParseEvalb.h" />
-        <option value="$PROJECT_DIR$/src/depparser/DepTreeNode.h" />
         <option value="$PROJECT_DIR$/src/depparser/DepTree.h" />
-        <option value="$PROJECT_DIR$/src/include/nets/FeedForwardNNet.h" />
-        <option value="$PROJECT_DIR$/src/include/DataSet.h" />
-        <option value="$PROJECT_DIR$/src/depparser/DepParseDataSet.h" />
         <option value="$PROJECT_DIR$/src/depparser/DepParser.cpp" />
         <option value="$PROJECT_DIR$/src/include/nets/TransitionNNet.h" />
         <option value="$PROJECT_DIR$/src/include/Macros.h.h" />
         <option value="$PROJECT_DIR$/src/include/FeatureEmbedding.cu" />
         <option value="$PROJECT_DIR$/CMakeLists.txt" />
-        <option value="$PROJECT_DIR$/src/include/nets/Model.h" />
         <option value="$PROJECT_DIR$/src/include/FeatureManager.h" />
-        <option value="$PROJECT_DIR$/src/include/FeatureEmbeddingManager.h" />
         <option value="$PROJECT_DIR$/src/include/FeatureEmbeddingManager.cu" />
-        <option value="$PROJECT_DIR$/src/include/FeatureType.h" />
         <option value="$PROJECT_DIR$/src/include/FeatureEmbedding.h" />
         <option value="$PROJECT_DIR$/src/include/Dictionary.h" />
-        <option value="$PROJECT_DIR$/src/depparser/DepParseMacro.h" />
         <option value="$PROJECT_DIR$/src/include/FeatureExtractor.h" />
         <option value="$PROJECT_DIR$/src/depparser/Instance.h" />
         <option value="$PROJECT_DIR$/src/depparser/State.h" />
-        <option value="$PROJECT_DIR$/src/include/base/State.h" />
-        <option value="$PROJECT_DIR$/src/depparser/DepParseState.h" />
-        <option value="$PROJECT_DIR$/src/include/base/Action.h" />
-        <option value="$PROJECT_DIR$/src/include/base/TransitionSystem.h" />
-        <option value="$PROJECT_DIR$/src/depparser/DepParseShiftReduceAction.h" />
-        <option value="$PROJECT_DIR$/src/depparser/DepArcStandardSystem.cpp" />
-        <option value="$PROJECT_DIR$/src/depparser/DepArcStandardSystem.h" />
         <option value="$PROJECT_DIR$/src/depparser/DepAction.h" />
+        <option value="$PROJECT_DIR$/src/depparser/ArcStandardSystem.cpp" />
+        <option value="$PROJECT_DIR$/src/depparser/DepTreeNode.h" />
+        <option value="$PROJECT_DIR$/src/include/FeatureEmbeddingManager.h" />
+        <option value="$PROJECT_DIR$/src/include/nets/FeedForwardNNet.h" />
         <option value="$PROJECT_DIR$/src/depparser/parser.cpp" />
         <option value="$PROJECT_DIR$/src/depparser/DepParser.h" />
+        <option value="$PROJECT_DIR$/src/include/nets/Model.h" />
         <option value="$PROJECT_DIR$/src/depparser/DepParser.cu" />
+        <option value="$PROJECT_DIR$/src/include/base/FeatureExtractor.h" />
+        <option value="$PROJECT_DIR$/src/include/base/NLPCore.h" />
+        <option value="$PROJECT_DIR$/src/include/Macros.h" />
+        <option value="$PROJECT_DIR$/src/depparser/DepParseMacro.h" />
+        <option value="$PROJECT_DIR$/src/include/base/TransitionSystem.h" />
+        <option value="$PROJECT_DIR$/src/depparser/LSTM.h" />
+        <option value="$PROJECT_DIR$/src/include/base/Action.h" />
+        <option value="$PROJECT_DIR$/src/depparser/DepParseShiftReduceAction.h" />
+        <option value="$PROJECT_DIR$/src/depparser/DepParseState.h" />
+        <option value="$PROJECT_DIR$/src/depparser/DepArcStandardSystem.cpp" />
+        <option value="$PROJECT_DIR$/src/depparser/DepParseTree.h" />
+        <option value="$PROJECT_DIR$/src/depparser/DepArcStandardSystem.h" />
+        <option value="$PROJECT_DIR$/src/include/DataSet.h" />
+        <option value="$PROJECT_DIR$/src/depparser/DepParseDataSet.h" />
+        <option value="$PROJECT_DIR$/src/include/FeatureType.h" />
         <option value="$PROJECT_DIR$/src/include/FeatureVector.h" />
         <option value="$PROJECT_DIR$/src/include/base/TrainingExample.h" />
-        <option value="$PROJECT_DIR$/src/depparser/DepParseTree.h" />
-        <option value="$PROJECT_DIR$/src/depparser/DepParseFeatureExtractor.cpp" />
-        <option value="$PROJECT_DIR$/src/depparser/DepParseInput.h" />
-        <option value="$PROJECT_DIR$/src/depparser/DepParseFeatureExtractor.h" />
         <option value="$PROJECT_DIR$/src/include/Dict.h" />
-        <option value="$PROJECT_DIR$/src/depparser/ArcStandardSystem.cpp" />
+        <option value="$PROJECT_DIR$/src/depparser/DepParseInput.h" />
+        <option value="$PROJECT_DIR$/src/depparser/DepParseFeatureExtractor.cpp" />
+        <option value="$PROJECT_DIR$/src/depparser/DepParseFeatureExtractor.h" />
+        <option value="$PROJECT_DIR$/src/include/base/Evalb.h" />
+        <option value="$PROJECT_DIR$/src/depparser/DepParseEvalb.h" />
+        <option value="$PROJECT_DIR$/src/include/base/State.h" />
       </list>
     </option>
   </component>
@@ -320,9 +247,9 @@
   </component>
   <component name="OCFindUsagesOptions" text="true" ivars="false" properties="true" derivedClasses="false" />
   <component name="ProjectFrameBounds">
-    <option name="y" value="896" />
+    <option name="y" value="24" />
     <option name="width" value="1600" />
-    <option name="height" value="904" />
+    <option name="height" value="876" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -377,6 +304,24 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
+              <option name="myItemId" value="thirdparty" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="mshadow" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="snnow" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="snnow" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
               <option name="myItemId" value="src" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
@@ -413,7 +358,83 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
+              <option name="myItemId" value="include" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="nets" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="snnow" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="snnow" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="include" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="base" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="snnow" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="snnow" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
               <option name="myItemId" value="depparser" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="snnow" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="snnow" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="chunker" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="snnow" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="snnow" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="chunker" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="common" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -423,7 +444,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="settings.editor.selected.configurable" value="preferences.toDoOptions" />
+    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors.Font" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
   </component>
@@ -639,27 +660,27 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="896" width="1600" height="904" extended-state="6" />
-    <editor active="false" />
+    <frame x="0" y="24" width="1600" height="876" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22" sideWeight="0.4856787" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22375" sideWeight="0.47571605" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32876712" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32876712" sideWeight="0.5" order="8" side_tool="true" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32876712" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32876712" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.49564135" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32876712" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.22" sideWeight="0.51432127" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.22375" sideWeight="0.52428395" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32876712" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32876712" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32876712" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -675,45 +696,245 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="1" />
+      <breakpoints>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/src/depparser/LSTM.h</url>
+          <line>474</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/src/depparser/LSTM.h</url>
+          <line>414</line>
+          <option name="timeStamp" value="4" />
+        </line-breakpoint>
+      </breakpoints>
+      <option name="time" value="6" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/chunker/common/NNet.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="462">
+          <caret line="37" column="0" selection-start-line="37" selection-start-column="0" selection-end-line="37" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/include/nets/TransitionNNet.h">
       <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/chunker/greedychunker/GreedyChunkerThread.cu">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-462">
+          <caret line="72" column="10" selection-start-line="72" selection-start-column="10" selection-end-line="72" selection-end-column="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/chunker/greedychunker/GreedyChunker.cu">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="132">
+          <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/chunker/common/Model.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/include/Beam.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/include/Beam.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-462">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/include/Macros.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="154">
+          <caret line="7" column="20" selection-start-line="7" selection-start-column="20" selection-end-line="7" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/include/base/TransitionSystem.h">
+      <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="220">
-          <caret line="10" column="39" selection-start-line="10" selection-start-column="39" selection-end-line="10" selection-end-column="39" />
+          <caret line="10" column="17" selection-start-line="10" selection-start-column="17" selection-end-line="10" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/depparser/BeamDecodor.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1430">
+          <caret line="65" column="15" selection-start-line="65" selection-start-column="15" selection-end-line="65" selection-end-column="15" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/depparser/LSTM.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1115">
+          <caret line="587" column="31" selection-start-line="587" selection-start-column="31" selection-end-line="587" selection-end-column="31" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/depparser/DepParser.cu">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3303">
+          <caret line="235" column="31" selection-start-line="235" selection-start-column="31" selection-end-line="235" selection-end-column="31" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/depparser/DepParseState.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="418">
+          <caret line="258" column="66" selection-start-line="258" selection-start-column="66" selection-end-line="258" selection-end-column="66" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/depparser/DepTreeNode.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/depparser/DepArcStandardSystem.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="132">
+          <caret line="6" column="29" selection-start-line="6" selection-start-column="29" selection-end-line="6" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/depparser/DepParseTree.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="330">
+          <caret line="15" column="0" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/chunker/common/FeatureType.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-481">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/depparser/DepArcStandardSystem.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-88">
+          <caret line="28" column="0" selection-start-line="28" selection-start-column="0" selection-end-line="28" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/depparser/DepParseDataSet.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="399">
+          <caret line="30" column="12" selection-start-line="30" selection-start-column="12" selection-end-line="30" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/include/FeatureType.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="264">
+          <caret line="12" column="3" selection-start-line="12" selection-start-column="3" selection-end-line="12" selection-end-column="3" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/include/FeatureVector.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="707">
+          <caret line="40" column="23" selection-start-line="40" selection-start-column="23" selection-end-line="40" selection-end-column="23" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/include/base/TrainingExample.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="858">
+          <caret line="39" column="68" selection-start-line="39" selection-start-column="68" selection-end-line="39" selection-end-column="68" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/depparser/DepParseMacro.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="462">
+          <caret line="21" column="50" selection-start-line="21" selection-start-column="50" selection-end-line="21" selection-end-column="50" />
           <folding>
-            <marker date="1460356823407" expanded="true" signature="924:3268" placeholder="{...}" />
-            <marker date="1460356823407" expanded="true" signature="1482:1708" placeholder="{...}" />
-            <marker date="1460356823407" expanded="true" signature="1966:2333" placeholder="{...}" />
-            <marker date="1460356823407" expanded="true" signature="2356:2469" placeholder="{...}" />
-            <marker date="1460356823407" expanded="true" signature="2496:2561" placeholder="{...}" />
-            <marker date="1460356823407" expanded="true" signature="2588:2735" placeholder="{...}" />
-            <marker date="1460356823407" expanded="true" signature="2796:2844" placeholder="{...}" />
-            <marker date="1460356823407" expanded="true" signature="2951:3049" placeholder="{...}" />
+            <element signature="e#99#116#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/thirdparty/mshadow/cmake/Cuda.cmake">
+    <entry file="file://$PROJECT_DIR$/src/depparser/DepParseInput.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-4686">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state relative-caret-position="506">
+          <caret line="23" column="21" selection-start-line="23" selection-start-column="21" selection-end-line="23" selection-end-column="21" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/thirdparty/mshadow/cmake/mshadow.cmake">
+    <entry file="file://$PROJECT_DIR$/src/depparser/DepParseFeatureExtractor.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-195">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+        <state relative-caret-position="308">
+          <caret line="14" column="47" selection-start-line="14" selection-start-column="47" selection-end-line="14" selection-end-column="47" />
+          <folding>
+            <element signature="e#0#258#0" expanded="false" />
+            <element signature="e#260#278#0" expanded="true" />
+            <element signature="e#1206#1255#0" expanded="false" />
+            <element signature="e#10293#10295#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/thirdparty/mshadow/cmake/Utils.cmake">
+    <entry file="file://$PROJECT_DIR$/chunker/common/FeatureEmbeddingManager.cu">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="257">
+          <caret line="38" column="182" selection-start-line="38" selection-start-column="182" selection-end-line="38" selection-end-column="182" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/chunker/common/FeatureEmbeddingManager.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-528">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/include/nets/FeedForwardNNet.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1254">
+          <caret line="57" column="4" selection-start-line="57" selection-start-column="4" selection-end-line="57" selection-end-column="4" />
+          <folding>
+            <element signature="e#152#169#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/depparser/DepParseEvalb.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="176">
+          <caret line="9" column="0" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
+          <folding>
+            <element signature="e#99#122#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/include/base/CMakeLists.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
@@ -721,44 +942,103 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/include/nets/Model.h">
+    <entry file="file://$PROJECT_DIR$/src/depparser/DepParseShiftReduceAction.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-682">
-          <caret line="8" column="14" selection-start-line="8" selection-start-column="14" selection-end-line="8" selection-end-column="14" />
+        <state relative-caret-position="157">
+          <caret line="38" column="56" selection-start-line="38" selection-start-column="56" selection-end-line="38" selection-end-column="56" />
           <folding>
-            <marker date="1460361002659" expanded="true" signature="880:12449" placeholder="{...}" />
-            <marker date="1460361002659" expanded="true" signature="1503:2438" placeholder="{...}" />
-            <marker date="1460361002659" expanded="true" signature="2486:2954" placeholder="{...}" />
-            <marker date="1460361002659" expanded="true" signature="3035:3189" placeholder="{...}" />
-            <marker date="1460361002659" expanded="true" signature="3210:4566" placeholder="{...}" />
-            <marker date="1460361002659" expanded="true" signature="4598:5120" placeholder="{...}" />
-            <marker date="1460361002659" expanded="true" signature="5327:6937" placeholder="{...}" />
-            <marker date="1460361002659" expanded="true" signature="7045:7304" placeholder="{...}" />
-            <marker date="1460361002659" expanded="true" signature="7418:9743" placeholder="{...}" />
-            <marker date="1460361002659" expanded="true" signature="9784:12331" placeholder="{...}" />
+            <element signature="e#124#141#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/include/Macros.h">
+    <entry file="file://$PROJECT_DIR$/src/include/base/ScoredTransition.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="88">
-          <caret line="4" column="22" selection-start-line="4" selection-start-column="22" selection-end-line="4" selection-end-column="22" />
+        <state relative-caret-position="220">
+          <caret line="10" column="16" selection-start-line="10" selection-start-column="16" selection-end-line="10" selection-end-column="16" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/include/FeatureEmbedding.cu">
+    <entry file="file://$PROJECT_DIR$/src/include/base/Action.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1012">
-          <caret line="69" column="65" selection-start-line="69" selection-start-column="65" selection-end-line="69" selection-end-column="65" />
+        <state relative-caret-position="-792">
+          <caret line="32" column="42" selection-start-line="32" selection-start-column="42" selection-end-line="32" selection-end-column="42" />
+          <folding>
+            <element signature="e#86#103#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/include/base/Evalb.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="286">
+          <caret line="13" column="16" selection-start-line="13" selection-start-column="16" selection-end-line="13" selection-end-column="16" />
+          <folding>
+            <element signature="e#83#101#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/include/base/Decodor.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-393">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/include/FeatureManager.cpp">
+    <entry file="file://$PROJECT_DIR$/src/include/base/Output.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-330">
+        <state relative-caret-position="176">
+          <caret line="8" column="6" selection-start-line="8" selection-start-column="6" selection-end-line="8" selection-end-column="6" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/include/DataSet.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="201">
+          <caret line="21" column="12" selection-start-line="21" selection-start-column="12" selection-end-line="21" selection-end-column="12" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/include/base/FeatureExtractor.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="443">
+          <caret line="26" column="52" selection-start-line="26" selection-start-column="52" selection-end-line="26" selection-end-column="52" />
+          <folding>
+            <element signature="e#366#383#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/depparser/DepParseFeatureExtractor.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="110">
+          <caret line="43" column="40" selection-start-line="43" selection-start-column="40" selection-end-line="43" selection-end-column="40" />
+          <folding>
+            <element signature="e#0#242#0" expanded="false" />
+            <element signature="e#1309#1388#0" expanded="false" />
+            <element signature="e#1634#1678#0" expanded="false" />
+            <element signature="e#4557#4599#0" expanded="false" />
+            <element signature="e#5405#5448#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/include/Dict.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="418">
+          <caret line="67" column="51" selection-start-line="67" selection-start-column="51" selection-end-line="67" selection-end-column="51" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/include/base/FeatureManager.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-591">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding />
         </state>
@@ -766,374 +1046,84 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/include/FeatureEmbeddingManager.cu">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="209">
-          <caret line="41" column="80" selection-start-line="41" selection-start-column="80" selection-end-line="41" selection-end-column="80" />
+        <state relative-caret-position="729">
+          <caret line="54" column="35" selection-start-line="54" selection-start-column="35" selection-end-line="54" selection-end-column="35" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/include/FeatureType.h">
+    <entry file="file://$PROJECT_DIR$/src/include/FeatureEmbedding.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="275">
-          <caret line="17" column="63" selection-start-line="17" selection-start-column="63" selection-end-line="17" selection-end-column="63" />
+        <state relative-caret-position="619">
+          <caret line="30" column="4" selection-start-line="30" selection-start-column="4" selection-end-line="30" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/include/FeatureEmbedding.cu">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-503">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#357#376#0" expanded="false" />
+            <element signature="e#0#18#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/include/FeatureManager.h">
+    <entry file="file://$PROJECT_DIR$/src/include/base/Input.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-176">
-          <caret line="17" column="0" selection-start-line="17" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
+        <state relative-caret-position="154">
+          <caret line="7" column="6" selection-start-line="7" selection-start-column="6" selection-end-line="7" selection-end-column="6" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/include/FeatureEmbeddingManager.h">
+    <entry file="file://$PROJECT_DIR$/src/include/base/FeatureType.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="157">
-          <caret line="25" column="7" selection-start-line="25" selection-start-column="7" selection-end-line="25" selection-end-column="7" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/depparser/DepParseMacro.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="220">
-          <caret line="10" column="27" selection-start-line="10" selection-start-column="27" selection-end-line="10" selection-end-column="27" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/depparser/Instance.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="484">
-          <caret line="22" column="22" selection-start-line="22" selection-start-column="22" selection-end-line="22" selection-end-column="22" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/depparser/Beam.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/depparser/Beam.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-833">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/depparser/BeamDecodor.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-4235">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/depparser/Classifier.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/depparser/Classifier.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state relative-caret-position="-151">
+          <caret line="13" column="7" selection-start-line="13" selection-start-column="7" selection-end-line="13" selection-end-column="7" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/include/base/State.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="487">
-          <caret line="24" column="11" selection-start-line="24" selection-start-column="11" selection-end-line="24" selection-end-column="11" />
+        <state relative-caret-position="245">
+          <caret line="15" column="0" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/depparser/DepParseState.h">
+    <entry file="file://$PROJECT_DIR$/src/include/base/NLPCore.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="257">
-          <caret line="215" column="20" selection-start-line="215" selection-start-column="20" selection-end-line="215" selection-end-column="20" />
-          <folding>
-            <element signature="e#183#203#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/include/base/Action.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="22">
-          <caret line="18" column="6" selection-start-line="18" selection-start-column="6" selection-end-line="18" selection-end-column="6" />
+        <state relative-caret-position="462">
+          <caret line="23" column="12" selection-start-line="23" selection-start-column="12" selection-end-line="23" selection-end-column="12" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/CMakeLists.txt">
+    <entry file="file://$PROJECT_DIR$/src/include/nets/Model.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="330">
-          <caret line="15" column="53" selection-start-line="15" selection-start-column="53" selection-end-line="15" selection-end-column="53" />
+        <state relative-caret-position="2046">
+          <caret line="177" column="7" selection-start-line="177" selection-start-column="7" selection-end-line="177" selection-end-column="7" />
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/depparser/DepParseAction.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="374">
-          <caret line="17" column="31" selection-start-line="17" selection-start-column="31" selection-end-line="17" selection-end-column="31" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/depparser/DepParseShiftReduceAction.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="257">
-          <caret line="56" column="35" selection-start-line="56" selection-start-column="35" selection-end-line="56" selection-end-column="35" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/include/base/TransitionSystem.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="399">
-          <caret line="21" column="57" selection-start-line="21" selection-start-column="57" selection-end-line="21" selection-end-column="57" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/depparser/DepArcStandardSystem.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2329">
-          <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
-          <folding>
-            <element signature="e#631#2110#0" expanded="false" />
-            <element signature="e#4640#4697#0" expanded="false" />
-            <element signature="e#5384#5424#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/include/FeatureEmbedding.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="257">
-          <caret line="30" column="4" selection-start-line="30" selection-start-column="4" selection-end-line="30" selection-end-column="4" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/depparser/DepAction.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="220">
-          <caret line="10" column="12" selection-start-line="10" selection-start-column="12" selection-end-line="10" selection-end-column="12" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/depparser/DepArcStandardSystem.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="125">
-          <caret line="16" column="6" selection-start-line="16" selection-start-column="6" selection-end-line="16" selection-end-column="6" />
-          <folding>
-            <element signature="e#113#130#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/depparser/parser.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="355">
-          <caret line="27" column="22" selection-start-line="27" selection-start-column="13" selection-end-line="27" selection-end-column="22" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/depparser/DepParser.cu">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="525">
-          <caret line="33" column="16" selection-start-line="33" selection-start-column="4" selection-end-line="33" selection-end-column="21" />
+        <state relative-caret-position="-22">
+          <caret line="17" column="58" selection-start-line="17" selection-start-column="58" selection-end-line="17" selection-end-column="58" />
           <folding>
-            <element signature="e#37#53#0" expanded="false" />
+            <element signature="e#228#254#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/depparser/DepParser.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="257">
-          <caret line="22" column="19" selection-start-line="22" selection-start-column="19" selection-end-line="22" selection-end-column="19" />
-          <folding>
-            <element signature="e#91#108#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/include/FeatureVector.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="242">
-          <caret line="14" column="55" selection-start-line="14" selection-start-column="55" selection-end-line="14" selection-end-column="55" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/include/base/TrainingExample.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="638">
-          <caret line="32" column="17" selection-start-line="32" selection-start-column="17" selection-end-line="32" selection-end-column="17" />
-          <folding>
-            <element signature="e#103#120#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/depparser/DepParseDataSet.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="135">
-          <caret line="17" column="36" selection-start-line="17" selection-start-column="36" selection-end-line="17" selection-end-column="36" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/include/base/FeatureExtractor.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="257">
-          <caret line="18" column="6" selection-start-line="18" selection-start-column="6" selection-end-line="18" selection-end-column="6" />
-          <folding>
-            <element signature="e#366#383#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/include/DataSet.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="377">
-          <caret line="24" column="42" selection-start-line="24" selection-start-column="42" selection-end-line="24" selection-end-column="42" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/depparser/DepTreeNode.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="66">
-          <caret line="14" column="6" selection-start-line="14" selection-start-column="6" selection-end-line="14" selection-end-column="6" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/depparser/DepParseTree.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="22">
-          <caret line="19" column="6" selection-start-line="19" selection-start-column="6" selection-end-line="19" selection-end-column="6" />
-          <folding>
-            <element signature="e#99#116#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/depparser/DepParseInput.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="531">
-          <caret line="25" column="0" selection-start-line="25" selection-start-column="0" selection-end-line="25" selection-end-column="0" />
-          <folding>
-            <element signature="e#99#116#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/depparser/DepParseFeatureExtractor.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-22">
-          <caret line="20" column="19" selection-start-line="20" selection-start-column="19" selection-end-line="20" selection-end-column="19" />
-          <folding>
-            <element signature="e#260#278#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/depparser/DepParseFeatureExtractor.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="198">
-          <caret line="30" column="0" selection-start-line="30" selection-start-column="0" selection-end-line="30" selection-end-column="0" />
-          <folding>
-            <element signature="e#326#344#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/include/DictManager.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-437">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/include/DictManager.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/include/Dict.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="374">
-          <caret line="17" column="0" selection-start-line="17" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/include/Dictionary.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-132">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/include/Dictionary.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="286">
-          <caret line="25" column="35" selection-start-line="25" selection-start-column="35" selection-end-line="25" selection-end-column="35" />
-          <folding>
-            <element signature="e#121#138#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/include/Dict.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1474">
-          <caret line="82" column="39" selection-start-line="82" selection-start-column="39" selection-end-line="82" selection-end-column="39" />
-          <folding>
-            <element signature="e#353#372#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/depparser/ArcStandardSystem.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="729">
-          <caret line="97" column="54" selection-start-line="97" selection-start-column="54" selection-end-line="97" selection-end-column="54" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/depparser/ArcStandardSystem.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="729">
-          <caret line="178" column="46" selection-start-line="178" selection-start-column="46" selection-end-line="178" selection-end-column="46" />
+        <state relative-caret-position="308">
+          <caret line="27" column="27" selection-start-line="27" selection-start-column="27" selection-end-line="27" selection-end-column="27" />
           <folding />
         </state>
       </provider>

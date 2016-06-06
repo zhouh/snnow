@@ -85,7 +85,7 @@ void GreedyChunkerThread::train(Model<cpu> &paraModel, std::vector<Example *> &e
 
                     if (validActs[i] == 1) {
                         goldAct = i;
-                    }
+                    n
                 }
             }
             if (optAct == goldAct) {

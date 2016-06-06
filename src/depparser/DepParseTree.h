@@ -12,8 +12,11 @@
 #include <iostream>
 
 #include "DepParseShiftReduceAction.h"
+#include "DepArcStandardSystem.h"
 #include "DepTreeNode.h"
 #include "base/Output.h"
+#include "DepParseInput.h"
+
 
 
 
@@ -28,7 +31,7 @@ public:
 
         //add other sentences
         for(auto iter = input.begin(); iter != input.end(); iter++){
-            DepParseTreeNode node(iter->first, iter->second);
+            DepTreeNode node(iter->first, iter->second);
             nodes.push_back(node);
         }
 
@@ -43,14 +46,14 @@ public:
     void init(DepParseInput & input){
         //add other sentences
         for(auto iter = input.begin(); iter != input.end(); iter++){
-            DepParseTreeNode node(iter->first, iter->second);
+            DepTreeNode node(iter->first, iter->second);
             nodes.push_back(node);
         }
         size = nodes.size();
     }
     ~DepParseTree(){}
 
-    void extractInput(DepParseInput* input){
+    void extractInput(DepParseInput& input){
         if(size == 0) {
             std::cerr<<" the input dependency tree null!";
             exit(0);
@@ -76,14 +79,15 @@ public:
 // input the gold DepParseTree
 inline std::istream & operator >> (std::istream &is, DepParseTree &tree) {
 
-    DepParseTreeNode rootnode(root, root, -1, root); // add root node
+    DepTreeNode rootnode(DepArcStandardSystem::c_root_str, DepArcStandardSystem::c_root_str, -1,
+                         DepArcStandardSystem::c_root_str); // add root node
     tree.nodes.push_back(rootnode);
 
     std::string line;
     std::getline(is, line);
 
     while( is && !line.empty() ){  //not empty line
-        DepParseTreeNode node;
+        DepTreeNode node;
         std::istringstream iss(line);
         iss >> node;
         tree.nodes.push_back( node );
@@ -98,7 +102,7 @@ inline std::ostream & operator << (std::ostream &os, const DepParseTree &tree) {
 
     // output from node 1, skip root node 
     for(unsigned i = 0; i < tree.nodes.size(); i++)
-        os << tree.nodes[i];
+        os <<i <<  tree.nodes[i];
     os << std::endl;
 
     return os ;

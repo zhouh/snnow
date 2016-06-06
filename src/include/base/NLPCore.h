@@ -15,13 +15,13 @@
 class NLPCore {
 
 public:
-    void train(DataSet& training_set, DataSet& dev_set) = 0;
+    virtual void train(DataSet& training_set, DataSet& dev_set) = 0;
 
     /**
      * test function
      * return the evaluation score
      */
-    double test(DataSet& test_set) = 0;
+    virtual double test(DataSet& test_set) = 0;
 };
 
 

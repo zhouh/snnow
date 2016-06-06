@@ -5,6 +5,8 @@
 #ifndef SNNOW_MACROS_H
 #define SNNOW_MACROS_H
 
-typedef real_t float;
+typedef float real_t;
+
+#define MICROSECOND = 1000000.0;
 
 #endif //SNNOW_MACROS_H_H

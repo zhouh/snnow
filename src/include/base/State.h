@@ -12,6 +12,8 @@
  */
 class State{
 
+public:
+
     // the index of the current state in the beam
     int index_in_beam = 0;
 

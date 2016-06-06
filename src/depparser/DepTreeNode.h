@@ -79,7 +79,8 @@ public:
 	}
 
 	inline std::ostream & operator << (std::ostream &os, const DepTreeNode &node) {
-	   os << node.word << '\t' << node.tag << '\t' << node.head << "\t" << node.label<<std::endl;
+	   os << node.word << '\t' << node.tag << '\t' << "_" << '\t' <<
+			   node.head << "\t" << "_" << '\t' << "_" << '\t' << node.label<<std::endl;
 	   return os ;
 	}
 
