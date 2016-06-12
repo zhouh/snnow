@@ -6,7 +6,7 @@ MSHADOW_DIR = $(BASE_DIR)/thirdparty/mshadow
 # set LD_LIBRARY_PATH
 export CC  = gcc
 export CXX = g++
-export NVCC =nvcc
+export NVCC =/usr/local/cuda-7.0/bin/nvcc
 include $(BASE_DIR)/make/config.mk
 include $(BASE_DIR)/make/mshadow.mk
 
@@ -27,11 +27,11 @@ all: $(BIN) $(OBJ) $(CUBIN) $(CUOBJ)
 
 $(BASE_DIR)/bin/parser : $(DEPPARSER_DIR)/parser.cpp $(CUOBJ) $(OBJ)
 
-DepParseFeatureExtractor.o : $(DEPPARSER_DIR)/*.h $(INCLUDE_DIR)/base/*.h
+DepParseFeatureExtractor.o : $(DEPPARSER_DIR)/*.h $(INCLUDE_DIR)/base/*.h $(DEPPARSER_DIR)/DepParseFeatureExtractor.cpp
 
 DepParser.o : $(DEPPARSER_DIR)/DepParser.cu $(DEPPARSER_DIR)/*.h $(INCLUDE_DIR)/base/*.h
 
-DepArcStandardSystem.o :  $(DEPPARSER_DIR)/*.h $(INCLUDE_DIR)/base/*.h
+DepArcStandardSystem.o :  $(DEPPARSER_DIR)/*.h $(INCLUDE_DIR)/base/*.h $(DEPPARSER_DIR)/DepArcStandardSystem.cpp
 
 $(BIN) :
 	$(CXX) $(CFLAGS) -o $@ $(filter %.cpp %.o %.c, $^) $(LDFLAGS)

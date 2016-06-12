@@ -13,18 +13,21 @@
 
 #include "Model.h"
 #include "FeatureVector.h"
+#include "Activation.h"
 
 // this namespace contains all data structures, functions
 using namespace mshadow;
 // this namespace contains all operator overloads
 using namespace mshadow::expr;
 
+DECLARE_double(dropout_prob);
+
 template<typename xpu>
 class FeedForwardNNet{
 
 public:
     // initialize the network
-    NNet(const int batch_size, const int input_num, const int hidden_num, const int output_num, Model<xpu>* model_paras) {
+    FeedForwardNNet(const int batch_size, const int input_num, const int hidden_num, const int output_num, Model<cpu>* model_paras) {
         this->paras = paras;
 
         // setup stream
@@ -39,7 +42,7 @@ public:
         g_Wh2o.Resize(paras->Wh2o.shape_, static_cast<real_t>(0.0));
         g_Wi2h.Resize(paras->Wi2h.shape_, static_cast<real_t>(0.0));
         g_hbias.Resize(paras->hbias.shape_, static_cast<real_t>(0.0));
-        g_input.Resize(Shape2(batch_size, num_in), static_cast<real_t>(0.0));
+        g_input.Resize(Shape2(batch_size, input_num), static_cast<real_t>(0.0));
         XPU_g_input.Resize(g_input.shape_, static_cast<real_t>(0.0));
 
         ninput.set_stream(stream);
@@ -48,14 +51,14 @@ public:
         nout.set_stream(stream);
 
         // setup nodes
-        ninput.Resize(Shape2(batch_size, num_in), static_cast<real_t>(0.0));
-        nhidden.Resize(Shape2(batch_size, num_hidden), static_cast<real_t>(0.0));
+        ninput.Resize(Shape2(batch_size, input_num), static_cast<real_t>(0.0));
+        nhidden.Resize(Shape2(batch_size, hidden_num), static_cast<real_t>(0.0));
         nhiddenbak.Resize(nhidden.shape_, static_cast<real_t>(0.0));
-        nout.Resize(Shape2(batch_size, num_out), static_cast<real_t>(0.0));
+        nout.Resize(Shape2(batch_size, output_num), static_cast<real_t>(0.0));
     }
 
     // ~NNet() { DeleteStream(stream); }
-    ~NNet() {  }
+    ~FeedForwardNNet() {  }
 
     // forward propagation
     void Forward(const Tensor<cpu, 2, real_t>& inbatch,
@@ -80,7 +83,7 @@ public:
 
             paras->rnd.SampleUniform(&mask, 0.0, 1.0);
 
-            mask = F<threshold>(mask, CConfig::fDropoutProb);
+            mask = F<threshold>(mask, FLAGS_dropout_prob);
 
             nhidden = nhidden * mask;
             // nhiddenbak = nhiddenbak * mask;
@@ -120,10 +123,8 @@ public:
         g_hbias = sum_rows(nhidden);
         g_Wi2h  = dot(ninput.T(), nhidden);
 
-        if (CConfig::bFineTune) {
             g_input = dot(nhidden, paras->Wi2h.T());
             Copy(XPU_g_input, g_input, g_input.stream_);
-        }
     }
 
     // TODO right?
@@ -132,7 +133,6 @@ public:
         cumulatedGradsPtr->Wh2o  += g_Wh2o;
         cumulatedGradsPtr->hbias += g_hbias;
 
-        if (CConfig::bFineTune) {
             for (int i = 0; i < static_cast<int>(fvs.size()); i++) {
                 FeatureVector &fv = fvs[i];
                 if (fv.size() == 0) {
@@ -143,19 +143,18 @@ public:
                 for (int j = 0; j < static_cast<int>(fv.size()); j++) {
                     FeatureType &ft = cumulatedGradsPtr->featTypes[j];
                     std::shared_ptr<FeatureEmbedding> &curFeatEmbPtr = cumulatedGradsPtr->featEmbs[j];
-                    auto &oneFeatTypeVector = fv.features[j];
+                    auto &oneFeatTypeVector = fv[j];
 
 
                     for (auto &featId : oneFeatTypeVector) {
-                        curFeatEmbPtr->data[featId] += XPU_g_input[i].Slice(updateIndex, updateIndex + ft.featEmbSize);
-                        updateIndex += ft.featEmbSize;
+                        curFeatEmbPtr->data[featId] += XPU_g_input[i].Slice(updateIndex, updateIndex + ft.feature_embedding_size);
+                        updateIndex += ft.feature_embedding_size;
                         // for (int dimi = 0; dimi < ft.featEmbSize; dimi++) {
                         //     curFeatEmbPtr->data[featId][dimi] += XPU_g_input[i][updateIndex++];
                         // }
                     }
                 }
             }
-        }
     }
 
 private:

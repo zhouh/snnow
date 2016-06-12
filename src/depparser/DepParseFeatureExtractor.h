@@ -12,6 +12,7 @@
 #include<tr1/unordered_map>
 #include<unordered_set>
 
+#include "mshadow/tensor.h"
 #include "DepParseMacro.h"
 #include "FeatureEmbedding.h"
 #include "DataSet.h"
@@ -20,6 +21,10 @@
 #include "base/TrainingExample.h"
 #include "Dict.h"
 #include "nets/Model.h"
+#include "DepParseState.h"
+#include "DepArcStandardSystem.h"
+
+using namespace mshadow;
 
 class DepParseFeatureExtractor : public FeatureExtractor{
     
@@ -46,7 +51,11 @@ public:
 
 public:
 
-    DepParseFeatureExtractor() : feature_nums({18, 18, 12}){}
+    DepParseFeatureExtractor() {
+        feature_nums[0] = 18;
+        feature_nums[1] = 18;
+        feature_nums[2] = 12;
+    }
 
     void setFeatureTypes(FeatureTypes ft) {
         this->feature_types = ft;
@@ -204,12 +213,12 @@ public:
             int inputIndex = 0;
             for (int featTypeIndex = 0; featTypeIndex < static_cast<int>(featVector.size()); featTypeIndex++) {
                 const std::vector<int> &curFeatVec = featVector[featTypeIndex];
-                const int curFeatSize = feature_types[featTypeIndex].featSize;
-                const int curEmbSize  = feature_types[featTypeIndex].featEmbSize;
+                const int curFeatSize = feature_types[featTypeIndex].feature_size;
+                const int curEmbSize  = feature_types[featTypeIndex].feature_embedding_size;
                 std::shared_ptr<FeatureEmbedding> &curFeatEmb = featEmbs[featTypeIndex];
 
                 for (auto featId : curFeatVec) {
-                    Copy(input[input_offset + beamIndex].Slice(inputIndex, inputIndex + curEmbSize), curFeatEmb->data[featId], curFeatEmb->data.stream_);
+                    Copy(input[beamIndex].Slice(inputIndex, inputIndex + curEmbSize), curFeatEmb->data[featId], curFeatEmb->data.stream_);
                     inputIndex += curEmbSize;
                 }
             }

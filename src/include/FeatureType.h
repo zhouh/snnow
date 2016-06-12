@@ -1,7 +1,7 @@
 /*************************************************************************
 	> File Name: FeatureType.h
 	> Author: cheng chuan
-	> Mail: cc.square0@gmail.com 
+	> Mail: cc.square0@gmail.com
 	> Created Time: Mon 28 Dec 2015 01:06:30 PM CST
  ************************************************************************/
 
@@ -29,9 +29,9 @@ public:
 //    const static std::string c_capital_type_name = "capital";
 
 public:
-    FeatureType(const std::string &name, 
-                const int feature_size, 
-                const int d_size, 
+    FeatureType(const std::string &name,
+                const int feature_size,
+                const int d_size,
                 const int feat_embed_size) :
             type_name(name),
             feature_size(feature_size),

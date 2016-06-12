@@ -47,7 +47,7 @@ public:
     }
 
     // return the action code
-    virtual unsigned getActionCode() { return action_code; }
+    int getActionCode() { return action_code; }
 
 
     int getActionType() { return action_type; }

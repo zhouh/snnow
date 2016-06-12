@@ -10,16 +10,16 @@
 
 #include "DepParseFeatureExtractor.h"
 
-DepParseFeatureExtractor::word_string = "word";
-DepParseFeatureExtractor::tag_string = "tag";
-DepParseFeatureExtractor::label_string = "label";
+std::string DepParseFeatureExtractor::word_string = "word";
+std::string DepParseFeatureExtractor::tag_string = "tag";
+std::string DepParseFeatureExtractor::label_string = "label";
 /**
  *   prepare the dictionary for feature extracting.
  *   The index of the dic here are independent
  */
-void DepParseFeatureExtractor::getDictionaries(DataSet& data) {
+void DepParseFeatureExtractor::getDictionaries(DataSet& d) {
 
-	data = static_cast<DepParseDataSet>(data);
+	DepParseDataSet& data = static_cast<DepParseDataSet&>(d);
 
 	StringSet labelSet;
 	StringSet tagSet;
@@ -29,7 +29,7 @@ void DepParseFeatureExtractor::getDictionaries(DataSet& data) {
     int data_size = data.getSize();
 	for (unsigned i = 0; i < data_size; i++) {
 
-        DepParseTree gold_tree_i = static_cast<DepParseTree>(data.outputs[i]);
+        DepParseTree& gold_tree_i = static_cast<DepParseTree&>(data.outputs[i]);
 
 		for (int j = 0; j < gold_tree_i.size; j++) { // the first node is -ROOT- node, skip
 			auto tree_node = gold_tree_i.nodes[j];
@@ -43,23 +43,23 @@ void DepParseFeatureExtractor::getDictionaries(DataSet& data) {
      * initialize the dictionary table
      */
     dictionary_ptrs_table.resize(3, nullptr);
-    dictionary_ptrs_table[c_word_dict_index].reset(new Dictionary(wordSet, FeatureType::c_word_type_name));
-    dictionary_ptrs_table[c_tag_dict_index].reset(new Dictionary(tagSet, FeatureType::c_tag_type_name));
-    dictionary_ptrs_table[c_dep_label_dict_index].reset(new Dictionary(labelSet, FeatureType::c_label_type_name));
+    dictionary_ptrs_table[c_word_dict_index].reset(new Dictionary(wordSet, word_string));
+    dictionary_ptrs_table[c_tag_dict_index].reset(new Dictionary(tagSet, tag_string));
+    dictionary_ptrs_table[c_dep_label_dict_index].reset(new Dictionary(labelSet, label_string));
 
 }
 
 std::shared_ptr<FeatureVector> DepParseFeatureExtractor::getFeatureVectors(
-        const State& state,
-        const Input& input ) {
+        const State& base_state,
+        const Input& base_input ) {
 
     std::shared_ptr<FeatureVector> retval(new FeatureVector());
 
     retval->resize(3, feature_nums);
     FeatureVector& features = retval->feature_indexes;
 
-    state = static_cast<DepParseState>(state);
-    input = static_cast<DepParseInput>(input);
+    DepParseState& state = static_cast<DepParseState&>(base_state);
+    DepParseInput& input = static_cast<DepParseInput&>(base_input);
     
     input.word_cache;
     input.tag_cache;
@@ -239,13 +239,13 @@ void DepParseFeatureExtractor::generateGreedyTrainingExamples(
 
             //find gold action and move to next
             auto gold_act = transit_system_ptr->StandardMove(*state, tree_i);
-            acts[j] = gold_act->getActionCode();
+            int gold_act_id = gold_act->getActionCode();
 
             transit_system_ptr->Move(*state_ptr, gold_act);
 
-            labels[ acts[j] ] = 1;
+            labels[ gold_act_id ] = 1;
 
-            std::shared_ptr<Example> example_ptr(new Example( *fv ,acts ));
+            std::shared_ptr<Example> example_ptr(new Example( *fv ,labels ));
 
             examples.push_back(example_ptr);
         }

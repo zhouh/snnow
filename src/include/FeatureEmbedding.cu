@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "FeatureEmbedding.h"
+#include "Dict.h"
 
 void FeatureEmbedding::init(const real_t init_range){
 
@@ -16,8 +17,9 @@ void FeatureEmbedding::init(const real_t init_range){
  * read the pre-train embedding for the feature embdding,
  * We only pre-train the word feature embedding
  */
-void FeatureEmbedding::readPreTrain(const std::string &file_name,
-                                    const std::tr1::unordered_map<std::string, int> &feature_2_idx){
+void FeatureEmbedding::readPreTrain(const std::string &file_name, std::shared_ptr<Dictionary> dic_ptr){
+
+    const std::tr1::unordered_map<std::string, int> &feature_2_idx = dic_ptr->str_2_index_map;
 
     std::tr1::unordered_map<std::string, int> pretrain_word_2_idx;
     std::vector<std::vector<real_t>> pretrain_embeddings;

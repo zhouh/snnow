@@ -10,6 +10,7 @@
 
 class Evalb {
 
+public:
     // return the evaluation score
     virtual double evalb(std::vector<Input>& inputs,
                  std::vector<Output>& predicted_outputs,

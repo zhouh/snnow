@@ -20,9 +20,9 @@ class Example {
 
 public:
     FeatureVector feature_vector;
-    int predict_label;
+    std::vector<int> predict_labels;
 
-    Example(const FeatureVector& fs, int l) : feature_vector(fs), predict_label(l){
+    Example(const FeatureVector& fs, std::vector<int>& l) : feature_vector(fs), predict_labels(l){
     }
 
     ~Example() {}

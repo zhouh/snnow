@@ -28,7 +28,7 @@ public:
 
         std::ifstream is(file_name.c_str());
 
-        int index = 0;
+//        int index = 0;
         while(true){
             DepParseTree tree;
             if( !( is >>  tree ) ){ // if input ends

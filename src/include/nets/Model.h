@@ -9,6 +9,7 @@
 #define _SNNOW_MODEL_H_
 
 #include <memory>
+#include <gflags/gflags.h>
 
 #include "Macros.h"
 #include "mshadow/tensor.h"
@@ -20,6 +21,11 @@
 using namespace mshadow;
 // this namespace contains all operator overloads
 using namespace mshadow::expr;
+
+DECLARE_double(learning_rate);
+DECLARE_double(init_range);
+DECLARE_double(regularization_rate);
+DECLARE_double(adagrad_eps);
 
 struct square{
     MSHADOW_XINLINE static real_t Map(real_t a){
@@ -91,13 +97,14 @@ public:
     ~Model() { }
 
     void randomInitialize() {
+        
         // if the model is the gradient square, we just need to set them 0
-        rnd.SampleUniform(&Wi2h,  -1.0 * CConfig::fInitRange, CConfig::fInitRange);
-        rnd.SampleUniform(&Wh2o,  -1.0 * CConfig::fInitRange, CConfig::fInitRange);
-        rnd.SampleUniform(&hbias, -1.0 * CConfig::fInitRange, CConfig::fInitRange);
+        rnd.SampleUniform(&Wi2h,  -1.0 * FLAGS_init_range, FLAGS_init_range);
+        rnd.SampleUniform(&Wh2o,  -1.0 * FLAGS_init_range, FLAGS_init_range);
+        rnd.SampleUniform(&hbias, -1.0 * FLAGS_init_range, FLAGS_init_range);
 
         for (int i = 0; i < static_cast<int>(featTypes.size()); i++) {
-            featEmbs[i]->init(CConfig::fInitRange);
+            featEmbs[i]->init(FLAGS_init_range);
         }
     }
 
@@ -145,8 +152,8 @@ public:
             TensorContainer<cpu, 2, real_t> cpu_data(featEmb->data.shape_);
             Copy(cpu_data, featEmb->data, featEmb->data.stream_);
 
-            for (int i = 0; i < featEmb->dictSize; i++) {
-                for (int j = 0; j < featEmb->embeddingSize; j++) {
+            for (int i = 0; i < featEmb->dictionary_size; i++) {
+                for (int j = 0; j < featEmb->embedding_dim; j++) {
                     res += cpu_data[i][j] * cpu_data[i][j];
                 }
             }
@@ -163,8 +170,8 @@ public:
             TensorContainer<cpu, 2, real_t> cpu_data(featEmb->data.shape_);
             Copy(cpu_data, featEmb->data, featEmb->data.stream_);
 
-            for (int i = 0; i < featEmb->dictSize; i++) {
-                for (int j = 0; j < featEmb->embeddingSize; j++) {
+            for (int i = 0; i < featEmb->dictionary_size; i++) {
+                for (int j = 0; j < featEmb->embedding_dim; j++) {
                     res += cpu_data[i][j] * cpu_data[i][j];
                 }
             }
@@ -177,32 +184,30 @@ public:
      * with adaGrad Updating and l2-regularization
      */
     void update(Model<xpu>* gradients, Model<xpu>* adaGradSquares){
+        
+        
         // l2 regularization
-        gradients->Wi2h  += CConfig::fRegularizationRate * Wi2h;
-        gradients->Wh2o  += CConfig::fRegularizationRate * Wh2o;
-        gradients->hbias += CConfig::fRegularizationRate * hbias;
-        if (CConfig::bFineTune) {
+        gradients->Wi2h  += FLAGS_regularization_rate * Wi2h;
+        gradients->Wh2o  += FLAGS_regularization_rate * Wh2o;
+        gradients->hbias += FLAGS_regularization_rate * hbias;
             for(int i = 0; i < featEmbs.size(); i++)
-                gradients->featEmbs[i]->data += CConfig::fRegularizationRate * featEmbs[i]->data;
-        }
+                gradients->featEmbs[i]->data += FLAGS_regularization_rate * featEmbs[i]->data;
 
         // update adagrad gradient square sums
         adaGradSquares->Wi2h  += F<square>(gradients->Wi2h);
         adaGradSquares->Wh2o  += F<square>(gradients->Wh2o);
         adaGradSquares->hbias += F<square>(gradients->hbias);
-        if (CConfig::bFineTune) {
             for(int i = 0; i < gradients->featEmbs.size(); i++)
                 adaGradSquares->featEmbs[i]->data += F<square>(gradients->featEmbs[i]->data);
-        }
 
+        
         // update this weight
-        Wi2h  -= CConfig::fBPRate * ( gradients->Wi2h  / F<mySqrt>( adaGradSquares->Wi2h + CConfig::fAdaEps  ) );
-        Wh2o  -= CConfig::fBPRate * ( gradients->Wh2o  / F<mySqrt>( adaGradSquares->Wh2o + CConfig::fAdaEps  ) );
-        hbias -= CConfig::fBPRate * ( gradients->hbias / F<mySqrt>( adaGradSquares->hbias + CConfig::fAdaEps ) );
-        if (CConfig::bFineTune) {
+        
+        Wi2h  -= FLAGS_learning_rate * ( gradients->Wi2h  / F<mySqrt>( adaGradSquares->Wi2h + FLAGS_adagrad_eps  ) );
+        Wh2o  -= FLAGS_learning_rate * ( gradients->Wh2o  / F<mySqrt>( adaGradSquares->Wh2o + FLAGS_adagrad_eps  ) );
+        hbias -= FLAGS_learning_rate * ( gradients->hbias / F<mySqrt>( adaGradSquares->hbias + FLAGS_adagrad_eps ) );
             for(int i = 0; i < gradients->featEmbs.size(); i++)
-                featEmbs[i]->data -= CConfig::fBPRate * ( gradients->featEmbs[i]->data / F<mySqrt>( adaGradSquares->featEmbs[i]->data + CConfig::fAdaEps ) );
-        }
+                featEmbs[i]->data -= FLAGS_learning_rate * ( gradients->featEmbs[i]->data / F<mySqrt>( adaGradSquares->featEmbs[i]->data + FLAGS_adagrad_eps ) );
 
         gradients->setZero(); // set zero for that the cumulated gradients will be reused in the next update
     }
@@ -214,10 +219,8 @@ public:
         Wi2h  += model->Wi2h;
         Wh2o  += model->Wh2o;
         hbias += model->hbias;
-        if (CConfig::bFineTune) {
             for(int i = 0; i < featEmbs.size(); i++)
                 featEmbs[i]->data +=  model->featEmbs[i]->data;
-        }
     }
 
     /**
@@ -279,12 +282,12 @@ public:
             TensorContainer<cpu, 2, real_t> sdata(fe->data.shape_);
             Copy(sdata, fe->data, fe->data.stream_);
 
-            os << fe->dictSize << " " << fe->embeddingSize << std::endl;
-            for (int di = 0; di < fe->dictSize; di++) {
-                for (int ei = 0; ei < fe->embeddingSize; ei++) {
+            os << fe->dictionary_size << " " << fe->embedding_dim << std::endl;
+            for (int di = 0; di < fe->dictionary_size; di++) {
+                for (int ei = 0; ei < fe->embedding_dim; ei++) {
                     os << sdata[di][ei];
 
-                    if (ei == fe->embeddingSize - 1) {
+                    if (ei == fe->embedding_dim - 1) {
                         os << std::endl;
                     } else {
                         os << " ";
@@ -362,8 +365,8 @@ public:
             emb_iss.str(line);
             int dictSize, embeddingSize;
             emb_iss >> dictSize >> embeddingSize;
-            assert (dictSize == type.dictSize);
-            assert (embeddingSize == type.featEmbSize);
+            assert (dictSize == type.dictionary_size);
+            assert (embeddingSize == type.feature_embedding_size);
 
             for (int di = 0; di < dictSize; di++) {
                 getline(is, line);

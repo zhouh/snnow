@@ -9,6 +9,7 @@
 #include "Macros.h"
 #include "mshadow/tensor.h"
 #include "FeatureType.h"
+#include "Dict.h"
 
 using namespace mshadow;
 
@@ -40,7 +41,7 @@ public:
      */
     void init(const real_t init_range);
 
-    void readPreTrain(const std::string &file_name, const std::tr1::unordered_map<std::string, int> &feature_2_idx);
+    void readPreTrain(const std::string &file_name, const std::shared_ptr<Dictionary> dict);
 
     /**
      * clear all the data

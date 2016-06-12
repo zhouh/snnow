@@ -14,7 +14,7 @@ using namespace mshadow::expr;
  * transition system handlers for parser
  */
 DepParser::DepParser(bool bTrain){
-    beamSize = FLAGS_beam_size;
+    beam_size = FLAGS_beam_size;
     be_train = bTrain;
     trainsition_system_ptr.reset(new DepArcStandardSystem());
     feature_extractor_ptr.reset(new DepParseFeatureExtractor());
@@ -47,16 +47,16 @@ void DepParser::trainInit(DataSet &training_data) {
 
     std::clog << "###Begin to create feature types!" << std::endl;
     FeatureTypes feature_types;
-    FeatureType word_feat_type(FeatureType::c_word_type_name,
-                               DepParseFeatureExtractor::feature_nums[DepParseFeatureExtractor::c_word_dict_index],
+    FeatureType word_feat_type(DepParseFeatureExtractor::word_string,
+                               feature_extractor_ptr->feature_nums[DepParseFeatureExtractor::c_word_dict_index],
                                feature_extractor_ptr->dictionary_ptrs_table[DepParseFeatureExtractor::c_word_dict_index]->size(),
                                c_word_feature_dim);
-    FeatureType tag_feat_type(FeatureType::c_tag_type_name,
-                              DepParseFeatureExtractor::feature_nums[DepParseFeatureExtractor::c_tag_dict_index],
+    FeatureType tag_feat_type(DepParseFeatureExtractor::tag_string,
+                              feature_extractor_ptr->feature_nums[DepParseFeatureExtractor::c_tag_dict_index],
                               feature_extractor_ptr->dictionary_ptrs_table[DepParseFeatureExtractor::c_tag_dict_index]->size(),
                               c_tag_feature_dim);
-    FeatureType label_feat_type(FeatureType::c_tag_type_name,
-                                DepParseFeatureExtractor::feature_nums[DepParseFeatureExtractor::c_dep_label_dict_index],
+    FeatureType label_feat_type(DepParseFeatureExtractor::label_string,
+                                feature_extractor_ptr->feature_nums[DepParseFeatureExtractor::c_dep_label_dict_index],
                                 feature_extractor_ptr->dictionary_ptrs_table[DepParseFeatureExtractor::c_dep_label_dict_index]->size(),
                                 c_label_feature_dim);
     feature_types.push_back(word_feat_type);
@@ -64,7 +64,7 @@ void DepParser::trainInit(DataSet &training_data) {
     feature_types.push_back(label_feat_type);
 
     // set the feature types for feature handlers
-    DepParseFeatureExtractor::setFeatureTypes(feature_types);
+    feature_extractor_ptr->setFeatureTypes(feature_types);
     FeatureVector::setFeatureTypes(feature_types);
     std::clog << "###End to create feature types!" << std::endl;
 
@@ -75,7 +75,8 @@ void DepParser::trainInit(DataSet &training_data) {
                                            feature_extractor_ptr->getKnownDepLabelVectorMap());
 
     std::clog << "###Begin to generate the training examples!" << std::endl;
-    feature_extractor_ptr->generateGreedyTrainingExamples(trainsition_system_ptr, training_data, greedy_example_ptrs);
+
+    feature_extractor_ptr->generateGreedyTrainingExamples(trainsition_system_ptr.get(), static_cast<DepParseDataSet&>(training_data), greedy_example_ptrs);
     std::clog << "Constructing dictionary and training examples done!" << std::endl;
 }
 
@@ -88,9 +89,9 @@ void DepParser::train(DataSet &train_data, DataSet &dev_data) {
     const int num_in = feature_extractor_ptr->getTotalInputSize();
     const int num_hidden = FLAGS_hidden_size;
     const int num_out = DepParseShiftReduceActionFactory::total_action_num;
-    const int beam_size = FLAGS_beam_size;
+//    const int beam_size = FLAGS_beam_size;
     const int batch_size = std::min(FLAGS_batch_size, static_cast<int>(greedy_example_ptrs.size()));
-    const bool be_dropout = FLAGS_dropout_prob;
+//    const bool be_dropout = FLAGS_dropout_prob;
 
     trainInit(train_data);
 
@@ -115,30 +116,26 @@ void DepParser::train(DataSet &train_data, DataSet &dev_data) {
 
         // random shuffle the training instances in the container,
         // get the shuffled training data for the mini-batch training of this iteration
-        std::random_shuffle(greedy_example_ptrs);
-        int batch_example_index_end = std::min(batch_size, static_cast<int>(trainExamplePtrs.size()));
+        std::random_shuffle(greedy_example_ptrs.begin(), greedy_example_ptrs.end());
+        int batch_example_index_end = std::min(batch_size, static_cast<int>(greedy_example_ptrs.size()));
         std::vector<std::shared_ptr<Example>> multiThread_miniBatch_data(greedy_example_ptrs.begin(),
-                                                                         batch_example_index_end);
+        greedy_example_ptrs.begin() + batch_example_index_end);
 
         // cumulated gradients for updating
         Model<cpu> batch_cumulated_grads(num_in, num_hidden, num_out, feature_extractor_ptr->feature_types, NULL);
 
-        // copy from the parameter model to current model
-        Copy(modelPtr->Wi2h, paraModel.Wi2h, stream);
-        Copy(modelPtr->Wh2o, paraModel.Wh2o, stream);
-        Copy(modelPtr->hbias, paraModel.hbias, stream);
 
         Model<gpu> gradients(num_in, num_hidden, num_out, feature_extractor_ptr->feature_types, stream);
 
         // create the neural net for prediction
         std::shared_ptr<FeedForwardNNet<gpu>> nnet;
-        nnet.rest(new FeedForwardNNet<gpu>(batch_size, num_in, num_hidden, num_out, model));
+        nnet.reset(new FeedForwardNNet<gpu>(batch_size, num_in, num_hidden, num_out, &model));
 
         FeatureVectors feature_vectors(multiThread_miniBatch_data.size());
 
         TensorContainer<cpu, 2, real_t> input(Shape2(batch_size, num_in));
 
-        std::vector<std::vector<int>> valid_action_vectors(multiThread_miniBatch_data.size());
+        std::vector<std::vector<int>> valid_action_vectors(multiThread_miniBatch_data.size(), std::vector<int>(num_out,0));
 
         TensorContainer<cpu, 2, real_t> batch_predict_output(Shape2(batch_size, num_out));
 
@@ -156,12 +153,12 @@ void DepParser::train(DataSet &train_data, DataSet &dev_data) {
             auto e = greedy_example_ptrs[inst];
 
             feature_vectors[inst] = e->feature_vector;
-            valid_action_vectors[insti] = e->predict_label;
+            valid_action_vectors[inst] = e->predict_labels;
         }
 
-        feature_extractor_ptr->returnInput(featureVectors, model.featEmbs, input);
+        feature_extractor_ptr->returnInput(feature_vectors, model.featEmbs, input);
 
-        nnet->Forward(input, batch_predict_output, CConfig::bDropOut);
+        nnet->Forward(input, batch_predict_output, FLAGS_dropout_prob);
 
 
         int total_correct_predict_action_num = 0;
@@ -190,7 +187,7 @@ void DepParser::train(DataSet &train_data, DataSet &dev_data) {
             }
 
             real_t max_score = batch_predict_output[inst][opt_act];
-            real_t gold_score = pred[insti][gold_act];
+            real_t gold_score = batch_predict_output[inst][gold_act];
 
             real_t sum = 0.0;
 
@@ -205,12 +202,12 @@ void DepParser::train(DataSet &train_data, DataSet &dev_data) {
 
             for (int i = 0; i < valid_acts.size(); i++) {
                 if (valid_acts[i] >= 0) {
-                    batch_predict_output[insti][i] = batch_predict_output[insti][i] / sum;
+                    batch_predict_output[inst][i] = batch_predict_output[inst][i] / sum;
                 } else {
-                    batch_predict_output[insti][i] = 0.0;
+                    batch_predict_output[inst][i] = 0.0;
                 }
             }
-            batch_predict_output[insti][goldAct] -= 1.0;
+            batch_predict_output[inst][gold_act] -= 1.0;
         }
 
         batch_predict_output /= static_cast<real_t>(multiThread_miniBatch_data.size());
@@ -222,7 +219,7 @@ void DepParser::train(DataSet &train_data, DataSet &dev_data) {
         auto end = std::chrono::high_resolution_clock::now();
 
         if (iter % FLAGS_evaluate_per_iteration == 0) {
-            double time_used = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / MICROSECOND;
+            double time_used = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000000.0 ;
             std::clog << "[" << iter << "] totally train " << batch_size << " examples, time: " << time_used <<
             " average: " << batch_size / time_used << " examples/second!" << std::endl;
         }
@@ -233,9 +230,13 @@ void DepParser::train(DataSet &train_data, DataSet &dev_data) {
          */
         if (iter % FLAGS_evaluate_per_iteration == 0) {
             // do the evaluation
-            double dev_uas = test(dev_data, model, nnet);
-            if (dev_uas > best_uas)
-                saveModel(FLAGS_model_file);
+            double dev_uas = test(dev_data, model, nnet.operator*());
+            if (dev_uas > best_uas){
+                std::ofstream ofs(FLAGS_model_file);
+                model.saveModel(ofs);
+                ofs.close();
+
+            }
         }
     }
 
@@ -243,38 +244,36 @@ void DepParser::train(DataSet &train_data, DataSet &dev_data) {
 }
 
 //===============================================================================
-
-
-
-double DepParser::test(DataSet &test_data, Model<gpu> & model, FeedForwardNNet<gpu> & net) {
-
-    auto trees = test_data.outputs;
-    trees = static_cast<std::vector<std::shared_ptr<DepParseTree>> >(trees);
-    auto inputs = test_data.inputs;
-    inputs = static_cast<std::vector<std::shared_ptr<DepParseInput>> >(inputs);
+double DepParser::test(DataSet &test_data, Model<cpu> & model, FeedForwardNNet<gpu> & net) {
 
     const int num_in = feature_extractor_ptr->getTotalInputSize();
-    const int num_hidden = FLAGS_hidden_size;
+//    const int num_hidden = FLAGS_hidden_size;
     const int num_out = DepParseShiftReduceActionFactory::total_action_num;
 
-    std::vector<DepTree> predict_trees(test_data.size);
+    std::vector<DepParseTree> predict_trees(test_data.size);
+
+    std::vector<DepParseTree> gold_dep_trees;
 
     for (int inst = 0; inst < test_data.size; ++inst) {
 
-        auto &input_ptr_i = inputs[inst];
-        auto &tree_ptr_i = trees[inst];
+        auto & tree_i = static_cast<DepParseTree& >(test_data.outputs[inst]);
+        auto & input_i = static_cast<DepParseInput& >(test_data.inputs[inst]);
+
+        gold_dep_trees.push_back(tree_i);
+
+
 
         // n shift and n reduce, one more reduce action for root
-        int total_act_num_one_sentence = (input_ptr_i->size() - 1) * 2;
+        int total_act_num_one_sentence = (input_i.size() - 1) * 2;
 
         /*
          * cache the dependency label in the training set
          */
-        std::vector<int> labelIndexCache(tree_ptr_i.size);
+        std::vector<int> labelIndexCache(tree_i.size);
         int index = 0;
-        for (auto iter = tree_ptr_i.nodes.begin(); iter != tree_ptr_i.nodes.end();
+        for (auto iter = tree_i.nodes.begin(); iter != tree_i.nodes.end();
              iter++) {
-            int labelIndex = getLabelIndex(iter->label);
+            int labelIndex = feature_extractor_ptr->getLabelIndex(iter->label);
 
             if (labelIndex == -1) {
                 std::cerr << "Dep label " << iter->label
@@ -289,9 +288,9 @@ double DepParser::test(DataSet &test_data, Model<gpu> & model, FeedForwardNNet<g
         std::shared_ptr<DepParseState> state_ptr;
         state_ptr.reset(new DepParseState());
 
-        state_ptr->len_ = input_ptr_i->size();
+        state_ptr->len_ = input_i.size();
         state_ptr->initCache();
-        getCache(input_ptr_i.operator*());
+//        getCache(input_i);
 
         //for every state of a sentence
         for (int j = 0; !state_ptr->complete(); j++) {
@@ -308,19 +307,19 @@ double DepParser::test(DataSet &test_data, Model<gpu> & model, FeedForwardNNet<g
             std::vector<int> valid_acts(total_act_num_one_sentence, 0);
 
             //get current state features
-            std::shared_ptr<FeatureVector> fv = feature_extractor_ptr->getFeatureVectors(*state_ptr, *input_ptr_i);
+            std::shared_ptr<FeatureVector> fv = feature_extractor_ptr->getFeatureVectors(*state_ptr, input_i);
             FeatureVectors fvs;
             fvs.push_back(*fv);
 
             //get current state valid actions
-            trainsition_system_ptr->getValidActs(*state, valid_acts);
+            trainsition_system_ptr->getValidActs(state_ptr.operator*(), valid_acts);
 
             feature_extractor_ptr->returnInput(fvs, model.featEmbs, input);
 
-            net->Forward(input, batch_predict_output, CConfig::bDropOut);
+            net.Forward(input, batch_predict_output, FLAGS_dropout_prob);
 
 
-            int opt_Act = -1;
+            int opt_act = -1;
             for (int i = 0; i < valid_acts.size(); i++) {
                 if (valid_acts[i] >= 0) {
                     if (opt_act == -1 || batch_predict_output[inst][i] > batch_predict_output[inst][opt_act]) {
@@ -329,14 +328,15 @@ double DepParser::test(DataSet &test_data, Model<gpu> & model, FeedForwardNNet<g
                 }
             }
 
-            transit_system_ptr->Move(*state_ptr, DepParseShiftReduceActionFactory::action_table[opt_act]);
+            trainsition_system_ptr->Move(*state_ptr, DepParseShiftReduceActionFactory::action_table[opt_act].operator*());
         }
 
 
         // generate the predict tree from the complete state
-        trainsition_system_ptr->GenerateOutput( *state_ptr, input_ptr_i, predict_trees[inst] );
+        trainsition_system_ptr->GenerateOutput( *state_ptr, input_i, predict_trees[inst] );
     }
 
-    auto result = DepParseEvalb::evalb(predict_trees, trees);
-    return result.first * 100;
+    DepParseEvalb evalb;
+    double result = evalb.evalb(predict_trees, gold_dep_trees);
+    return result * 100;
 }

@@ -8,6 +8,8 @@
 #include <memory>
 #include <gflags/gflags.h>
 #include <chrono>
+#include <algorithm>
+#include <fstream>
 
 
 #include "base/NLPCore.h"
@@ -19,6 +21,7 @@
 #include "nets/Model.h"
 #include "nets/FeedForwardNNet.h"
 #include "DepParseEvalb.h"
+
 
 
 DECLARE_string(embedding_file);
@@ -69,7 +72,7 @@ public:
 
     void greedyTrain(DataSet& training_set, DataSet& dev_set);
 
-    double test(DataSet& test_set);
+    double test(DataSet &test_data, Model<cpu> & model, FeedForwardNNet<gpu> & net);
 
     void trainInit(DataSet& training_set);
 

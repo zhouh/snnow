@@ -8,14 +8,13 @@
 #include "base/Evalb.h"
 #include "DepParseTree.h"
 
-class DepParseEvalb : public Evalb {
+class DepParseEvalb{
 
-    double evalb(std::vector<Input> &inputs,
-                 std::vector<Output> &predicted_outputs,
-                 std::vector<Output> &gold_outputs) {
+public:
+    double evalb(std::vector<DepParseTree> &predicted_outputs,
+                 std::vector<DepParseTree> &gold_outputs) {
 
-        predicted_outputs = static_cast<std::vector<DepParseTree>>(predicted_outputs);
-        gold_outputs = static_cast<std::vector<DepParseInput>>(predicted_outputs);
+
         assert(predicted_outputs.size() == gold_outputs.size());
 
         double UAS; // return value
@@ -26,24 +25,26 @@ class DepParseEvalb : public Evalb {
 
         for (int i = 0; i < predicted_outputs.size(); i++) {
 
-            assert(predicted_outputs[i].size == gold_outputs[i].size);
+            DepParseTree & predict = predicted_outputs[i];
+            DepParseTree & gold_output = gold_outputs[i];
 
-            for (int j = 1; j < predicts[i].size; j++) {
+            for (int j = 1; j < predict.size; j++) {
 
-                std::string tag = predicts[i].nodes[j].tag;
-                if (puncs.find(tag) != puncs.end())
+                std::string tag = predict.nodes[j].tag;
+                if (isPunc(tag))
                     continue;
 
-                sumArc++;
-                if (predicts[i].nodes[j].head == golds[i].nodes[j].head) {
-                    correctHeadNum++;
-                    if (predicts[i].nodes[j].label == golds[i].nodes[j].label)
-                        correctArcNum++;
+                arc_sum++;
+
+                if (predict.nodes[j].head == gold_output.nodes[j].head) {
+                    correct_head_num++;
+                    if (predict.nodes[j].label == gold_output.nodes[j].label)
+                        correct_arc_num++;
                 }
             }
         }
 
-        UAS = (double) correctHeadNum / sumArc; //UAS
+        UAS = (double) correct_head_num / arc_sum; //UAS
 //        retval.second = (double) correctArcNum / sumArc;
 
         return UAS;
@@ -52,8 +53,10 @@ class DepParseEvalb : public Evalb {
     /**
      * will offer different language support
      */
-    bool isPunc(std::string punctuation_candidate) {
-        std::unordered_set<std::string> puncs = {"``", "''", ".", ",", ":"}; // only for
+    bool isPunc(std::string & punctuation_candidate) {
+        static std::unordered_set<std::string> puncs = {"``", "''", ".", ",", ":"}; // only for
+
+        return puncs.find(punctuation_candidate) != puncs.end();
     }
 
 };

@@ -8,6 +8,8 @@
 #include <vector>
 
 #include "DataSet.h"
+#include "nets/Model.h"
+#include "nets/FeedForwardNNet.h"
 
 /**
  * The base object for parser, segmentor tagger and chunker.
@@ -21,7 +23,7 @@ public:
      * test function
      * return the evaluation score
      */
-    virtual double test(DataSet& test_set) = 0;
+    virtual double test(DataSet &test_data, Model<cpu> & model, FeedForwardNNet<gpu> & net) = 0;
 };
 
 

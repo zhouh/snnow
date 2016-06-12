@@ -4,7 +4,7 @@
 
 #include "DepArcStandardSystem.h"
 
-DepArcStandardSystem::c_root_str = "_root_str_";
+std::string DepArcStandardSystem::c_root_str = "_root_str_";
 
 // the move action is a simple call to do action according to the action code
 void DepArcStandardSystem::Move(State & state, Action& action) {

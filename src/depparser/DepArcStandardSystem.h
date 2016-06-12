@@ -6,13 +6,12 @@
 #define SNNOW_DepArcStandardSystem_H
 
 #include <memory>
+#include <string>
 
 #include "DepParseMacro.h"
 #include "base/TransitionSystem.h"
 #include "DepParseShiftReduceAction.h"
 #include "DepParseState.h"
-#include "DepParseTree.h"
-
 
 class DepArcStandardSystem : public TransitionSystem{
 
@@ -43,7 +42,7 @@ public:
      * prepare the transition system given the known dependency labels and dictionary for labels
      * The transition system uses the labels for constructing shift-reduce actions
      */
-    void makeTransition(std::vector<std::string>& knowLabels, String2IndexMap& label_map){
+    void makeTransition(const std::vector<std::string>& knowLabels, const String2IndexMap& label_map){
 
         /*
          * construct the dict for dep label by the know label set

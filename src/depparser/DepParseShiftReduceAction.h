@@ -22,6 +22,24 @@ public:
         action_code = getActionCode(action_type, action_label);
     }
 
+    DepParseAction(const DepParseAction &action){
+        this->action_type = action.action_type;
+        this->action_label = action.action_label;
+        action_code = action.action_code;
+    }
+
+    DepParseAction&operator=(const DepParseAction &action) {
+        if (this == &action) {
+            return *this;
+        }
+
+        this->action_type = action.action_type;
+        this->action_label = action.action_label;
+        action_code = action.action_code;
+
+        return *this;
+    }
+
     /**
      * get the action code given the action type and action label
      */
@@ -32,6 +50,8 @@ public:
             case right_type : return (action_label + 1 + ActionFactory::action_label_num);
 
         }
+
+        return -1; // error code for return
     }
 
 };
@@ -58,23 +78,32 @@ public:
 
         int action_code = DepParseAction::getActionCode(action_type, action_label);
 
-        if( action_table[action_code] != nullptr){
+//        int action_code = -1;
+//
+//        switch (action_type){
+//            case DepParseAction::shift_type : action_code = DepParseAction::shift_type;
+//            case DepParseAction::left_type : action_code = (DepParseAction::left_type + action_label);
+//            case DepParseAction::right_type : action_code = (action_label + 1 + ActionFactory::action_label_num);
+//        }
+
+
+        if (action_table[action_code] != nullptr) {
             return action_table[action_code].get();
         }
-        else{
-            std::shared_ptr<DepParseAction> new_action_ptr ( new DepParseAction(action_type, action_label) );
+        else {
+            std::shared_ptr<DepParseAction> new_action_ptr(new DepParseAction(action_type, action_label));
             action_table[action_code] = new_action_ptr;
 
-            if( action_type == DepParseAction::shift_type )
+            if (action_type == DepParseAction::shift_type)
                 shift_action = new_action_ptr.operator*();
-            else if( action_type == DepParseAction::left_type )
+            else if (action_type == DepParseAction::left_type)
                 left_reduce_actions.push_back(new_action_ptr.operator*());
-            else if( action_type == DepParseAction::right_type )
+            else if (action_type == DepParseAction::right_type)
                 right_reduce_actions.push_back(new_action_ptr.operator*());
             else
                 exit(1);  //it is not a valid action type
 
-            return static_cast<Action*>(new_action_ptr.get());
+            return static_cast<Action *>(new_action_ptr.get());
         }
 
     }

@@ -26,7 +26,7 @@ typedef std::vector< std::shared_ptr< Dictionary > > DictionaryVectorPtrs;
  */
 class Dictionary {
 
-private:
+public:
     std::vector<std::string> known_strings;
     std::tr1::unordered_map<std::string, int> str_2_index_map;
 

@@ -229,7 +229,7 @@ class DepParseState : public State{
             m_nNextWord = 1;
         }
 
-        bool hasChildOnQueue(int head, DepParseTree& tree){
+        bool hasChildOnQueue(int head, DepParseTree & tree){
 
 #ifdef DEBUG
             std::cout<<"nextWord\t"<<m_nNextWord<<"\tLen\t"<<len_<<std::endl;
