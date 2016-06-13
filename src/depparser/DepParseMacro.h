@@ -15,8 +15,8 @@
 #define XPU gpu;
 #define DEBUG
 
-#define EMPTY_ARC -1;
-#define EMPTY_LABEL -1;
+#define EMPTY_ARC -1
+#define EMPTY_LABEL -1
 
 typedef std::vector<std::string> StringArray;
 typedef std::tr1::unordered_map<std::string, int> String2IndexMap;

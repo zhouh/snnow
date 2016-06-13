@@ -21,6 +21,7 @@
 #include "nets/Model.h"
 #include "nets/FeedForwardNNet.h"
 #include "DepParseEvalb.h"
+#include "DepParseShiftReduceAction.h"
 
 
 

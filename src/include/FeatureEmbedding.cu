@@ -24,7 +24,7 @@ void FeatureEmbedding::readPreTrain(const std::string &file_name, std::shared_pt
     std::tr1::unordered_map<std::string, int> pretrain_word_2_idx;
     std::vector<std::vector<real_t>> pretrain_embeddings;
     std::string line;
-    std::ifstream in(sFileName);
+    std::ifstream in(file_name);
 
     int index = 0;
     while (getline(in, line)) {
@@ -46,7 +46,7 @@ void FeatureEmbedding::readPreTrain(const std::string &file_name, std::shared_pt
         pretrain_word_2_idx[word] = index++;
     }
 
-    std::cerr << "### pre-train words size: " << pretrainEmbs.size() << std::endl;
+    std::cerr << "### pre-train words size: " << pretrain_embeddings.size() << std::endl;
 
     // copy the data from cpu to cpu/gpu
     TensorContainer<cpu, 2, real_t> cpu_data(data.shape_);

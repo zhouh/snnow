@@ -7,6 +7,6 @@
 
 typedef float real_t;
 
-#define MICROSECOND = 1000000.0;
+#define MICROSECOND = 1000000.0
 
 #endif //SNNOW_MACROS_H_H

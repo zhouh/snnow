@@ -16,10 +16,12 @@ public:
     const static int left_type = 1;
     const static int right_type = 2;
 
+    DepParseAction(){}
+
     DepParseAction(int action_type, int action_label){
         this->action_type = action_type;
         this->action_label = action_label;
-        action_code = getActionCode(action_type, action_label);
+        action_code = generateActionCode(action_type, action_label);
     }
 
     DepParseAction(const DepParseAction &action){
@@ -43,11 +45,11 @@ public:
     /**
      * get the action code given the action type and action label
      */
-    static int getActionCode(int action_type, int action_label){
+    static int generateActionCode(int action_type, int action_label){
         switch (action_type){
             case shift_type : return shift_type;
             case DepParseAction::left_type : return (left_type + action_label);
-            case right_type : return (action_label + 1 + ActionFactory::action_label_num);
+            case right_type : return (action_label + 1 + action_label_num);
 
         }
 
@@ -59,9 +61,9 @@ public:
 class DepParseShiftReduceActionFactory : public ActionFactory {
 
 public:
-    static DepParseAction shift_action;
-    static std::vector<DepParseAction> left_reduce_actions;
-    static std::vector<DepParseAction> right_reduce_actions;
+    DepParseAction shift_action;
+    std::vector<DepParseAction> left_reduce_actions;
+    std::vector<DepParseAction> right_reduce_actions;
 
 
 
@@ -76,7 +78,7 @@ public:
     // return the action given action type and label
     virtual Action* makeAction(int action_type, int action_label) {
 
-        int action_code = DepParseAction::getActionCode(action_type, action_label);
+        int action_code = DepParseAction::generateActionCode(action_type, action_label);
 
 //        int action_code = -1;
 //

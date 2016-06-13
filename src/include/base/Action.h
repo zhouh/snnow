@@ -50,7 +50,7 @@ public:
     int getActionCode() { return action_code; }
 
 
-    int getActionType() { return action_type; }
+    int getActionType() const { return action_type; }
     int getActionLabel() { return action_label; }
 
     virtual ~Action() = default;
@@ -67,9 +67,9 @@ class ActionFactory{
 
 public:
     // the total number of action type and action label in this system
-    static int action_type_num;
-    static int action_label_num;
-    static int total_action_num;
+    int action_type_num;
+    int action_label_num;
+    int total_action_num;
 
 
     // table to store the action in each index, the index is the code of that action

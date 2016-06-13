@@ -4,9 +4,7 @@
 	> Mail: haozhou0806@gmail.com 
  ************************************************************************/
 
-#include<iostream>
-#include<algorithm>
-#include<cctype>
+
 
 #include "DepParseFeatureExtractor.h"
 
@@ -49,14 +47,12 @@ void DepParseFeatureExtractor::getDictionaries(DataSet& d) {
 
 }
 
-std::shared_ptr<FeatureVector> DepParseFeatureExtractor::getFeatureVectors(
-        const State& base_state,
-        const Input& base_input ) {
+FeatureVector DepParseFeatureExtractor::getFeatureVectors(
+        State& base_state,
+        Input& base_input ) {
 
-    std::shared_ptr<FeatureVector> retval(new FeatureVector());
-
-    retval->resize(3, feature_nums);
-    FeatureVector& features = retval->feature_indexes;
+	FeatureVector features;
+	features.resize(3, feature_nums);
 
     DepParseState& state = static_cast<DepParseState&>(base_state);
     DepParseInput& input = static_cast<DepParseInput&>(base_input);
@@ -75,16 +71,16 @@ std::shared_ptr<FeatureVector> DepParseFeatureExtractor::getFeatureVectors(
 	int tag_index = 0;
 	int label_index = 0;
 
-	int s0 = state->stacktop();
-	int s1 = state->stack2top();
-	int s2 = state->stack3top();
-	int q0 = state->m_nNextWord >= state->len_ ? -1 : state->m_nNextWord;
+	int s0 = state.stacktop();
+	int s1 = state.stack2top();
+	int s2 = state.stack3top();
+	int q0 = state.m_nNextWord >= state.len_ ? -1 : state.m_nNextWord;
 	int q1 =
-			(state->m_nNextWord + 1) >= state->len_ ?
-					-1 : (state->m_nNextWord + 1);
+			(state.m_nNextWord + 1) >= state.len_ ?
+					-1 : (state.m_nNextWord + 1);
 	int q2 =
-			(state->m_nNextWord + 2) >= state->len_ ?
-					-1 : (state->m_nNextWord + 2);
+			(state.m_nNextWord + 2) >= state.len_ ?
+					-1 : (state.m_nNextWord + 2);
 
 	// words 
     // 0 - 12
@@ -108,12 +104,12 @@ std::shared_ptr<FeatureVector> DepParseFeatureExtractor::getFeatureVectors(
 #ifdef DEBUG
     std::cout<<"s0:"<<s0<<std::endl;
 #endif
-	s0l = s0 == -1 ? -1 : state->leftdep(s0);
-	s0r = s0 == -1 ? -1 : state->rightdep(s0);
-	s0l2 = s0 == -1 ? -1 : state->left2dep(s0);
-	s0r2 = s0 == -1 ? -1 : state->left2dep(s0);
-	s0ll = s0l == -1 ? -1 : state->leftdep(s0l);
-	s0rr = s0r == -1 ? -1 : state->rightdep(s0r);
+	s0l = s0 == -1 ? -1 : state.leftdep(s0);
+	s0r = s0 == -1 ? -1 : state.rightdep(s0);
+	s0l2 = s0 == -1 ? -1 : state.left2dep(s0);
+	s0r2 = s0 == -1 ? -1 : state.left2dep(s0);
+	s0ll = s0l == -1 ? -1 : state.leftdep(s0l);
+	s0rr = s0r == -1 ? -1 : state.rightdep(s0r);
     
     //12 - 29
 	features[c_word_dict_index][word_index++] = getWordIndex(s0l, input.word_cache);   // 12
@@ -131,21 +127,21 @@ std::shared_ptr<FeatureVector> DepParseFeatureExtractor::getFeatureVectors(
 	features[c_tag_dict_index][tag_index++] = getTagIndex(s0rr, input.tag_cache);    // 23
     //std::cout<<tag_index<<" "<<s0rr<<" "<<getTagIndex(s0rr, input.tag_cache)<<std::endl;
 
-	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s0l, state);  // 24
-	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s0r, state);  // 25
-	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s0l2, state); // 26
-	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s0r2, state); // 27
-	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s0ll, state); // 28
-	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s0rr, state); // 29
+	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s0l, &state);  // 24
+	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s0r, &state);  // 25
+	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s0l2, &state); // 26
+	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s0r2, &state); // 27
+	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s0ll, &state); // 28
+	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s0rr, &state); // 29
 
 	// s1l s1r s1l2 s1r2 s1ll s1rr
 	int s1l, s1r, s1l2, s1r2, s1ll, s1rr;
-	s1l = s1 == -1 ? -1 : state->leftdep(s1);
-	s1r = s1 == -1 ? -1 : state->rightdep(s1);
-	s1l2 = s1 == -1 ? -1 : state->left2dep(s1);
-	s1r2 = s1 == -1 ? -1 : state->left2dep(s1);
-	s1ll = s1l == -1 ? -1 : state->leftdep(s1l);
-	s1rr = s1r == -1 ? -1 : state->rightdep(s1r);
+	s1l = s1 == -1 ? -1 : state.leftdep(s1);
+	s1r = s1 == -1 ? -1 : state.rightdep(s1);
+	s1l2 = s1 == -1 ? -1 : state.left2dep(s1);
+	s1r2 = s1 == -1 ? -1 : state.left2dep(s1);
+	s1ll = s1l == -1 ? -1 : state.leftdep(s1l);
+	s1rr = s1r == -1 ? -1 : state.rightdep(s1r);
 
     // 30 - 47
 	features[c_word_dict_index][word_index++] = getWordIndex(s1l, input.word_cache);
@@ -162,14 +158,14 @@ std::shared_ptr<FeatureVector> DepParseFeatureExtractor::getFeatureVectors(
 	features[c_tag_dict_index][tag_index++] = getTagIndex(s1ll, input.tag_cache);
 	features[c_tag_dict_index][tag_index++] = getTagIndex(s1rr, input.tag_cache);
 
-	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s1l, state);
-	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s1r, state);
-	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s1l2, state);
-	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s1r2, state);
-	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s1ll, state);
-	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s1rr, state);
+	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s1l, &state);
+	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s1r, &state);
+	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s1l2, &state);
+	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s1r2, &state);
+	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s1ll, &state);
+	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s1rr, &state);
 
-    return retval;
+    return features;
 
 }
 
@@ -177,22 +173,21 @@ std::shared_ptr<FeatureVector> DepParseFeatureExtractor::getFeatureVectors(
  * generate the training examples for the greedy
  */
 void DepParseFeatureExtractor::generateGreedyTrainingExamples(
-        std::shared_ptr<DepArcStandardSystem> transit_system_ptr,
+        DepArcStandardSystem* transit_system_ptr,
         DepParseDataSet& training_data,
         std::vector<std::shared_ptr<Example>>& examples){
 
-    examples.clear();
+	auto & trees = training_data.outputs;
+	auto & inputs = training_data.inputs;
 
-    //for every sentence, cache the word and tag hash index
-    for (unsigned i = 0; i < training_data.getSize(); i++) {
+	examples.clear();
 
-        auto trees = training_data.outputs;
-        trees = static_cast<std::vector<DepParseTree> >(trees);
-        auto inputs = training_data.inputs;
-        inputs = static_cast<std::vector<DepParseInput> >(inputs);
+	//for every sentence, cache the word and tag hash index
+	for (unsigned i = 0; i < training_data.getSize(); i++) {
 
-        auto & input_i = inputs[i];
-        auto & tree_i = trees[i];
+
+        auto & input_i = static_cast<DepParseInput&>(inputs[i]);
+        auto & tree_i = static_cast<DepParseTree&>(trees[i]);
         // n shift and n reduce, one more reduce action for root
         int total_act_num_one_sentence = ( input_i.size() - 1 ) * 2;
 
@@ -217,35 +212,35 @@ void DepParseFeatureExtractor::generateGreedyTrainingExamples(
 //        }
 
         //get state features
-        std::vector<int> acts(total_act_num_one_sentence); //gold acts
+        std::vector<int> acts(total_act_num_one_sentence); //gold acts sequence for global
 
         std::shared_ptr<DepParseState> state_ptr;
         state_ptr.reset(new DepParseState());
 
-        state_ptr->len_ = input_ptr_i->size();
+        state_ptr->len_ = input_i.size();
         state_ptr->initCache();
         getCache(input_i);
 
         //for every state of a sentence
         for (int j = 0; !state_ptr->complete(); j++) {
 
-            std::vector<int> labels(total_act_num_one_sentence, 0);
+            std::vector<int> labels;  // labels will be resized in function getValidActs()
 
             //get current state features
-            std::shared_ptr<FeatureVector> fv = getFeatureVectors(*state_ptr, input_i);
+            FeatureVector fv = getFeatureVectors(*state_ptr, input_i);
 
             //get current state valid actions
             transit_system_ptr->getValidActs(*state_ptr, labels);
 
             //find gold action and move to next
-            auto gold_act = transit_system_ptr->StandardMove(*state, tree_i);
+            auto gold_act = transit_system_ptr->StandardMove(*state_ptr, tree_i);
             int gold_act_id = gold_act->getActionCode();
 
-            transit_system_ptr->Move(*state_ptr, gold_act);
+            transit_system_ptr->Move(state_ptr.operator*(), *gold_act);
 
             labels[ gold_act_id ] = 1;
 
-            std::shared_ptr<Example> example_ptr(new Example( *fv ,labels ));
+            std::shared_ptr<Example> example_ptr(new Example( fv ,labels ));
 
             examples.push_back(example_ptr);
         }
@@ -297,12 +292,12 @@ void DepParseFeatureExtractor::generateGreedyTrainingExamples(
 //		std::vector<Example> examples; //features and labels
 //
 //		State* state = new State();
-//        state->len_ = input.size();
-//        state->initCache();
+//        state.len_ = input.size();
+//        state.initCache();
 //        getCache(inst);
 //
 //		//for every state of a sentence
-//		for (int j = 0; !state->complete(); j++) {
+//		for (int j = 0; !state.complete(); j++) {
 //			std::vector<int> features(featureNum);
 //			std::vector<int> labels(tranSystem->nActNum, 0);
 //
@@ -331,8 +326,8 @@ void DepParseFeatureExtractor::generateGreedyTrainingExamples(
 //
 //            //std::cout << "move action:  "<< goldAct<<":"<<tranSystem->DecodeUnlabeledAction(goldAct)<<"+"<<tranSystem->DecodeLabel(goldAct) << std::endl;
 //			tranSystem->Move(*state, goldAct);
-///*            state->display();*/
-//            //state->dispalyCache();
+///*            state.display();*/
+//            //state.dispalyCache();
 //
 //			labels[goldAct] = 1;
 //			Example example(features, labels);

@@ -11,6 +11,8 @@
 #include<string>
 #include<tr1/unordered_map>
 #include<unordered_set>
+#include<algorithm>
+#include<cctype>
 
 #include "mshadow/tensor.h"
 #include "DepParseMacro.h"
@@ -144,7 +146,7 @@ public:
      */
     void getDictionaries(DataSet& data);
 
-    std::shared_ptr<FeatureVector> getFeatureVectors(const State& state, const Input& input);
+    FeatureVector getFeatureVectors(State& state, Input& input);
 
 //    /**
 //     *   generate training examples for global learning
@@ -152,7 +154,9 @@ public:
 //     */
 //    void generateTrainingExamples(ArcStandardSystem * tranSystem, std::vector<Instance> & instances,
 //            std::vector<DepTree> & goldTrees, std::vector<GlobalExample> & gExamples);
-	void generateGreedyTrainingExamples(DepArcStandardSystem* transit_system, DepParseDataSet& training_data, std::vector<std::shared_ptr<Example>> & examples);
+	void generateGreedyTrainingExamples(DepArcStandardSystem* transit_system,
+                                        DepParseDataSet& training_data,
+                                        std::vector<std::shared_ptr<Example>> & examples);
 
     /**
      * get cache for the input

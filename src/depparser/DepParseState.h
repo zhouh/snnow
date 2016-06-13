@@ -14,6 +14,7 @@
 
 #include "base/State.h"
 #include "DepParseTree.h"
+#include "Macros.h"
 
 
 class DepParseState : public State{

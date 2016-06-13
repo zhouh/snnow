@@ -40,7 +40,6 @@ DEFINE_double(dropout_prob, 0.5, "dropout probability");
 DEFINE_double(adagrad_eps, 1e-6, "bias for the adaGrad updating");
 
 
-
 int main(int argc, char* argv[]){
     std::cout<<"Begin to Training!"<<std::endl;
 

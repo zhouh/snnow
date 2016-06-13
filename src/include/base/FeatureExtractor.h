@@ -22,7 +22,7 @@ public:
 
     virtual ~FeatureExtractor() {}
 
-    virtual std::shared_ptr<FeatureVector>  getFeatureVectors(const State& state, const Input& input ) = 0;
+    virtual FeatureVector  getFeatureVectors(State& state, Input& input ) = 0;
 
     virtual void getDictionaries(DataSet& data) = 0;
 

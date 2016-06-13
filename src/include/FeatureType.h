@@ -38,6 +38,9 @@ public:
             dictionary_size(d_size),
             feature_embedding_size(feat_embed_size) {}
 
+    FeatureType() = default;
+
+
     FeatureType(const FeatureType &feat_type) = default;
 
     FeatureType& operator= (const FeatureType &feat_type) {

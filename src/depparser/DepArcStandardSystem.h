@@ -12,6 +12,7 @@
 #include "base/TransitionSystem.h"
 #include "DepParseShiftReduceAction.h"
 #include "DepParseState.h"
+#include "DepParseMacro.h"
 
 class DepArcStandardSystem : public TransitionSystem{
 
@@ -77,20 +78,46 @@ public:
         return action_factory_ptr->shift_action;
     }
 
-    void ArcLeft(DepParseState & state, Action& action);
+    /**
+     * action function for state
+     *
+     * all the action functions are directly functioned on the state itself, instead of
+     * return a new object.
+     */
+    void ArcLeft(DepParseState & state, DepParseAction& action);
 
-    void ArcRight(DepParseState & state, Action& action);
+    void ArcRight(DepParseState & state, DepParseAction& action);
 
     void Shift(DepParseState &state);
 
-    void Move(State & state, const Action& action);
+    //----------------------------------------------------
 
+
+    /**
+     * move according to the given action
+     */
+    void Move(State & state, Action& action);
+
+    /**
+     * According to state, fill the data of valid action info in ret_val
+     */
     void getValidActs(State & state, std::vector<int>& ret_val);
 
-    Action* StandardMove(State& state, const Output& tree);
+    /**
+     * return the gold action ptr, given context.
+     *
+     */
+    Action* StandardMove(State& state, Output& tree);
 
-    void GenerateOutput(const State& state, const Input& input, Output& output);
+    /**
+     * generate outputs in output
+     */
+    void GenerateOutput(State& state, Input& input, Output& output);
 
-    void StandardMoveStep(State& state, const Output& tree);
+    /**
+     * move state to next gold state standardly.
+     * Note that here state must be a gold state.
+     */
+    void StandardMoveStep(State& state, Output& tree);
 };
 #endif //SNNOW_DepArcStandardSystem_H

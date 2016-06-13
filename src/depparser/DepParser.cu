@@ -21,7 +21,7 @@ DepParser::DepParser(bool bTrain){
 }
 
 /**
- *  do the training init for the formal training
+ *  do the training init for formal training
  *
  *  0. init the feature type of this system
  *  1. get dictionary for the feature extractor
@@ -46,6 +46,13 @@ void DepParser::trainInit(DataSet &training_data) {
     std::clog << "###End to init the dictionaries!" << std::endl;
 
     std::clog << "###Begin to create feature types!" << std::endl;
+
+    /*
+     * total 3 feature types for dependency parsing
+     * word feature
+     * tag feature
+     * label feature
+     */
     FeatureTypes feature_types;
     FeatureType word_feat_type(DepParseFeatureExtractor::word_string,
                                feature_extractor_ptr->feature_nums[DepParseFeatureExtractor::c_word_dict_index],
@@ -82,18 +89,20 @@ void DepParser::trainInit(DataSet &training_data) {
 
 void DepParser::train(DataSet &train_data, DataSet &dev_data) {
 
+    // init training
+    trainInit(train_data);
+
     /*
      * prepare for the neural networks, every parsing step maintains a specific net
      * because each parsing step has different updating gradients.
      */
     const int num_in = feature_extractor_ptr->getTotalInputSize();
     const int num_hidden = FLAGS_hidden_size;
-    const int num_out = DepParseShiftReduceActionFactory::total_action_num;
+    const int num_out = trainsition_system_ptr->action_factory_ptr->total_action_num;
 //    const int beam_size = FLAGS_beam_size;
     const int batch_size = std::min(FLAGS_batch_size, static_cast<int>(greedy_example_ptrs.size()));
 //    const bool be_dropout = FLAGS_dropout_prob;
 
-    trainInit(train_data);
 
     /*
      * create the model for training
@@ -109,8 +118,6 @@ void DepParser::train(DataSet &train_data, DataSet &dev_data) {
     double best_uas = -1;
     for (int iter = 1; iter <= FLAGS_max_training_iteration_num; iter++) {
 
-
-
         // record the cost time
         auto start = std::chrono::high_resolution_clock::now();
 
@@ -123,16 +130,16 @@ void DepParser::train(DataSet &train_data, DataSet &dev_data) {
 
         // cumulated gradients for updating
         Model<cpu> batch_cumulated_grads(num_in, num_hidden, num_out, feature_extractor_ptr->feature_types, NULL);
-
-
         Model<gpu> gradients(num_in, num_hidden, num_out, feature_extractor_ptr->feature_types, stream);
 
         // create the neural net for prediction
         std::shared_ptr<FeedForwardNNet<gpu>> nnet;
         nnet.reset(new FeedForwardNNet<gpu>(batch_size, num_in, num_hidden, num_out, &model));
 
+        // feature vector lists for action sequence
         FeatureVectors feature_vectors(multiThread_miniBatch_data.size());
 
+        // batch input of
         TensorContainer<cpu, 2, real_t> input(Shape2(batch_size, num_in));
 
         std::vector<std::vector<int>> valid_action_vectors(multiThread_miniBatch_data.size(), std::vector<int>(num_out,0));
@@ -248,7 +255,7 @@ double DepParser::test(DataSet &test_data, Model<cpu> & model, FeedForwardNNet<g
 
     const int num_in = feature_extractor_ptr->getTotalInputSize();
 //    const int num_hidden = FLAGS_hidden_size;
-    const int num_out = DepParseShiftReduceActionFactory::total_action_num;
+    const int num_out = trainsition_system_ptr->action_factory_ptr->total_action_num;
 
     std::vector<DepParseTree> predict_trees(test_data.size);
 
@@ -307,9 +314,9 @@ double DepParser::test(DataSet &test_data, Model<cpu> & model, FeedForwardNNet<g
             std::vector<int> valid_acts(total_act_num_one_sentence, 0);
 
             //get current state features
-            std::shared_ptr<FeatureVector> fv = feature_extractor_ptr->getFeatureVectors(*state_ptr, input_i);
+            FeatureVector fv = feature_extractor_ptr->getFeatureVectors(*state_ptr, input_i);
             FeatureVectors fvs;
-            fvs.push_back(*fv);
+            fvs.push_back(fv);
 
             //get current state valid actions
             trainsition_system_ptr->getValidActs(state_ptr.operator*(), valid_acts);
