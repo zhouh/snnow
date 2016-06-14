@@ -8,9 +8,9 @@
       <sourceFolder url="file://$MODULE_DIR$/src/depparser/parser.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/depparser/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/CMakeLists.txt" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/thirdparty/mshadow/cmake/Utils.cmake" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/thirdparty/mshadow/cmake/Cuda.cmake" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/thirdparty/mshadow/cmake/mshadow.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/thirdparty/dmlc-mshadow/cmake/Utils.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/thirdparty/dmlc-mshadow/cmake/Cuda.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/thirdparty/dmlc-mshadow/cmake/mshadow.cmake" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/cmake/FindOpenBLAS.cmake" isTestSource="false" />
     </content>

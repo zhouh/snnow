@@ -1,7 +1,7 @@
 BASE_DIR = .
 INCLUDE_DIR = $(BASE_DIR)/src/include
 DEPPARSER_DIR = $(BASE_DIR)/src/depparser
-MSHADOW_DIR = $(BASE_DIR)/thirdparty/mshadow
+MSHADOW_DIR = $(BASE_DIR)/thirdparty/dmlc-mshadow
 
 # set LD_LIBRARY_PATH
 export CC  = gcc
