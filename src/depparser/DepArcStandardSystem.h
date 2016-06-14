@@ -28,8 +28,6 @@ public:
     std::shared_ptr<DepParseShiftReduceActionFactory> action_factory_ptr;
 
     DepArcStandardSystem() {
-        std::clog << "using the default constructor, which is not valid!" << std::endl;
-        exit(0);
     }
 
 //    DepArcStandardSystem(std::vector<std::string>& known_labels) {

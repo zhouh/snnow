@@ -30,10 +30,10 @@ DepParser::DepParser(bool bTrain){
  */
 void DepParser::trainInit(DataSet &training_data) {
 
-    std::clog << "======================================";
+    std::clog << "======================================"<<std::endl;
     std::clog << "Training Init!" << std::endl;
     std::clog << "Training Instance Num: " << training_data.getSize() << std::endl;
-    std::clog << "======================================";
+    std::clog << "======================================"<<std::endl;
 
 
     std::clog << "###Begin to init the feature types of this system: " << std::endl;
@@ -263,8 +263,8 @@ double DepParser::test(DataSet &test_data, Model<cpu> & model, FeedForwardNNet<g
 
     for (int inst = 0; inst < test_data.size; ++inst) {
 
-        auto & tree_i = static_cast<DepParseTree& >(test_data.outputs[inst]);
-        auto & input_i = static_cast<DepParseInput& >(test_data.inputs[inst]);
+        auto & tree_i = static_cast<DepParseTree& >(*(test_data.outputs[inst]));
+        auto & input_i = static_cast<DepParseInput& >(*(test_data.inputs[inst]));
 
         gold_dep_trees.push_back(tree_i);
 

@@ -22,24 +22,22 @@ public:
 
     DepParseDataSet(std::string file_name){
 
-
-
         size = 0;
 
         std::ifstream is(file_name.c_str());
 
 //        int index = 0;
         while(true){
-            DepParseTree tree;
-            if( !( is >>  tree ) ){ // if input ends
+            std::shared_ptr<DepParseTree> tree_ptr(new DepParseTree);
+            if( !( is >>  tree_ptr.get() ) ){ // if input ends
                 break;
             }
             size++;
 
-            DepParseInput input;
-            tree.extractInput(input);
-            inputs.push_back(input);
-            outputs.push_back(tree);
+            std::shared_ptr<DepParseInput> input_ptr(new DepParseInput);
+            tree_ptr->extractInput(*input_ptr);
+            inputs.push_back(dynamic_cast<Input*>(input_ptr.get()));
+            outputs.push_back(dynamic_cast<Output*>(tree_ptr.get()));
         }
     }
 

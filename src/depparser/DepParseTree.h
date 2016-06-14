@@ -74,11 +74,11 @@ public:
 };
 
 // input the gold DepParseTree
-inline std::istream & operator >> (std::istream &is, DepParseTree &tree) {
+inline std::istream & operator >> (std::istream &is, DepParseTree * tree) {
 
     DepTreeNode rootnode("root", "root", -1,
                          "root"); // add root node
-    tree.nodes.push_back(rootnode);
+    tree->nodes.push_back(rootnode);
 
     std::string line;
     std::getline(is, line);
@@ -87,11 +87,11 @@ inline std::istream & operator >> (std::istream &is, DepParseTree &tree) {
         DepTreeNode node;
         std::istringstream iss(line);
         iss >> node;
-        tree.nodes.push_back( node );
+        tree->nodes.push_back( node );
         std::getline( is, line );
     }
 
-    tree.size = tree.nodes.size();
+    tree->size = tree->nodes.size();
     return is ;
 }
 

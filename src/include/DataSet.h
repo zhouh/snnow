@@ -21,8 +21,8 @@ public:
 
     int size;
 
-    std::vector<Input> inputs;
-    std::vector<Output> outputs;
+    std::vector<Input*> inputs;
+    std::vector<Output*> outputs;
 
     DataSet() = default;
 

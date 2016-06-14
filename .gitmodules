@@ -1,0 +1,3 @@
+[submodule "thirdparty/dmlc-mshadow"]
+	path = thirdparty/dmlc-mshadow
+	url = git://github.com/dmlc/mshadow.git

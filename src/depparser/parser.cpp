@@ -17,11 +17,11 @@
 
 DEFINE_string(embedding_file, "./data/sen.emb", "Embedding file for pre-training");
 DEFINE_string(training_file, "./data/small.train", "Traing file name");
-DEFINE_string(test_file, "./data/testr.txt", "Testing file name");
+DEFINE_string(test_file, "./data/small.train", "Testing file name");
 DEFINE_string(dev_file, "./data/small.train", "Dev file name");
 DEFINE_string(model_file, "./data/model.txt", "model file name");
 
-DEFINE_int32(max_training_iteration_num, 10000, "The max number of training iterations to perform");
+DEFINE_int32(max_training_iteration_num, 100, "The max number of training iterations to perform");
 DEFINE_int32(batch_size, 10, "mini batch size");
 DEFINE_int32(thread_num, 1, "thread num for multi-thread training");
 DEFINE_int32(word_embedding_dim, 50, "The dimention of pre-trained word embedding");
@@ -29,7 +29,7 @@ DEFINE_int32(label_num, 28, "label num");
 DEFINE_int32(beam_size, 16, "beam size for beam search");
 DEFINE_int32(hidden_size, 200, "the hidden size of the neural network");
 DEFINE_int32(feature_num, 48, "the total number of atomic features");
-DEFINE_int32(evaluate_per_iteration, 10, "evaluation gap num between iterations");
+DEFINE_int32(evaluate_per_iteration, 1, "evaluation gap num between iterations");
 
 DEFINE_bool(be_dropout, true, "whether using dropout");
 
@@ -50,8 +50,12 @@ int main(int argc, char* argv[]){
     std::clog<< "### Begin to load data."<<std::endl;
     DepParseDataSet training_data(FLAGS_training_file);
     DepParseDataSet dev_data(FLAGS_dev_file);
+
+    //output tree
+    DepParseTree* parse_tree_ptr = static_cast<DepParseTree*>(training_data.outputs[0]);
+    std::clog<<*parse_tree_ptr;
     std::clog<< "### End to load data."<<std::endl;
 
     // begin to train
-    parser.train(training_data, dev_data);
+    parser.train(static_cast<DataSet&>(training_data), static_cast<DataSet&>(dev_data));
 }

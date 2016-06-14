@@ -27,7 +27,7 @@ void DepParseFeatureExtractor::getDictionaries(DataSet& d) {
     int data_size = data.getSize();
 	for (unsigned i = 0; i < data_size; i++) {
 
-        DepParseTree& gold_tree_i = static_cast<DepParseTree&>(data.outputs[i]);
+        DepParseTree& gold_tree_i = static_cast<DepParseTree&>(*(data.outputs[i]));
 
 		for (int j = 0; j < gold_tree_i.size; j++) { // the first node is -ROOT- node, skip
 			auto tree_node = gold_tree_i.nodes[j];
@@ -186,8 +186,8 @@ void DepParseFeatureExtractor::generateGreedyTrainingExamples(
 	for (unsigned i = 0; i < training_data.getSize(); i++) {
 
 
-        auto & input_i = static_cast<DepParseInput&>(inputs[i]);
-        auto & tree_i = static_cast<DepParseTree&>(trees[i]);
+        auto & input_i = static_cast<DepParseInput&>(*(inputs[i]));
+        auto & tree_i = static_cast<DepParseTree&>(*(trees[i]));
         // n shift and n reduce, one more reduce action for root
         int total_act_num_one_sentence = ( input_i.size() - 1 ) * 2;
 
