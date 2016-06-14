@@ -2,6 +2,7 @@ BASE_DIR = .
 INCLUDE_DIR = $(BASE_DIR)/src/include
 DEPPARSER_DIR = $(BASE_DIR)/src/depparser
 MSHADOW_DIR = $(BASE_DIR)/thirdparty/dmlc-mshadow
+OBJ_DIR = $(BASE_DIR)/OBJ
 
 # set LD_LIBRARY_PATH
 export CC  = gcc
@@ -18,29 +19,32 @@ export NVCCFLAGS =-g -G -std=c++11 --use_fast_math -ccbin $(CXX)  $(MSHADOW_NVCC
 
 # specify tensor path
 BIN = $(BASE_DIR)/bin/parser
-OBJ = DepArcStandardSystem.o DepParseFeatureExtractor.o Action.o FeatureVector.o
-CUOBJ = DepParser.o FeatureEmbedding.o
+OBJ = $(OBJ_DIR)/depparser/DepArcStandardSystem.o $(OBJ_DIR)/depparser/DepParseFeatureExtractor.o $(OBJ_DIR)/base/Action.o $(OBJ_DIR)/common/FeatureVector.o
+CUOBJ = $(OBJ_DIR)/depparser/DepParser.o $(OBJ_DIR)/common/FeatureEmbedding.o
 CUBIN =
 .PHONY: clean all
 
 #
 # DepParser.o
 
-all: $(BIN) $(OBJ) $(CUBIN) $(CUOBJ)
+all: directoires $(BIN) $(OBJ) $(CUBIN) $(CUOBJ)
 
 $(BASE_DIR)/bin/parser : $(DEPPARSER_DIR)/parser.cpp $(CUOBJ) $(OBJ)
 
-DepParseFeatureExtractor.o : $(DEPPARSER_DIR)/*.h $(INCLUDE_DIR)/base/*.h $(DEPPARSER_DIR)/DepParseFeatureExtractor.cpp
+$(OBJ_DIR)/depparser/DepParseFeatureExtractor.o : $(DEPPARSER_DIR)/*.h $(INCLUDE_DIR)/base/*.h $(DEPPARSER_DIR)/DepParseFeatureExtractor.cpp
 
-DepParser.o : $(DEPPARSER_DIR)/DepParser.cu $(DEPPARSER_DIR)/*.h $(INCLUDE_DIR)/base/*.h
+$(OBJ_DIR)/depparser/DepParser.o : $(DEPPARSER_DIR)/DepParser.cu $(DEPPARSER_DIR)/*.h $(INCLUDE_DIR)/base/*.h
 
-DepArcStandardSystem.o :  $(DEPPARSER_DIR)/*.h $(INCLUDE_DIR)/base/*.h $(DEPPARSER_DIR)/DepArcStandardSystem.cpp
+$(OBJ_DIR)/depparser/DepArcStandardSystem.o :  $(DEPPARSER_DIR)/*.h $(INCLUDE_DIR)/base/*.h $(DEPPARSER_DIR)/DepArcStandardSystem.cpp
 
-FeatureEmbedding.o : $(INCLUDE_DIR)/FeatureEmbedding.cu $(INCLUDE_DIR)/*.h
+$(OBJ_DIR)/common/FeatureEmbedding.o : $(INCLUDE_DIR)/FeatureEmbedding.cu $(INCLUDE_DIR)/*.h
 
-Action.o : $(INCLUDE_DIR)/base/Action.cpp $(INCLUDE_DIR)/base/*.h
+$(OBJ_DIR)/base/Action.o : $(INCLUDE_DIR)/base/Action.cpp $(INCLUDE_DIR)/base/*.h
 
-FeatureVector.o : $(INCLUDE_DIR)/FeatureVector.cpp $(INCLUDE_DIR)/*.h
+$(OBJ_DIR)/common/FeatureVector.o : $(INCLUDE_DIR)/FeatureVector.cpp $(INCLUDE_DIR)/*.h
+
+directoires:
+	mkdir -p $(OBJ_DIR)/common $(OBJ_DIR)/base $(OBJ_DIR)/depparser
 
 $(BIN) :
 	$(CXX) $(CFLAGS) -o $@ $(filter %.cpp %.o %.c, $^) $(LDFLAGS)
