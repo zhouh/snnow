@@ -17,17 +17,17 @@ public:
     TransitionSystem(){}
 
 
-    virtual void Move(State &state, Action& action) = 0;
+    virtual void Move(State *state, Action *action) = 0;
 
     /**
      * return the vector of whether the action is unvalid
      */
-    virtual void getValidActs(State& state, std::vector<int>& ret_val) = 0;
+    virtual void getValidActs(State *state, std::vector<int>& ret_val) = 0;
 
-    virtual Action* StandardMove(State& state, Output& tree) = 0;
+    virtual Action* StandardMove(State *state, Output *tree) = 0;
 
-    virtual void GenerateOutput(State& state, Input& input, Output& output) = 0;
+    virtual void GenerateOutput(State *state, Input *input, Output *output) = 0;
 
-    virtual void StandardMoveStep(State& state, Output& tree) = 0;
+    virtual void StandardMoveStep(State *state, Output *tree) = 0;
 };
 #endif //MYPROJECT_TRANSITIONSYSTEM_H

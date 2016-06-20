@@ -10,7 +10,9 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <sstream>
 #include <cctype>
+#include <algorithm>
 #include <memory>
 #include <tr1/unordered_map>
 #include <tr1/unordered_set>
@@ -25,7 +27,6 @@ typedef std::vector< std::shared_ptr< Dictionary > > DictionaryVectorPtrs;
  *
  */
 class Dictionary {
-
 public:
     std::vector<std::string> known_strings;
     std::tr1::unordered_map<std::string, int> str_2_index_map;
@@ -74,6 +75,10 @@ public:
      */
     inline int getNullIndex() {
         return null_index;
+    }
+
+    inline int getUnkIndex() {
+        return unk_index;
     }
 
     virtual ~Dictionary() {}

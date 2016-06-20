@@ -26,7 +26,6 @@ public:
 
     DataSet() = default;
 
-
     /**
      * construct the data set from file stream
      */

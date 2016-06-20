@@ -10,7 +10,7 @@
 /**
  *   the state object for the transition-based natural langurage processing
  */
-class State{
+class State {
 
 public:
 

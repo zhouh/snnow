@@ -6,7 +6,9 @@
 #define SNNOW_INPUT_H
 
 class Input{
-
+public:
+    Input() = default;
+    virtual ~Input() = default;
 };
 
 #endif //SNNOW_INPUT_H

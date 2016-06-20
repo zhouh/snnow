@@ -51,6 +51,15 @@ public:
 
     }
 
+    //chengc modify
+    void resize(std::vector<int> feature_nums) {
+        feature_indexes.resize(feature_nums.size());
+
+        for (int i = 0; i < feature_nums.size(); i++) {
+            feature_indexes[i].resize(feature_nums[i]);
+        }
+    }
+
     std::vector<int>& operator[] (int index) {
         return feature_indexes[index];
     }

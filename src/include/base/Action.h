@@ -36,7 +36,7 @@ public:
         action_code = action_label_num * action_type + action_label;
     }
 
-    Action(Action & a){
+    Action(const Action & a){
         action_code = a.action_code;
         action_type = a.action_type;
         action_label = a.action_label;

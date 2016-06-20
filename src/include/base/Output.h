@@ -7,7 +7,9 @@
 
 
 class Output {
-
+public:
+    Output() = default;
+    virtual ~Output() = default;
 };
 
 

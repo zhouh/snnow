@@ -22,7 +22,7 @@ public:
 
     virtual ~FeatureExtractor() {}
 
-    virtual FeatureVector  getFeatureVectors(State& state, Input& input ) = 0;
+    virtual FeatureVector getFeatureVectors(State& state, Input& input ) = 0;
 
     virtual void getDictionaries(DataSet& data) = 0;
 
