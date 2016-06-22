@@ -99,9 +99,34 @@ public:
         index_in_beam = index;
     }
 
+    void setSequenceLength(const int len) {
+        seq_len_ = len;
+    }
     int sequenceLength() {
         return seq_len_;
     }
+
+    void print(std::string filled) const {
+        std::cout << filled << "iib: " << index_in_beam << std::endl;
+        std::cout << filled << "previous: " << previous << std::endl;
+        std::cout << filled << "score: " << score << std::endl;
+        std::cout << filled << "gold: " << be_gold << std::endl;
+        std::cout << filled << "last action: " << last_action.action_type << " " << last_action.action_label << " " << last_action.action_code << std::endl;
+        std::cout << filled << "index: " << index_ << std::endl;
+        std::cout << filled << "seq_len_: " << seq_len_ << std::endl;
+        std::cout << filled << "ongo_chunk: " << ongo_chunk_index_ << std::endl;
+        std::cout << filled << "curr_chunk: " << curr_chunk_index_ << std::endl;
+        std::cout << filled << "curr_head: " << curr_head_index_ << std::endl;
+        std::cout << filled << "prev_chunk: " << prev_chunk_index_ << std::endl;
+        std::cout << filled << "prev_head: " << prev_head_index_ << std::endl;
+        std::cout << filled << "chunked labels: " << std::endl;
+        std::cout << filled << "  ";
+        for (int i = 0; i < chunked_label_ids_.size(); i++) {
+            std::cout << i << ":" << chunked_label_ids_[i] << " ";
+        }
+        std::cout << std::endl;
+    }
+
 private:
     void clear() {
         static_cast<ChunkerAction&>(last_action).clear();

@@ -10,10 +10,10 @@
 #include "SeqLabelerMacro.h"
 
 const static int c_feature_type_num = 3;
-const static int c_word_feature_dim = 50;
-const static int c_tag_feature_dim = 50;
-const static int c_label_feature_dim = 50;
-const static int c_affix_feature_dim = 20;
-const static int c_capital_feature_dim = 5;
+const static int c_word_feature_dim = 5;
+const static int c_tag_feature_dim = 5;
+const static int c_label_feature_dim = 5;
+const static int c_affix_feature_dim = 2;
+const static int c_capital_feature_dim = 2;
 
 #endif // SNNOW_CHUNKERMACRO_H

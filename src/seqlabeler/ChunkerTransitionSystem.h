@@ -49,6 +49,7 @@ public:
         this->dep_label_map_ptr_ = label_map;
 
         label_num_ = known_labels_.size();
+        action_factory_ptr_.reset(new ChunkerActionFactory(label_num_));
 
         vec_of_labelidx2labeltype_.resize(label_num_, -1);
 

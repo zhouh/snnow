@@ -27,8 +27,8 @@ class FeedForwardNNet{
 
 public:
     // initialize the network
-    FeedForwardNNet(const int batch_size, const int input_num, const int hidden_num, const int output_num, Model<cpu>* model_paras) {
-        this->paras = paras;
+    FeedForwardNNet(const int batch_size, const int input_num, const int hidden_num, const int output_num, Model<xpu>* model_paras) {
+        this->paras = model_paras;
 
         // setup stream
         // stream = NewStream<xpu>();
@@ -55,10 +55,71 @@ public:
         nhidden.Resize(Shape2(batch_size, hidden_num), static_cast<real_t>(0.0));
         nhiddenbak.Resize(nhidden.shape_, static_cast<real_t>(0.0));
         nout.Resize(Shape2(batch_size, output_num), static_cast<real_t>(0.0));
+
+        input_mask.set_stream(stream);
+        input_mask.Resize(ninput.shape_, static_cast<real_t>(0.0));
+        zhiddenbak.set_stream(stream);
+        zhiddenbak.Resize(nhidden.shape_, static_cast<real_t>(0.0));
     }
 
     // ~NNet() { DeleteStream(stream); }
     ~FeedForwardNNet() {  }
+
+    void ChunkForward(const Tensor<cpu, 2, real_t> &inbatch, Tensor<cpu, 2, real_t> &output, bool be_dropout) {
+        // size is same conventsion as numpy
+        index_t batch_size = inbatch.size(0);
+
+        // copy data to input layer
+        Copy(ninput, inbatch, ninput.stream_);
+
+        if (be_dropout) {
+            paras->rnd.SampleUniform(&input_mask, 0.0, 1.0);
+
+            input_mask = F<threshold>(input_mask, FLAGS_dropout_prob);
+
+            ninput = ninput * input_mask;
+        } else {
+            input_mask = 1.0;
+        }
+
+        // first layer, fullc
+        nhidden  = dot(ninput, paras->Wi2h);
+
+        nhidden += repmat(paras->hbias, batch_size);
+
+        nhiddenbak = F<sigmoid>(nhidden);
+        zhiddenbak = F<zsigmoid>(nhidden);
+
+        nout = dot(nhiddenbak, paras->Wh2o);
+
+        Copy(output, nout, nout.stream_);
+    }
+
+    void ChunkBackprop(const Tensor<cpu, 2, real_t>& gradout){
+        const int batch_size = gradout.size(0);
+
+        // copy gradient to output layer
+        Copy(nout, gradout, nout.stream_);
+
+        // calc grad of layer 2
+        g_Wh2o  = dot(nhiddenbak.T(), nout);
+
+        Copy(nhidden, nhiddenbak, nhidden.stream_);
+
+        // backprop to layer 1
+        nhiddenbak = dot(nout, paras->Wh2o.T());
+
+        nhidden = nhidden * zhiddenbak * nhiddenbak;
+
+        // calc grad of layer 1
+        g_hbias = sum_rows(nhidden);
+        g_Wi2h  = dot(ninput.T(), nhidden);
+
+        g_input = dot(nhidden, paras->Wi2h.T());
+        g_input = g_input * input_mask;
+
+        Copy(XPU_g_input, g_input, g_input.stream_);
+    }
 
     // forward propagation
     void Forward(const Tensor<cpu, 2, real_t>& inbatch,
@@ -123,8 +184,8 @@ public:
         g_hbias = sum_rows(nhidden);
         g_Wi2h  = dot(ninput.T(), nhidden);
 
-            g_input = dot(nhidden, paras->Wi2h.T());
-            Copy(XPU_g_input, g_input, g_input.stream_);
+        g_input = dot(nhidden, paras->Wi2h.T());
+        Copy(XPU_g_input, g_input, g_input.stream_);
     }
 
     // TODO right?
@@ -133,28 +194,27 @@ public:
         cumulatedGradsPtr->Wh2o  += g_Wh2o;
         cumulatedGradsPtr->hbias += g_hbias;
 
-            for (int i = 0; i < static_cast<int>(fvs.size()); i++) {
-                FeatureVector &fv = fvs[i];
-                if (fv.size() == 0) {
-                    continue;
-                }
+        for (int i = 0; i < static_cast<int>(fvs.size()); i++) {
+            FeatureVector &fv = fvs[i];
+            if (fv.size() == 0) {
+                continue;
+            }
 
-                int updateIndex = 0;
-                for (int j = 0; j < static_cast<int>(fv.size()); j++) {
-                    FeatureType &ft = cumulatedGradsPtr->featTypes[j];
-                    std::shared_ptr<FeatureEmbedding> &curFeatEmbPtr = cumulatedGradsPtr->featEmbs[j];
-                    auto &oneFeatTypeVector = fv[j];
+            int updateIndex = 0;
+            for (int j = 0; j < static_cast<int>(fv.size()); j++) {
+                FeatureType &ft = cumulatedGradsPtr->featTypes[j];
+                std::shared_ptr<FeatureEmbedding> &curFeatEmbPtr = cumulatedGradsPtr->featEmbs[j];
+                auto &oneFeatTypeVector = fv[j];
 
-
-                    for (auto &featId : oneFeatTypeVector) {
-                        curFeatEmbPtr->data[featId] += XPU_g_input[i].Slice(updateIndex, updateIndex + ft.feature_embedding_size);
-                        updateIndex += ft.feature_embedding_size;
-                        // for (int dimi = 0; dimi < ft.featEmbSize; dimi++) {
-                        //     curFeatEmbPtr->data[featId][dimi] += XPU_g_input[i][updateIndex++];
-                        // }
-                    }
+                for (auto &featId : oneFeatTypeVector) {
+                    curFeatEmbPtr->data[featId] += XPU_g_input[i].Slice(updateIndex, updateIndex + ft.feature_embedding_size);
+                    updateIndex += ft.feature_embedding_size;
+                    // for (int dimi = 0; dimi < ft.featEmbSize; dimi++) {
+                    //     curFeatEmbPtr->data[featId][dimi] += XPU_g_input[i][updateIndex++];
+                    // }
                 }
             }
+        }
     }
 
 private:
@@ -172,6 +232,8 @@ private:
 
     TensorContainer<cpu, 2, real_t> XPU_g_input;
 
+    TensorContainer<xpu, 2, real_t> input_mask;
+    TensorContainer<xpu, 2, real_t> zhiddenbak;
 public:
     void display1Tensor( Tensor<xpu, 1, real_t> & tensor ){
         for(int i = 0; i < tensor.size(0); i++)

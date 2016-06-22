@@ -41,7 +41,7 @@ public:
      */
     void init(const real_t init_range);
 
-    void readPreTrain(const std::string &file_name, const std::shared_ptr<Dictionary> dict);
+    void readPreTrain(const std::string &file_name, const std::shared_ptr<Dictionary> &dict_ptr);
 
     /**
      * clear all the data

@@ -69,6 +69,23 @@ public:
         return got == str_2_index_map.end() ? unk_index : got->second;
     }
 
+    inline std::string getString(const int id) {
+        if (id >= 0 && id < known_strings.size()) {
+            return known_strings[id];
+        }
+
+        if (id == unk_index) {
+            return c_unk_str;
+        }
+
+        if (id == null_index) {
+            return "_NULL_str_";
+        }
+
+        std::cerr << id << " is not valid!" << std::endl;
+        exit(0);
+    }
+
     /**
      * return the null index,
      * used in the feature extractor!!
@@ -83,8 +100,8 @@ public:
 
     virtual ~Dictionary() {}
 
-    int size() {
-        return static_cast<int>(str_2_index_map.size() + 1); // + 1 for the unk string
+    int size() { // chengc modify
+        return static_cast<int>(str_2_index_map.size() + 2); // + 1 for the unk string and for the null string
     }
 
     const std::vector<std::string>& getKnownStringVector() const {

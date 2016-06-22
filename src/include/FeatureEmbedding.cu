@@ -17,7 +17,7 @@ void FeatureEmbedding::init(const real_t init_range){
  * read the pre-train embedding for the feature embdding,
  * We only pre-train the word feature embedding
  */
-void FeatureEmbedding::readPreTrain(const std::string &file_name, std::shared_ptr<Dictionary> dic_ptr){
+void FeatureEmbedding::readPreTrain(const std::string &file_name, const std::shared_ptr<Dictionary> &dic_ptr){
 
     const std::tr1::unordered_map<std::string, int> &feature_2_idx = dic_ptr->str_2_index_map;
 

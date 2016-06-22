@@ -22,9 +22,9 @@ public:
 
     virtual ~FeatureExtractor() {}
 
-    virtual FeatureVector getFeatureVectors(State& state, Input& input ) = 0;
+    virtual FeatureVector getFeatureVectors(State *state_ptr, Input *input_ptr) = 0;
 
-    virtual void getDictionaries(DataSet& data) = 0;
+    virtual void getDictionaries(DataSet *data_ptr) = 0;
 
 private:
     FeatureExtractor(const FeatureExtractor &fe) = delete;

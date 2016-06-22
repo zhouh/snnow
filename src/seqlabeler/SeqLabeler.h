@@ -17,8 +17,11 @@
 #include "DataSet.h"
 #include "ChunkerFeatureExtractor.h"
 #include "ChunkerTransitionSystem.h"
+#include "ChunkerEvalb.h"
 
-// DECLARE_string(embedding_file);
+#include "GreedyChunker.h"
+
+DECLARE_string(embedding_file);
 // DECLARE_string(training_file);
 // DECLARE_string(test_file);
 // DECLARE_string(dev_file);
@@ -48,6 +51,8 @@ private:
     std::shared_ptr<ChunkerFeatureExtractor> feature_extractor_ptr_;
     std::shared_ptr<ChunkerTransitionSystem> transition_system_ptr_;
 
+    // examples for greedy training
+    std::vector<std::shared_ptr<Example>> greedy_example_ptrs_;
 public:
     SeqLabeler() = default;
 
@@ -62,7 +67,7 @@ public:
 
     double test(DataSet &test_data, Model<cpu> & model, FeedForwardNNet<gpu> & net);
 
-    void trainInit(DataSet& training_set);
+    void trainInit(DataSet *training_set_ptr);
 
 private:
 };

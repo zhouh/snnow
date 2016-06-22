@@ -59,10 +59,10 @@ public:
 
     ~ChunkerFeatureExtractor() = default;
 
-    void getDictionaries(DataSet& data) {
+    void getDictionaries(DataSet *data_ptr) {
         using namespace std;
 
-        SeqLabelerDataSet &dataset = static_cast<SeqLabelerDataSet&>(data);
+        SeqLabelerDataSet &dataset = *(static_cast<SeqLabelerDataSet *>(data_ptr));
 
         StringSet word_table;
         StringSet affix_table;
@@ -96,7 +96,9 @@ public:
                 string &label = term[2];
 
                 std::string processed_word = processWord(word);
-                wordset.insert(processed_word);
+                if (word_table.find(processed_word) != word_table.end()) {
+                    wordset.insert(processed_word);
+                }
                 uni_tagset.insert(tag);
                 labelset.insert(label);
                 for (const std::string &affix : getAffixes(processed_word)) {
@@ -122,10 +124,10 @@ public:
         for (const string &uni_tag : uni_tagset) {
             tagset.insert(uni_tag);
 
-            tagset.insert("??-" + uni_tag);
-            tagset.insert(uni_tag + "-??");
+            tagset.insert("NULLPOS-" + uni_tag);
+            tagset.insert(uni_tag + "-NULLPOS");
         }
-        tagset.insert("??-??");
+        tagset.insert("NULLPOS-NULLPOS");
         for (const string &uni1 : uni_tagset) {
             for (const string &uni2 : uni_tagset) {
                 tagset.insert(uni1 + "-" + uni2);
@@ -231,20 +233,21 @@ public:
 
             using std::string;
 
-            auto getPOS = [](std::string &s, int index, int length) -> std::string {
+            auto getPOS = [&raw_seq](int index, int length) -> std::string {
                 if (index < 0 || index >= length) {
-                    return std::string("??");
+                    return std::string("NULLPOS");
                 }
 
-                return s;
+                return raw_seq[index][1];
             };
+
             string neg1POS, neg2POS, pos1POS, pos2POS;
-            neg1POS = getPOS(term[1], index - 1, seq_len);
-            neg2POS = getPOS(term[1], index - 2, seq_len);
-            pos1POS = getPOS(term[1], index + 1, seq_len);
-            pos2POS = getPOS(term[1], index + 2, seq_len);
+            neg1POS = getPOS(index - 1, seq_len);
+            neg2POS = getPOS(index - 2, seq_len);
+            pos1POS = getPOS(index + 1, seq_len);
+            pos2POS = getPOS(index + 2, seq_len);
             input->bi_tag_cache_[index].push_back(getBiTagIndex(neg2POS, neg1POS));
-            input->bi_tag_cache_[index].push_back(getBiTagIndex(neg2POS, term[1]));
+            input->bi_tag_cache_[index].push_back(getBiTagIndex(neg1POS, term[1]));
             input->bi_tag_cache_[index].push_back(getBiTagIndex(term[1], pos1POS));
             input->bi_tag_cache_[index].push_back(getBiTagIndex(pos1POS, pos2POS));
 
@@ -255,10 +258,10 @@ public:
         }
     }
 
-    FeatureVector getFeatureVectors(State& state, Input& input) {
+    FeatureVector getFeatureVectors(State *state_ptr, Input *input_ptr) {
 
-        ChunkerState &chunk_state = static_cast<ChunkerState &>(state);
-        SeqLabelerInput &chunk_input = static_cast<SeqLabelerInput &>(input);
+        ChunkerState &chunk_state = *(static_cast<ChunkerState *>(state_ptr));
+        SeqLabelerInput &chunk_input = *(static_cast<SeqLabelerInput *>(input_ptr));
 
         auto extractWordFeature = [&chunk_state, &chunk_input, this]() -> std::vector<int> {
             auto getWordIndex = [&chunk_state, &chunk_input, this](int index) -> int {
@@ -420,6 +423,10 @@ public:
         return retval;
     }
 
+    const std::shared_ptr<Dictionary>& getWordDict() {
+        return dictionary_ptrs_table_[c_word_dict_index_];
+    }
+
     const std::shared_ptr<Dictionary>& getTagDict() {
         return dictionary_ptrs_table_[c_tag_dict_index_];
     }
@@ -431,7 +438,7 @@ public:
     int getWordIndex(const std::string &word) {
         std::string processed_word = processWord(word);
 
-        return dictionary_ptrs_table_[c_word_dict_index_]->getStringIndex(word);
+        return dictionary_ptrs_table_[c_word_dict_index_]->getStringIndex(processed_word);
     }
 
     int getUniTagIndex(const std::string &tag) {
@@ -507,6 +514,28 @@ public:
         return dictionary_ptrs_table_[c_label_dict_index_]->getMap();
     }
 
+    void returnInput(std::vector<FeatureVector> &vec_of_featurevector,
+                     std::vector<std::shared_ptr<FeatureEmbedding>> &vec_of_featemb_ptr,
+                     TensorContainer<cpu, 2, real_t> &input){
+        for(unsigned beam_index = 0; beam_index < static_cast<unsigned>(vec_of_featurevector.size()); beam_index++) { // for every beam item
+            FeatureVector &featvec = vec_of_featurevector[beam_index];
+
+            int inputIndex = 0;
+            for (int feat_type_index = 0; feat_type_index < static_cast<int>(featvec.size()); feat_type_index++) {
+                const std::vector<int> &curr_featvec = featvec[feat_type_index];
+                const int curr_featsize = feature_types_[feat_type_index].feature_size;
+                const int curr_embsize  = feature_types_[feat_type_index].feature_embedding_size;
+                std::shared_ptr<FeatureEmbedding> &curr_featemb = vec_of_featemb_ptr[feat_type_index];
+
+                for (auto featId : curr_featvec) {
+                    Copy(input[beam_index].Slice(inputIndex, inputIndex + curr_embsize),
+                         curr_featemb->data[featId],
+                         curr_featemb->data.stream_);
+                    inputIndex += curr_embsize;
+                }
+            }
+        }
+    }
 private:
     std::string processWord(const std::string &word) {
         // if (word == "-LRB-" || word == "-RRB-" || word == "-URL-") {

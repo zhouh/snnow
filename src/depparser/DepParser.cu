@@ -111,7 +111,7 @@ void DepParser::train(DataSet &train_data, DataSet &dev_data) {
     Model<cpu> model(num_in, num_hidden, num_out, feature_extractor_ptr->feature_types, NULL);
     Model<cpu> adagrad_squares(num_in, num_hidden, num_out, feature_extractor_ptr->feature_types,
                                NULL);  // for adagrad updating
-    Stream <gpu> *stream = stream = NewStream<gpu>();
+    Stream <gpu> *stream = NewStream<gpu>();
     std::clog << "###End to construct training model." << std::endl;
 
 

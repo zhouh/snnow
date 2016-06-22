@@ -31,4 +31,14 @@ struct threshold {
     }
 };
 
+struct zsigmoid{
+    MSHADOW_XINLINE static real_t Map(real_t a) {
+        if (a > 0) {
+            return  expf(-a) / (1.0 + expf(-a));
+        } else {
+            return 1.0 - (1.0 / (1.0 + expf(-a)));
+        }
+    }
+};
+
 #endif //SNNOW_ACTIVATION_H

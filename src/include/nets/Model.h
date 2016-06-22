@@ -215,12 +215,16 @@ public:
     /**
      * merge two models, used for merge model gradients
      */
-    void mergeModel(Model * model){
+    void mergeModel(Model<xpu> *model){
         Wi2h  += model->Wi2h;
         Wh2o  += model->Wh2o;
         hbias += model->hbias;
-            for(int i = 0; i < featEmbs.size(); i++)
-                featEmbs[i]->data +=  model->featEmbs[i]->data;
+        for(int i = 0; i < featEmbs.size(); i++)
+            featEmbs[i]->data +=  model->featEmbs[i]->data;
+    }
+
+    static void readWordPreTrain(const std::string &file_name, const std::shared_ptr<Dictionary> &dict_ptr, std::shared_ptr<FeatureEmbedding> &feat_emb_ptr) {
+        feat_emb_ptr->readPreTrain(file_name, dict_ptr);
     }
 
     /**
