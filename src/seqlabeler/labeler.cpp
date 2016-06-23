@@ -29,7 +29,7 @@ DEFINE_int32(hidden_size, 20, "the hidden size of the neural network");
 DEFINE_int32(feature_num, 48, "the total number of atomic features");
 DEFINE_int32(evaluate_per_iteration, 10, "evaluation gap num between iterations");
 
-DEFINE_bool(be_dropout, false, "whether using dropout");
+DEFINE_bool(be_dropout, true, "whether using dropout");
 
 DEFINE_double(learning_rate, 0.05, "learning rate");
 DEFINE_double(init_range, 0.1, "the init range of the adaGrad updating");

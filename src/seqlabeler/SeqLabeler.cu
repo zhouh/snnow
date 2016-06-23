@@ -30,7 +30,7 @@ void SeqLabeler::train(DataSet &training_set, DataSet &dev_set) {
     Stream<gpu> *stream = NewStream<gpu>();
     Model<gpu> model(num_in, num_hidden, num_out, feature_extractor_ptr_->feature_types_, stream);
     model.randomInitialize();
-    // Model<gpu>::readWordPreTrain(FLAGS_embedding_file, feature_extractor_ptr_->getWordDict(), model.featEmbs[feature_extractor_ptr_->c_word_dict_index_]);
+    Model<gpu>::readWordPreTrain(FLAGS_embedding_file, feature_extractor_ptr_->getWordDict(), model.featEmbs[feature_extractor_ptr_->c_word_dict_index_]);
     Model<gpu> adagrad_squares(num_in, num_hidden, num_out, feature_extractor_ptr_->feature_types_, stream);  // for adagrad updating
     std::clog << "# End to construct training model!" << std::endl;
 
