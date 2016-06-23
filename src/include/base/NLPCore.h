@@ -23,7 +23,7 @@ public:
      * test function
      * return the evaluation score
      */
-    virtual double test(DataSet &test_data, Model<cpu> & model, FeedForwardNNet<gpu> & net) = 0;
+    virtual double test(DataSet &test_data, Model<gpu> & model, FeedForwardNNet<gpu> & net) = 0;
 };
 
 

@@ -25,7 +25,7 @@ DECLARE_string(embedding_file);
 // DECLARE_string(training_file);
 // DECLARE_string(test_file);
 // DECLARE_string(dev_file);
-// DECLARE_string(model_file);
+DECLARE_string(model_file);
 
 DECLARE_int32(max_training_iteration_num);
 DECLARE_int32(batch_size);
@@ -48,6 +48,7 @@ DECLARE_double(adagrad_eps);
 class SeqLabeler : public NLPCore {
 private:
     bool b_train_;
+    int GPU_device_ID_;
     std::shared_ptr<ChunkerFeatureExtractor> feature_extractor_ptr_;
     std::shared_ptr<ChunkerTransitionSystem> transition_system_ptr_;
 
@@ -65,7 +66,7 @@ public:
 
     void greedyTrain(DataSet& training_set, DataSet& dev_set);
 
-    double test(DataSet &test_data, Model<cpu> & model, FeedForwardNNet<gpu> & net);
+    double test(DataSet &test_data, Model<gpu> & model, FeedForwardNNet<gpu> & net);
 
     void trainInit(DataSet *training_set_ptr);
 

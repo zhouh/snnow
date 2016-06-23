@@ -177,6 +177,50 @@ RawSequence transformEtypeFormat2BIOFormat(RawSequence &raw_sequence) {
     return ret_sequence;
 }
 
+std::vector<std::string> transformEtypeFormat2BIOFormat(std::vector<std::string> &raw_labels) {
+    using namespace std;
+
+    auto is_chunk_start = [](std::string &label) -> bool {
+        return (label[0] == 'B' || label[0] == 'O' || label[0] == 'S');
+    };
+
+    vector<string> ret_labels = raw_labels;
+
+    vector<string>::iterator start_it = ret_labels.begin();
+    while (start_it != ret_labels.end()) {
+        vector<string>::iterator next_start_it = find_if(start_it + 1, ret_labels.end(), is_chunk_start);
+
+        vector<string>::iterator end_it = next_start_it - 1;
+
+        auto len = distance(start_it, end_it);
+        if (len == 0) {
+            string label = (*start_it);
+
+            if (label[0] == 'S' || label[0] == 'B') {
+                (*start_it) = "B" + label.substr(1);
+            }
+        } else {
+            string label = (*end_it).substr(1);
+
+            (*end_it) = "I" + label;
+
+            (*start_it) = "B" + label;
+
+
+            if (len >= 2) {
+                for (auto it = start_it + 1; it < end_it; it++) {
+                    (*it) = "I" + label;
+                }
+            }
+        }
+
+        start_it = next_start_it;
+    }
+
+    return ret_labels;
+
+}
+
 std::ostream& operator<< (std::ostream &os, SeqLabelerDataSet &seq_dataset) {
     for (auto &seq : seq_dataset.raw_sequences_) {
         os << seq << std::endl;

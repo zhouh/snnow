@@ -26,6 +26,10 @@ public:
     int sequenceLength() {
         return output_label_.size();
     }
+
+    void clear() {
+        output_label_.clear();
+    }
 };
 
 #endif // SNNOW_SEQLABELEROUTPUT_H

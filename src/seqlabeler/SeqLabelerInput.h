@@ -26,6 +26,14 @@ public:
     SeqLabelerInput() = default;
 
     ~SeqLabelerInput() = default;
+
+    void clear() {
+        word_cache_.clear();
+        tag_cache_.clear();
+        bi_tag_cache_.clear();
+        affix_cache_.clear();
+        capital_cache_.clear();
+    }
 };
 
 #endif // SNNOW_SEQLABELERINPUT_H

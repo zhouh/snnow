@@ -292,14 +292,15 @@ public:
 };
 
 class ChunkerEvalb {
+public:
     // return (precision, recall, FB1)
-    static Evaluation eval(SeqLabelerDataSet &predicts, SeqLabelerDataSet &golds) {
-        assert(predicts.getSize() == golds.getSize());
+    static Evaluation eval(std::vector<std::vector<std::string>> &predicts, std::vector<std::vector<std::string>> &golds) {
+        assert(predicts.size() == golds.size());
 
         Evaluation evaluation;
-        for (int i = 0; i < predicts.getSize(); i++){
-            RawSequence pscs = transformEtypeFormat2BIOFormat(predicts.raw_sequences_[i]);
-            RawSequence gscs = transformEtypeFormat2BIOFormat(golds.raw_sequences_[i]);
+        for (int i = 0; i < predicts.size(); i++){
+            std::vector<std::string> pscs = transformEtypeFormat2BIOFormat(predicts[i]);
+            std::vector<std::string> gscs = transformEtypeFormat2BIOFormat(golds[i]);
 
             auto res = eval(pscs, gscs);
 
@@ -309,14 +310,14 @@ class ChunkerEvalb {
     }
 
     // return: (correct_count, gold_count, predict_count)
-    static Evaluation eval(RawSequence &predict, RawSequence &gold) {
+    static Evaluation eval(std::vector<std::string> &predict, std::vector<std::string> &gold) {
         assert (predict.size() == gold.size());
 
         Evaluation evaluation;
         using std::string;
 
-        const std::vector<std::vector<std::string>> &correct_terms = gold;
-        const std::vector<std::vector<std::string>> &guessed_terms = predict;
+        const std::vector<std::string> &correct_labels = gold;
+        const std::vector<std::string> &guessed_labels = predict;
 
         std::vector<std::tr1::unordered_set<string>> guessed_sets(evaluation.types.size());
         std::vector<std::tr1::unordered_set<string>> gold_sets(evaluation.types.size());
@@ -328,7 +329,7 @@ class ChunkerEvalb {
         int lastStart = -1;
         int lastEnd = -1;
         for (int i = 0; i < length; i++) {
-            guessed_label = guessed_terms[i][2];
+            guessed_label = guessed_labels[i];
             if (guessed_label[0] == 'B' || guessed_label[0] == 'O') {
                 if (lastLabel != "O") {
                     std::string label_type = lastLabel.substr(2);
@@ -357,7 +358,7 @@ class ChunkerEvalb {
         lastStart = -1;
         lastEnd = -1;
         for (int i = 0; i < length; i++) {
-            correct_label = correct_terms[i][2];
+            correct_label = correct_labels[i];
 
             if (correct_label[0] == 'B' || correct_label[0] == 'O') {
                 if (lastLabel != "O") {

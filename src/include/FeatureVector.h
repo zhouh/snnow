@@ -24,7 +24,19 @@ public:
     FeatureVector() {}
     ~FeatureVector() {}
 
-    FeatureVector(const FeatureVector& fv) = default;
+    FeatureVector(const FeatureVector &fv) {
+        feature_indexes = fv.feature_indexes;
+    }
+
+    FeatureVector&operator=(const FeatureVector &fv) {
+        if (this == &fv) {
+            return *this;
+        }
+
+        feature_indexes = fv.feature_indexes;
+
+        return *this;
+    }
 
     /**
      * static function to set the feature types
@@ -60,9 +72,17 @@ public:
         }
     }
 
-    std::vector<int>& operator[] (int index) {
+    void setVector(const int index, std::vector<int> values) {
+        feature_indexes[index] = values;
+    }
+
+    std::vector<int> getVector(const int index) {
         return feature_indexes[index];
     }
+
+    // const std::vector<int>& operator[] (int index) {
+    //     return feature_indexes[index];
+    // }
 
     void push_back(std::vector<int> feature) {
         feature_indexes.push_back(feature);

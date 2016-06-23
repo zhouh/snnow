@@ -10,12 +10,15 @@
 
 SeqLabeler::SeqLabeler(bool b_train) {
     b_train_ = b_train;
+    GPU_device_ID_ = 3;
 
     feature_extractor_ptr_.reset(new ChunkerFeatureExtractor());
     transition_system_ptr_.reset(new ChunkerTransitionSystem());
 }
 
 void SeqLabeler::train(DataSet &training_set, DataSet &dev_set) {
+    InitTensorEngine<gpu>(GPU_device_ID_);
+
     trainInit(&training_set);
 
     const int num_in = feature_extractor_ptr_->getTotalInputSize();
@@ -44,7 +47,7 @@ void SeqLabeler::train(DataSet &training_set, DataSet &dev_set) {
                                                                          greedy_example_ptrs_.begin() + batch_size);
 
         // cumulated gradients for updating
-        Model<gpu> batch_cumulated_grads(num_in, num_hidden, num_out, feature_extractor_ptr_->feature_types_, stream);
+        // Model<gpu> batch_cumulated_grads(num_in, num_hidden, num_out, feature_extractor_ptr_->feature_types_, stream);
         Model<gpu> gradients(num_in, num_hidden, num_out, feature_extractor_ptr_->feature_types_, stream);
 
         // // create the neural net for prediction
@@ -165,7 +168,7 @@ void SeqLabeler::train(DataSet &training_set, DataSet &dev_set) {
         nnet->ChunkBackprop(batch_predict_output);
         nnet->SubsideGradsTo(&gradients, feature_vectors);
 
-        model.update(&batch_cumulated_grads, &adagrad_squares);
+        model.update(&gradients, &adagrad_squares);
         auto end = std::chrono::high_resolution_clock::now();
 
         if (iter % FLAGS_evaluate_per_iteration == 0) {
@@ -175,32 +178,59 @@ void SeqLabeler::train(DataSet &training_set, DataSet &dev_set) {
             double posClassificationRate = static_cast<double>(total_correct_predict_action_num) / batch_size;
             double regular_loss = 0.5 * FLAGS_regularization_rate * model.norm2();
             double avg_loss = (loss  + regular_loss) / batch_size;
-            std::cerr << "current objective fun-score  : " << avg_loss << "\tclassfication rate: " << posClassificationRate << std::endl;
+            std::clog << "current objective fun-score  : " << avg_loss << "\tclassfication rate: " << posClassificationRate << std::endl;
         }
 
         /*
          * do the evaluation in iteration of training
          * save the best resulting model
          */
-        // if (iter % FLAGS_evaluate_per_iteration == 0) {
-        //     // do the evaluation
-        //     double dev_uas = test(dev_data, model, nnet.operator*());
-        //     if (dev_uas > best_fscore){
-        //         std::ofstream ofs(FLAGS_model_file);
-        //         model.saveModel(ofs);
-        //         ofs.close();
+        if (iter % FLAGS_evaluate_per_iteration == 0) {
+            // do the evaluation
+            double dev_fscore = test(dev_set, model, nnet.operator*());
+            if (dev_fscore > best_fscore){
+                best_fscore = dev_fscore;
 
-        //     }
-        // }
+                std::ofstream ofs(FLAGS_model_file);
+                model.saveModel(ofs);
+                ofs.close();
+            }
+            std::clog << "current iteration FB1-score  : " << dev_fscore;
+            std::clog << "\tbest FB1-score  : " << best_fscore << std::endl;
+        }
     }
+
+    ShutdownTensorEngine<gpu>();
 }
 
 void SeqLabeler::greedyTrain(DataSet &training_set, DataSet &dev_set) {
 }
 
-double SeqLabeler::test(DataSet &test_data, Model<cpu> &model, FeedForwardNNet <gpu> &net) {
+double SeqLabeler::test(DataSet &test_data, Model<gpu> &model, FeedForwardNNet<gpu> &net) {
+    SeqLabelerDataSet &chunk_dataset = static_cast<SeqLabelerDataSet&>(test_data);
 
-    return 0.0;
+    std::vector<std::vector<std::string>> gold_label_seq_set;
+    for (RawSequence &raw_seq : chunk_dataset.raw_sequences_) {
+        std::vector<std::string> label_seq;
+
+        for (std::vector<std::string> &term : raw_seq) {
+            label_seq.push_back(term[2]);
+        }
+
+        gold_label_seq_set.push_back(label_seq);
+    }
+
+    GreedyChunker greedy_chunker;
+    std::vector<std::vector<std::string>> predict_label_seq_set = greedy_chunker.predictForDataSet(transition_system_ptr_.get(),
+                                                                                               feature_extractor_ptr_.get(),
+                                                                                               &model,
+                                                                                               &chunk_dataset);
+
+    Evaluation evaluation = ChunkerEvalb::eval(predict_label_seq_set, gold_label_seq_set);
+
+    double dev_fscore = std::get<2>(evaluation.getTotalMetric());
+
+    return dev_fscore;
 }
 
 void SeqLabeler::trainInit(DataSet *training_set_ptr) {

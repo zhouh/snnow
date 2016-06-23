@@ -118,8 +118,8 @@ public:
         ChunkerAction &chunk_action = static_cast<ChunkerAction&>(*action);
 
         const int action_type = chunk_action.getActionType();
-        ChunkerState &src_state = static_cast<ChunkerState&>(*state);
-        ChunkerState &dst_state = static_cast<ChunkerState&>(*(state->previous));
+        ChunkerState &src_state = static_cast<ChunkerState&>(*(state->previous));
+        ChunkerState &dst_state = static_cast<ChunkerState&>(*state);
 
         switch (action_type) {
             case ChunkerAction::BEGIN_TYPE:

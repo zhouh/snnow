@@ -204,7 +204,7 @@ public:
             for (int j = 0; j < static_cast<int>(fv.size()); j++) {
                 FeatureType &ft = cumulatedGradsPtr->featTypes[j];
                 std::shared_ptr<FeatureEmbedding> &curFeatEmbPtr = cumulatedGradsPtr->featEmbs[j];
-                auto &oneFeatTypeVector = fv[j];
+                std::vector<int> oneFeatTypeVector = fv.getVector(j);
 
                 for (auto &featId : oneFeatTypeVector) {
                     curFeatEmbPtr->data[featId] += XPU_g_input[i].Slice(updateIndex, updateIndex + ft.feature_embedding_size);

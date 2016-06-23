@@ -29,6 +29,8 @@ extern  std::istream& operator>> (std::istream &is, RawSequence &raw_sequence);
 
 extern RawSequence transformEtypeFormat2BIOFormat(RawSequence &raw_seq);
 
+extern std::vector<std::string> transformEtypeFormat2BIOFormat(std::vector<std::string> &raw_labels);
+
 class SeqLabelerDataSet : public DataSet {
 public:
     std::vector<RawSequence> raw_sequences_;

@@ -215,6 +215,9 @@ public:
     void generateCache(SeqLabelerInput *input, SeqLabelerOutput *output, RawSequence &raw_seq) {
         const int seq_len = raw_seq.size();
 
+        input->clear();
+        output->clear();
+
         input->word_cache_.resize(seq_len);
         input->tag_cache_.resize(seq_len);
         input->bi_tag_cache_.resize(seq_len);
@@ -405,11 +408,11 @@ public:
 
         vec_of_features.resize(feature_nums_);
 
-        vec_of_features[c_word_dict_index_] = extractWordFeature();
-        vec_of_features[c_tag_dict_index_] = extractTagFeature();
-        vec_of_features[c_label_dict_index_] = extractLabelFeature();
-        vec_of_features[c_capital_dict_index_] = extractCapitalFeature();
-        vec_of_features[c_affix_dict_index_] = extractAffixFeature();
+        vec_of_features.setVector(c_word_dict_index_,  extractWordFeature());
+        vec_of_features.setVector(c_tag_dict_index_,   extractTagFeature());
+        vec_of_features.setVector(c_label_dict_index_, extractLabelFeature());
+        vec_of_features.setVector(c_capital_dict_index_, extractCapitalFeature());
+        vec_of_features.setVector(c_affix_dict_index_, extractAffixFeature());
 
         return vec_of_features;
     }
@@ -492,6 +495,10 @@ public:
         exit(1);
     }
 
+    std::string getLabelString(const int id) {
+        return dictionary_ptrs_table_[c_label_dict_index_]->getString(id);
+    }
+
     std::vector<int> getAffixIndexes(const std::string &word) {
         std::string processed_word = processWord(word);
 
@@ -522,7 +529,7 @@ public:
 
             int inputIndex = 0;
             for (int feat_type_index = 0; feat_type_index < static_cast<int>(featvec.size()); feat_type_index++) {
-                const std::vector<int> &curr_featvec = featvec[feat_type_index];
+                const std::vector<int> curr_featvec = featvec.getVector(feat_type_index);
                 const int curr_featsize = feature_types_[feat_type_index].feature_size;
                 const int curr_embsize  = feature_types_[feat_type_index].feature_embedding_size;
                 std::shared_ptr<FeatureEmbedding> &curr_featemb = vec_of_featemb_ptr[feat_type_index];
