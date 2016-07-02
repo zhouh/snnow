@@ -44,7 +44,7 @@ void SeqLabeler::train(DataSet &training_set, DataSet &dev_set) {
                                                                          greedy_example_ptrs_.begin() + batch_size);
 
         // cumulated gradients for updating
-        Model<gpu> batch_cumulated_grads(num_in, num_hidden, num_out, feature_extractor_ptr_->feature_types_, stream);
+//        Model<gpu> batch_cumulateddddd_grads(num_in, num_hidden, num_out, feature_extractor_ptr_->feature_types_, stream);
         Model<gpu> gradients(num_in, num_hidden, num_out, feature_extractor_ptr_->feature_types_, stream);
 
         // // create the neural net for prediction
@@ -165,7 +165,7 @@ void SeqLabeler::train(DataSet &training_set, DataSet &dev_set) {
         nnet->ChunkBackprop(batch_predict_output);
         nnet->SubsideGradsTo(&gradients, feature_vectors);
 
-        model.update(&batch_cumulated_grads, &adagrad_squares);
+        model.update(&g, &adagrad_squares);
         auto end = std::chrono::high_resolution_clock::now();
 
         if (iter % FLAGS_evaluate_per_iteration == 0) {

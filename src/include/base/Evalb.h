@@ -12,9 +12,9 @@ class Evalb {
 
 public:
     // return the evaluation score
-    virtual double evalb(std::vector<Input>& inputs,
-                 std::vector<Output>& predicted_outputs,
-                 std::vector<Output>& gold_outputs) = 0;
+    virtual double evalb(std::vector<Input>* inputs,
+                 std::vector<Output>* predicted_outputs,
+                 std::vector<Output>* gold_outputs) = 0;
 
 };
 

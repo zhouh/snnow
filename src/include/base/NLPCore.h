@@ -17,13 +17,12 @@
 class NLPCore {
 
 public:
-    virtual void train(DataSet& training_set, DataSet& dev_set) = 0;
 
-    /**
-     * test function
-     * return the evaluation score
-     */
-    virtual double test(DataSet &test_data, Model<cpu> & model, FeedForwardNNet<gpu> & net) = 0;
+    virtual void train(DataSet* training_set, DataSet* dev_set) = 0;
+
+//    virtual void greedyTrain(DataSet* training_set, DataSet* dev_set) = 0;
+
+    virtual double test(DataSet * test_data, Model<gpu> * model, FeedForwardNNet<gpu> * net) = 0;
 };
 
 

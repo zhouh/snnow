@@ -9,6 +9,7 @@
 #include <string>
 #include <tr1/unordered_map>
 #include <tr1/unordered_set>
+#include <iostream>
 
 #include "Macros.h"
 
@@ -27,5 +28,6 @@ const static int c_word_feature_dim = 50;
 const static int c_tag_feature_dim = 50;
 const static int c_label_feature_dim = 50;
 
+const std::string c_root = "-ROOT-";
 
 #endif //SNNOW_DEPPARSEMACRO_H

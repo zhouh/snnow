@@ -24,7 +24,7 @@ public:
     State * previous;
 
     //! the last action to generate the state
-    Action last_action;
+    Action* last_action;
 
     //! the state is gold?
     bool be_gold;

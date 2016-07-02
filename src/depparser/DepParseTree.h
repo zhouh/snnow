@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <iostream>
 
-//#include "DepArcStandardSystem.h"
+#include "DepParseMacro.h"
 #include "DepParseShiftReduceAction.h"
 #include "DepTreeNode.h"
 #include "base/Output.h"
@@ -76,8 +76,8 @@ public:
 // input the gold DepParseTree
 inline std::istream & operator >> (std::istream &is, DepParseTree * tree) {
 
-    DepTreeNode rootnode("root", "root", -1,
-                         "root"); // add root node
+    DepTreeNode rootnode(c_root, c_root, -1,
+                         c_root); // add root node
     tree->nodes.push_back(rootnode);
 
     std::string line;
@@ -99,7 +99,7 @@ inline std::ostream & operator << (std::ostream &os, const DepParseTree &tree) {
 
     // output from node 1, skip root node 
     for(unsigned i = 0; i < tree.nodes.size(); i++)
-        os <<i <<  tree.nodes[i];
+        os <<i <<"\t"<<  tree.nodes[i];
     os << std::endl;
 
     return os ;

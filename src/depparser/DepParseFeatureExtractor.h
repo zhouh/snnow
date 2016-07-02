@@ -116,6 +116,11 @@ public:
         if(index == -1) {
             return dictionary_ptrs_table[c_word_dict_index]->getNullIndex();
         }
+        else if(index >= list.size()){
+            std::cout<<"word index "<<index<<" out of bound "<<list.size()<<"!"<<std::endl;
+//            exit(0);
+        }
+
 
         return list[index];
     }
@@ -144,9 +149,9 @@ public:
     /**
      *   get the dictionary
      */
-    void getDictionaries(DataSet& data);
+    void getDictionaries(DataSet* data);
 
-    FeatureVector getFeatureVectors(State& state, Input& input);
+    FeatureVector getFeatureVectors(State* state, Input* input);
 
 //    /**
 //     *   generate training examples for global learning
@@ -155,7 +160,7 @@ public:
 //    void generateTrainingExamples(ArcStandardSystem * tranSystem, std::vector<Instance> & instances,
 //            std::vector<DepTree> & goldTrees, std::vector<GlobalExample> & gExamples);
 	void generateGreedyTrainingExamples(DepArcStandardSystem* transit_system,
-                                        DepParseDataSet& training_data,
+                                        DepParseDataSet* training_data,
                                         std::vector<std::shared_ptr<Example>> & examples);
 
     /**

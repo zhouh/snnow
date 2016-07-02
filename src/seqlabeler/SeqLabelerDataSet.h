@@ -35,6 +35,7 @@ public:
 
 public:
     SeqLabelerDataSet(std::string file_name) {
+
         std::ifstream is(file_name.c_str());
 
         size = 0;

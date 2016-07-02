@@ -15,9 +15,9 @@ std::string DepParseFeatureExtractor::label_string = "label";
  *   prepare the dictionary for feature extracting.
  *   The index of the dic here are independent
  */
-void DepParseFeatureExtractor::getDictionaries(DataSet& d) {
+void DepParseFeatureExtractor::getDictionaries(DataSet* d) {
 
-	DepParseDataSet& data = static_cast<DepParseDataSet&>(d);
+	DepParseDataSet& data = static_cast<DepParseDataSet&>(*d);
 
 	StringSet labelSet;
 	StringSet tagSet;
@@ -29,11 +29,14 @@ void DepParseFeatureExtractor::getDictionaries(DataSet& d) {
 
         DepParseTree& gold_tree_i = static_cast<DepParseTree&>(*(data.outputs[i]));
 
-		for (int j = 0; j < gold_tree_i.size; j++) { // the first node is -ROOT- node, skip
+		for (int j = 1; j < gold_tree_i.size; j++) { // the first node is -ROOT- node, skip
 			auto tree_node = gold_tree_i.nodes[j];
 			labelSet.insert(tree_node.label);
 			tagSet.insert(tree_node.tag);
 			wordSet.insert(tree_node.word);
+
+			if(tree_node.head == 0)
+				DepArcStandardSystem::setRootLabelStr(tree_node.label);
 		}
 	}
 
@@ -48,14 +51,14 @@ void DepParseFeatureExtractor::getDictionaries(DataSet& d) {
 }
 
 FeatureVector DepParseFeatureExtractor::getFeatureVectors(
-        State& base_state,
-        Input& base_input ) {
+        State* base_state,
+        Input* base_input ) {
 
 	FeatureVector features;
 	features.resize(3, feature_nums);
 
-    DepParseState& state = static_cast<DepParseState&>(base_state);
-    DepParseInput& input = static_cast<DepParseInput&>(base_input);
+    DepParseState& state = static_cast<DepParseState&>(*base_state);
+    DepParseInput& input = static_cast<DepParseInput&>(*base_input);
     
     input.word_cache;
     input.tag_cache;
@@ -84,7 +87,7 @@ FeatureVector DepParseFeatureExtractor::getFeatureVectors(
 
 	// words 
     // 0 - 12
-	features[c_word_dict_index][tag_index++] = getWordIndex(s0, input.word_cache); // 0
+	features[c_word_dict_index][word_index++] = getWordIndex(s0, input.word_cache); // 0
 	features[c_word_dict_index][word_index++] = getWordIndex(s1, input.word_cache); // 1
 	features[c_word_dict_index][word_index++] = getWordIndex(s2, input.word_cache); // 2
 	features[c_word_dict_index][word_index++] = getWordIndex(q0, input.word_cache); // 3
@@ -100,10 +103,10 @@ FeatureVector DepParseFeatureExtractor::getFeatureVectors(
 
 	// s0l s0r s0l2 s0r2 s0ll s0rr
 	int s0l, s0r, s0l2, s0r2, s0ll, s0rr;
-
-#ifdef DEBUG
-    std::cout<<"s0:"<<s0<<std::endl;
-#endif
+//
+//#ifdef DEBUG
+//    std::cout<<"s0:"<<s0<<std::endl;
+//#endif
 	s0l = s0 == -1 ? -1 : state.leftdep(s0);
 	s0r = s0 == -1 ? -1 : state.rightdep(s0);
 	s0l2 = s0 == -1 ? -1 : state.left2dep(s0);
@@ -156,6 +159,7 @@ FeatureVector DepParseFeatureExtractor::getFeatureVectors(
 	features[c_tag_dict_index][tag_index++] = getTagIndex(s1l2, input.tag_cache);
 	features[c_tag_dict_index][tag_index++] = getTagIndex(s1r2, input.tag_cache);
 	features[c_tag_dict_index][tag_index++] = getTagIndex(s1ll, input.tag_cache);
+//	std::cout<< c_tag_dict_index<< " "<<tag_index<<std::endl;
 	features[c_tag_dict_index][tag_index++] = getTagIndex(s1rr, input.tag_cache);
 
 	features[c_dep_label_dict_index][label_index++] = getLabelIndex(s1l, &state);
@@ -174,16 +178,19 @@ FeatureVector DepParseFeatureExtractor::getFeatureVectors(
  */
 void DepParseFeatureExtractor::generateGreedyTrainingExamples(
         DepArcStandardSystem* transit_system_ptr,
-        DepParseDataSet& training_data,
+        DepParseDataSet* training_data_ptr,
         std::vector<std::shared_ptr<Example>>& examples){
 
-	auto & trees = training_data.outputs;
-	auto & inputs = training_data.inputs;
+	auto & trees = training_data_ptr->outputs;
+	auto & inputs = training_data_ptr->inputs;
 
 	examples.clear();
 
 	//for every sentence, cache the word and tag hash index
-	for (unsigned i = 0; i < training_data.getSize(); i++) {
+
+	std::cout<<"training data size "+training_data_ptr->getSize()<<std::endl;
+
+	for (unsigned i = 0; i < training_data_ptr->getSize(); i++) {
 
 
         auto & input_i = static_cast<DepParseInput&>(*(inputs[i]));
@@ -227,18 +234,24 @@ void DepParseFeatureExtractor::generateGreedyTrainingExamples(
             std::vector<int> labels;  // labels will be resized in function getValidActs()
 
             //get current state features
-            FeatureVector fv = getFeatureVectors(*state_ptr, input_i);
+            FeatureVector fv = getFeatureVectors(static_cast<State*>(state_ptr.get()), inputs[i]);
 
             //get current state valid actions
-            transit_system_ptr->getValidActs(*state_ptr, labels);
+            transit_system_ptr->getValidActs(static_cast<State*>(state_ptr.get()), labels);
 
             //find gold action and move to next
-            auto gold_act = transit_system_ptr->StandardMove(*state_ptr, tree_i);
+            auto gold_act = transit_system_ptr->StandardMove(static_cast<State*>(state_ptr.get()), &tree_i);
             int gold_act_id = gold_act->getActionCode();
 
-            transit_system_ptr->Move(state_ptr.operator*(), *gold_act);
+//			std::cout<<"total action:\t"<<transit_system_ptr->action_factory_ptr->total_action_num<<"\n";
+//			std::cout << "gold_act" << gold_act_id << std::endl;
+//			std::cout<<"label size\t"<<labels.size()<<std::endl;
+//			std::cout<<"action:\t"<<static_cast<DepParseAction*>(gold_act)->toString(dictionary_ptrs_table[c_dep_label_dict_index])<<std::endl;
 
-            labels[ gold_act_id ] = 1;
+			transit_system_ptr->Move(static_cast<State*>(state_ptr.get()), gold_act);
+
+			labels[ gold_act_id ] = 1;
+
 
             std::shared_ptr<Example> example_ptr(new Example( fv ,labels ));
 

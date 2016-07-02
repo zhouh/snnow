@@ -48,7 +48,9 @@ public:
          */
         this->known_labels = knowLabels;
         dep_label_map_ptr =label_map;
-        action_factory_ptr.reset(new DepParseShiftReduceActionFactory( dep_label_map_ptr.size() ));
+
+        std::cout<< "know label size:\t"<<knowLabels.size()<<std::endl;
+        action_factory_ptr.reset(new DepParseShiftReduceActionFactory( knowLabels.size() ));
 
         // get the root label index
         for (int i = 0; i < known_labels.size(); ++i) {
@@ -59,20 +61,24 @@ public:
 
     }
 
+    static void setRootLabelStr(std::string root) {
+        c_root_str = root;
+    }
+
     inline int getRootLabelIndex(){
         assert(rootLabelIndex != -1);
         return rootLabelIndex;
     }
 
-    inline std::vector<DepParseAction>& getLeftActions(){
+    inline std::vector<DepParseAction*>& getLeftActions(){
         return action_factory_ptr->left_reduce_actions;
     }
 
-    inline std::vector<DepParseAction>& getRightActions(){
+    inline std::vector<DepParseAction*>& getRightActions(){
         return action_factory_ptr->right_reduce_actions;
     }
 
-    inline DepParseAction& getShiftAction(){
+    inline DepParseAction* getShiftAction(){
         return action_factory_ptr->shift_action;
     }
 
@@ -94,28 +100,28 @@ public:
     /**
      * move according to the given action
      */
-    void Move(State & state, Action& action);
+    void Move(State * state, Action* action);
 
     /**
      * According to state, fill the data of valid action info in ret_val
      */
-    void getValidActs(State & state, std::vector<int>& ret_val);
+    void getValidActs(State * state, std::vector<int>& ret_val);
 
     /**
      * return the gold action ptr, given context.
      *
      */
-    Action* StandardMove(State& state, Output& tree);
+    Action* StandardMove(State* state, Output* tree);
 
     /**
      * generate outputs in output
      */
-    void GenerateOutput(State& state, Input& input, Output& output);
+    void GenerateOutput(State* state, Input* input, Output* output);
 
     /**
      * move state to next gold state standardly.
      * Note that here state must be a gold state.
      */
-    void StandardMoveStep(State& state, Output& tree);
+    void StandardMoveStep(State* state, Output* tree);
 };
 #endif //SNNOW_DepArcStandardSystem_H

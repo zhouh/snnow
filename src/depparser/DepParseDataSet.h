@@ -28,17 +28,28 @@ public:
 
 //        int index = 0;
         while(true){
-            std::shared_ptr<DepParseTree> tree_ptr(new DepParseTree);
-            if( !( is >>  tree_ptr.get() ) ){ // if input ends
+            DepParseTree* tree_ptr = new DepParseTree;
+            if( !( is >>  tree_ptr ) ){ // if input ends
                 break;
             }
             size++;
 
-            std::shared_ptr<DepParseInput> input_ptr(new DepParseInput);
+            DepParseInput* input_ptr = new DepParseInput;
             tree_ptr->extractInput(*input_ptr);
-            inputs.push_back(dynamic_cast<Input*>(input_ptr.get()));
-            outputs.push_back(dynamic_cast<Output*>(tree_ptr.get()));
+            inputs.push_back(static_cast<Input*>(input_ptr));
+            outputs.push_back(static_cast<Output*>(tree_ptr));
         }
+    }
+
+    ~DepParseDataSet(){
+        for(int i = 0; i < inputs.size(); i++){
+            delete inputs[i];
+            delete outputs[i];
+        }
+
+
+
+
     }
 
 

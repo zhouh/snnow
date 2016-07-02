@@ -54,6 +54,19 @@ class DepParseState : public State{
             clear();
         }
 
+    void toString() {
+        std::cout<<"stack size:\t"<< stacksize()<<"\tLen:\t"<<len_<<"\tnextWord:\t"<<m_nNextWord<<std::endl;
+        // print stack
+
+        std::cout<<"Stack:\t";
+        for (int i = 0; i < m_Stack.size(); ++i) {
+
+            std::cout<<m_Stack[i]<<"\t";
+        }
+        std::cout << std::endl;
+
+    }
+
         void initCache(){
 
             m_lHeads.clear();
@@ -233,7 +246,7 @@ class DepParseState : public State{
         bool hasChildOnQueue(int head, DepParseTree & tree){
 
 #ifdef DEBUG
-            std::cout<<"nextWord\t"<<m_nNextWord<<"\tLen\t"<<len_<<std::endl;
+//            std::cout<<"nextWord\t"<<m_nNextWord<<"\tLen\t"<<len_<<std::endl;
 #endif
             for(int i = m_nNextWord; i < len_; ++i)
                 if(tree.nodes[i].head == head)
@@ -257,7 +270,7 @@ class DepParseState : public State{
             std::cout<<"input len: "<<len_<<std::endl;
             std::cout<<"stack: "<<stack2top()<<" "<<stacktop()<<" size: "<<stacksize()<<std::endl;
             std::cout<<"next word "<<m_nNextWord<<std::endl;
-            std::cout<<"last action: "<<last_action.getActionCode()<<std::endl;
+            std::cout<<"last action: "<<last_action->getActionCode()<<std::endl;
             std::cout<<"--------------"<<std::endl;
         }
 

@@ -69,13 +69,13 @@ public:
     ~DepParser() = default;
 
     // train the input sentences with mini-batch adaGrad
-    void train(DataSet& training_set, DataSet& dev_set);
+    void train(DataSet* training_set, DataSet* dev_set);
 
-    void greedyTrain(DataSet& training_set, DataSet& dev_set);
+    void greedyTrain(DataSet* training_set, DataSet* dev_set);
 
-    double test(DataSet &test_data, Model<cpu> & model, FeedForwardNNet<gpu> & net);
+    double test(DataSet * test_data, Model<gpu> * model, FeedForwardNNet<gpu> * net);
 
-    void trainInit(DataSet& training_set);
+    void trainInit(DataSet* training_set);
 
 
 };
