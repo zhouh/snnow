@@ -27,4 +27,16 @@ public:
 };
 
 
+inline std::ostream & operator << (std::ostream &os, const DepParseInput &input) {
+
+    // output from node 1, skip root node
+    for(unsigned i = 0; i < input.size(); i++)
+        os <<input[i].first <<"("<<  input[i].second<<")\t";
+    os << std::endl;
+
+    return os ;
+}
+
+
+
 #endif //SNNOW_DEPPARSEINPUT_H

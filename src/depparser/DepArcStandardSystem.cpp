@@ -128,7 +128,7 @@ void DepArcStandardSystem::GenerateOutput(State* state, Input* input, Output* ou
 
     parse_output.init(static_cast<DepParseInput&>(*input));
 
-    std::cout<<"generate tree"<<std::endl;
+//    std::cout<<"generate tree"<<std::endl;
 
 
     for (int i = 1; i < parse_state.len_; ++i) {
@@ -143,7 +143,7 @@ void DepArcStandardSystem::GenerateOutput(State* state, Input* input, Output* ou
         parse_output.setLabel(i, known_labels[parse_state.m_lLabels[i]]);
     }
 
-    std::cout<<"generate tree done!"<<std::endl;
+//    std::cout<<"generate tree done!"<<std::endl;
 }
 
 /*

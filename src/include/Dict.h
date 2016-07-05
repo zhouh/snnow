@@ -148,7 +148,7 @@ public:
 
     void printDict() {
         for (auto &s : known_strings) {
-            std::cerr << "  " <<  s << ": " << str_2_index_map[s] << std::endl;
+            std::cerr << "\t" <<  s << ": " << str_2_index_map[s] << std::endl;
         }
     }
 

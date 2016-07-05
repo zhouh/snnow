@@ -27,7 +27,12 @@ class FeedForwardNNet{
 
 public:
     // initialize the network
-    FeedForwardNNet(const int batch_size, const int input_num, const int hidden_num, const int output_num, Model<xpu>* model_paras) {
+    FeedForwardNNet(const int batch_size,
+                    const int input_num,
+                    const int hidden_num,
+                    const int output_num,
+                    Model<xpu>* model_paras) {
+
         this->paras = model_paras;
 
         // setup stream

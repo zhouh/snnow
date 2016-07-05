@@ -47,9 +47,6 @@ public:
             delete outputs[i];
         }
 
-
-
-
     }
 
 
